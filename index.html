@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>攻略计划</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        
+        /* Define CSS Variables for theming */
+        :root {
+            --bg-color: #1a202c;
+            --text-color: #ffffff;
+            --glass-container-bg: rgba(255, 255, 255, 0.15);
+            --user-bubble-bg: rgba(60, 179, 113, 0.7);
+            --user-bubble-text: #ffffff;
+            --ai-bubble-bg: rgba(255, 255, 255, 0.8);
+            --ai-bubble-text: #000000;
+            --main-btn-bg: #4c51bf;
+            --main-btn-hover: #434190;
+            --custom-font: 'Inter', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
+            font-family: var(--custom-font);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
+        }
+        .container {
+            height: 100vh; /* Use 100vh for the main container */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .glass-container {
+            background: var(--glass-container-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .menu-btn {
+            padding: 0.75rem 2rem;
+            font-weight: bold;
+            font-size: 1.125rem;
+            width: 180px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background: var(--glass-container-bg);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            color: var(--text-color);
+        }
+        .menu-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .message-bubble {
+            display: inline-block;
+            padding: 0.75rem 1rem;
+            max-width: 75%;
+            word-wrap: break-word;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .message-bubble.user {
+            background-color: var(--user-bubble-bg);
+            align-self: flex-end;
+            border-radius: 12px 12px 0 12px;
+            color: var(--user-bubble-text);
+        }
+        .message-bubble.ai {
+            background-color: var(--ai-bubble-bg);
+            align-self: flex-start;
+            border-radius: 12px 12px 12px 0;
+            color: var(--ai-bubble-text);
+        }
+        .chat-header, .chat-footer {
+            position: sticky;
+            width: 100%;
+            z-index: 10;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .chat-header { top: 0; padding-top: 1rem; padding-bottom: 0.5rem; }
+        .chat-footer { bottom: 0; padding-bottom: 1rem; padding-top: 0.5rem; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 20px; }
+        
+        .datetime-display {
+            position: absolute;
+            top: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .time {
+            font-size: 4rem;
+            font-weight: bold;
+        }
+        .date {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        #diary-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem; /* 24px */
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        #diary-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* Mini Music Player Styles (ADJUSTED for embedding) */
+        .mini-player-container {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 20;
+        }
+        .mini-player {
+            width: 340px;
+            max-width: 90vw;
+            background: var(--glass-container-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 12px;
+            color: var(--text-color);
+            position: relative;
+            overflow: hidden;
+        }
+        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .player-header h2 { font-size: 14px; font-weight: 600; text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
+        .import-btn { background: rgba(255, 255, 255, 0.2); border: none; color: inherit; padding: 5px 10px; border-radius: 50px; font-size: 11px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; }
+        .import-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .player-content { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .info-section { flex-grow: 1; min-width: 0; }
+        .song-info { margin-bottom: 8px; }
+        .song-info h3 { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+        .song-info p { font-size: 11px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .album-art { width: 60px; height: 60px; border-radius: 8px; background: linear-gradient(45deg, #ee9ca7, #ffdde1); overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.3); flex-shrink: 0; cursor: pointer; position: relative; transition: all 0.3s ease; }
+        .album-art:hover::after { content: '换封面'; position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.7); color: white; font-size: 9px; padding: 2px; text-align: center; }
+        .album-art i { font-size: 24px; color: rgba(255, 255, 255, 0.8); }
+        .album-art img { width: 100%; height: 100%; object-fit: cover; }
+        .progress-area { margin-bottom: 8px; }
+        .progress-container { background: rgba(255, 255, 255, 0.2); border-radius: 5px; height: 4px; margin-bottom: 5px; cursor: pointer; position: relative; }
+        .progress-bar { background: linear-gradient(90deg, #fff, #c2e9fb); border-radius: 5px; height: 100%; width: 0%; transition: width 0.1s linear; }
+        .progress-time { display: flex; justify-content: space-between; font-size: 10px; opacity: 0.8; }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
+        .control-btn { background: none; border: none; color: inherit; font-size: 12px; cursor: pointer; padding: 6px; opacity: 0.8; transition: all 0.2s; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+        .control-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
+        .play-pause { background: rgba(255, 255, 255, 0.2); width: 32px; height: 32px; border-radius: 50%; font-size: 12px; }
+        .play-pause:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
+        .volume-container { display: flex; align-items: center; gap: 6px; }
+        .volume-container i { font-size: 12px; opacity: 0.8; }
+        .volume-slider { -webkit-appearance: none; width: 60px; height: 3px; background: rgba(255, 255, 255, 0.2); border-radius: 5px; outline: none; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: white; cursor: pointer; }
+        .file-input, .cover-input { display: none; }
+        .playlist-btn { background: none; border: none; color: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px; opacity: 0.8; transition: all 0.2s; border-radius: 4px; }
+        .playlist-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
+        .song-list { margin-top: 10px; text-align: left; max-height: 100px; overflow-y: auto; background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px; display: none; }
+        .song-list::-webkit-scrollbar { width: 5px; }
+        .song-list::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .song-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        .song-list::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+        .song-item { padding: 5px 8px; border-radius: 4px; margin-bottom: 4px; cursor: pointer; transition: background 0.2s; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; }
+        .song-item:hover { background: rgba(255, 255, 255, 0.2); }
+        .song-item.active { background: rgba(255, 255, 255, 0.3); font-weight: 500; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .rotating { animation: rotate 15s linear infinite; }
+        
+        /* Diary Page Styles */
+        .diary-entry {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            position: relative;
+        }
+        .diary-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+        .diary-content strong { font-weight: bold; color: #fcd34d; }
+        .diary-content em { font-style: italic; color: #93c5fd; }
+        .diary-content del { text-decoration: line-through; opacity: 0.7; }
+        .diary-delete-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            opacity: 0.5;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .diary-delete-btn:hover { opacity: 1; }
+        .diary-checkbox {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div id="app" class="container">
+        <!-- 主页 -->
+        <div id="home-page" class="w-full h-full flex flex-col p-6 transition-all duration-500 relative">
+            <div class="datetime-display glass-container px-4 py-2">
+                <div>
+                    <div id="time-display" class="time">00:00:00</div>
+                    <div id="date-display" class="date">0000年00月00日 星期X</div>
+                </div>
+                <button id="diary-btn" title="小秘密">
+                    <i class="fa-solid fa-feather-pointed"></i> <!-- Using a feather icon as a placeholder for butterfly -->
+                </button>
+            </div>
+            
+            <div class="w-full flex-1 flex items-center mt-12">
+                <div class="w-1/2 flex flex-col items-start">
+                    <div id="avatar-container" class="relative rounded-full p-1 cursor-pointer w-32 h-32 flex items-center justify-center mb-4">
+                        <img id="avatar-frame" src="" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-10">
+                        <img id="avatar-img" src="https://placehold.co/120x120/334155/FFFFFF?text=头像" alt="Avatar" class="w-28 h-28 object-cover rounded-full">
+                    </div>
+                    <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+                    <h2 id="signature" class="text-1xl font-semibold tracking-wide">个性签名</h2>
+                </div>
+                <div class="w-1/2 flex flex-col items-end space-y-5">
+                    <button id="strategy-btn" class="menu-btn">攻略</button>
+                    <button id="memory-btn" class="menu-btn">记忆</button>
+                    <button id="role-btn" class="menu-btn">角色</button>
+                    <button id="settings-btn" class="menu-btn">设置</button>
+                </div>
+            </div>
+
+            <!-- Mini Music Player -->
+            <div class="mini-player-container">
+                <div class="mini-player">
+                    <audio id="main-audio"></audio>
+                    <div class="player-header">
+                        <h2>迷你音乐</h2>
+                        <label for="file-input" class="import-btn">
+                            <i class="fas fa-file-audio"></i> 导入
+                        </label>
+                        <input type="file" id="file-input" class="file-input" accept="audio/*" multiple>
+                    </div>
+                    <div class="player-content">
+                        <div class="info-section">
+                            <div class="song-info">
+                                <h3 id="song-title">选择一首歌曲</h3>
+                                <p id="song-artist">未知艺术家</p>
+                            </div>
+                            <div class="progress-area">
+                                <div class="progress-container">
+                                    <div class="progress-bar"></div>
+                                </div>
+                                <div class="progress-time">
+                                    <span id="current-time">0:00</span>
+                                    <span id="total-time">0:00</span>
+                                </div>
+                            </div>
+                            <div class="controls">
+                                <button class="control-btn" id="prev"><i class="fas fa-step-backward"></i></button>
+                                <button class="control-btn play-pause" id="play-pause"><i class="fas fa-play"></i></button>
+                                <button class="control-btn" id="next"><i class="fas fa-step-forward"></i></button>
+                                <div class="volume-container">
+                                    <i class="fas fa-volume-up"></i>
+                                    <input type="range" class="volume-slider" id="volume" min="0" max="1" step="0.01" value="0.7">
+                                </div>
+                                <button class="playlist-btn" id="toggle-playlist"><i class="fas fa-list"></i></button>
+                            </div>
+                        </div>
+                        <label for="cover-input" class="album-art" id="album-art-label">
+                            <i class="fas fa-music"></i>
+                        </label>
+                        <input type="file" id="cover-input" class="cover-input" accept="image/*">
+                    </div>
+                    <div class="song-list" id="playlist"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天界面 -->
+        <div id="chat-page" class="hidden w-full h-screen flex flex-col transition-all duration-500">
+            <div class="chat-header glass-container border-none rounded-b-2xl">
+                <div class="flex items-center justify-between text-white">
+                    <button id="chat-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                    <span id="affinity-display" class="text-lg font-semibold">好感度：0/100</span>
+                    <div class="flex items-center space-x-2">
+                        <button id="restart-chat-btn" title="新对话" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                        <button id="summarize-memory-btn" title="存档记忆" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v12l-3-3-3 3V4z" /></svg></button>
+                    </div>
+                </div>
+            </div>
+            <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col"></div>
+            <div class="chat-footer">
+                <div class="flex items-center space-x-2">
+                    <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
+                    <div class="flex-1 relative">
+                        <input type="text" id="user-input" class="w-full p-4 pr-14 rounded-full glass-container border-none outline-none text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-shadow duration-300" placeholder="请输入消息...">
+                         <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 text-white hover:text-pink-400 transition-colors duration-300">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 角色设置页面 -->
+        <div id="role-page" class="hidden w-full h-screen flex flex-col p-4 overflow-y-auto">
+            <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
+                 <button id="role-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                <h1 class="text-2xl font-bold text-white">角色设置</h1>
+                <div class="w-8"></div>
+            </div>
+            <div class="w-full max-w-lg mx-auto space-y-4 pb-8">
+                <div class="glass-container p-4 rounded-xl">
+                    <h2 class="text-xl font-bold mb-3 text-white">玩家人设</h2>
+                    <input type="text" id="player-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家名称">
+                    <input type="text" id="player-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家性别">
+                    <textarea id="player-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-24 focus:ring-2 focus:ring-blue-400" placeholder="玩家详细人设、背景故事、性格特点..."></textarea>
+                </div>
+                 <div class="glass-container p-4 rounded-xl">
+                    <h2 class="text-xl font-bold mb-3 text-white">攻略角色人设</h2>
+                    <input type="text" id="role-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色名称">
+                    <input type="text" id="role-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色性别">
+                    <textarea id="role-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="角色详细人设、背景故事、性格特点..."></textarea>
+                </div>
+                 <div class="glass-container p-4 rounded-xl">
+                    <h2 class="text-xl font-bold mb-3 text-white">AI行为指令</h2>
+                    <textarea id="prompt-instructions" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="给AI的特殊指令, 例如：'请以口语化的方式回复' 或 '在回复中加入表情符号'"></textarea>
+                </div>
+                <button id="save-role-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300">保存角色设置</button>
+            </div>
+        </div>
+
+        <!-- 设置页面 -->
+        <div id="settings-page" class="hidden w-full h-full flex-col p-4 overflow-y-auto">
+             <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
+                 <button id="settings-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                <h1 class="text-2xl font-bold text-white">设置</h1>
+                <div class="w-8"></div>
+            </div>
+            <div class="glass-container p-6 w-full max-w-lg mx-auto space-y-4">
+                <div class="flex flex-col">
+                    <label for="signature-input" class="text-white mb-2">个性签名</label>
+                    <input type="text" id="signature-input" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="请输入个性签名...">
+                </div>
+                <div class="flex flex-col">
+                    <label for="avatar-frame-url" class="text-white mb-2">头像框图片URL (可选)</label>
+                    <input type="text" id="avatar-frame-url" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="图片URL">
+                </div>
+                 <div class="mt-6 pt-6 border-t border-white/20">
+                    <h2 class="text-xl font-bold mb-4 text-white">背景设置</h2>
+                     <div class="flex space-x-2">
+                        <button id="bg-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
+                            选择背景图片
+                        </button>
+                        <button id="restore-bg-btn" title="还原默认背景" class="p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors duration-300">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                     </div>
+                 </div>
+                 <div class="mt-6 pt-6 border-t border-white/20">
+                    <h2 class="text-xl font-bold mb-4 text-white">字体设置</h2>
+                    <div class="flex flex-col mb-2">
+                        <label for="font-upload" class="text-white mb-2">上传自定义字体</label>
+                        <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="w-full p-3 rounded-md bg-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="font-family-select">选择字体</label>
+                        <select id="font-family-select" class="w-48 p-2 rounded-md bg-white/20 text-white">
+                            <option value="'Inter', sans-serif">默认字体 (Inter)</option>
+                            <option value="'Arial', sans-serif">Arial</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                            <option value="custom-font">自定义字体</option>
+                        </select>
+                    </div>
+                 </div>
+                 <div class="mt-6 pt-6 border-t border-white/20">
+                    <h2 class="text-xl font-bold mb-4 text-white">主题设置</h2>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div class="flex items-center justify-between"><label for="theme-bg-color">背景色</label><input type="color" id="theme-bg-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                        <div class="flex items-center justify-between"><label for="theme-text-color">文字颜色</label><input type="color" id="theme-text-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                        <div class="flex items-center justify-between"><label for="theme-glass-bg">玻璃容器</label><input type="color" id="theme-glass-bg" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                        <div class="flex items-center justify-between"><label for="theme-user-bubble">用户气泡</label><input type="color" id="theme-user-bubble" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                        <div class="flex items-center justify-between"><label for="theme-ai-bubble">AI气泡</label><input type="color" id="theme-ai-bubble" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                        <div class="flex items-center justify-between"><label for="theme-user-text">用户文字</label><input type="color" id="theme-user-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                        <div class="flex items-center justify-between"><label for="theme-ai-text">AI文字</label><input type="color" id="theme-ai-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                    </div>
+                 </div>
+                <div class="mt-6 pt-6 border-t border-white/20">
+                    <h2 class="text-xl font-bold mb-4 text-white">API 设置</h2>
+                    <input type="text" id="api-baseurl" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="API Base URL (例如: https://api.openai.com/v1)">
+                    <input type="text" id="api-key" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="API 密钥">
+                    <input type="text" id="api-model" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="模型名称 (例如: gpt-3.5-turbo)">
+                </div>
+                <!-- Data Management Section -->
+                <div class="mt-6 pt-6 border-t border-white/20">
+                    <h2 class="text-xl font-bold mb-4 text-white">数据管理</h2>
+                    <div class="flex space-x-4">
+                        <button id="export-data-btn" class="w-full p-3 rounded-md bg-green-600 text-white font-bold hover:bg-green-700 transition-colors duration-300">导出数据</button>
+                        <button id="import-data-btn" class="w-full p-3 rounded-md bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors duration-300">导入数据</button>
+                    </div>
+                    <input type="file" id="import-file-input" class="hidden" accept=".json">
+                </div>
+                <button id="save-settings-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300 mt-4">保存所有设置</button>
+            </div>
+        </div>
+        
+        <!-- 记忆页面 -->
+        <div id="memory-page" class="hidden w-full h-screen flex flex-col p-4">
+            <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
+                 <button id="memory-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                <h1 class="text-2xl font-bold text-white">记忆存档</h1>
+                <button id="add-memory-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+            </div>
+            <div id="memory-list" class="glass-container p-4 w-full max-w-lg mx-auto flex-1 overflow-y-auto space-y-2"></div>
+        </div>
+
+        <!-- 日记页面 -->
+        <div id="diary-page" class="hidden w-full h-screen flex flex-col p-4">
+            <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-4">
+                <button id="diary-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                <h1 class="text-2xl font-bold text-white">小秘密</h1>
+                <div class="flex items-center space-x-2">
+                    <button id="generate-diary-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="生成新日记"><i class="fas fa-pen-nib"></i></button>
+                    <button id="batch-delete-diaries-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="批量删除"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+            <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4">
+                <!-- Diary entries will be injected here -->
+            </div>
+            <div id="diary-batch-actions" class="hidden w-full max-w-2xl mx-auto mt-4 flex space-x-2">
+                <button id="confirm-batch-delete-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
+                <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
+            </div>
+        </div>
+
+        <!-- 自定义弹窗 -->
+        <div id="custom-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+            <div class="glass-container p-6 shadow-xl w-full max-w-sm border-none">
+                <h3 id="dialog-title" class="text-xl font-bold mb-4 text-white"></h3>
+                <p id="dialog-message" class="mb-4 text-white"></p>
+                <div id="dialog-input-container" class="mb-4 hidden">
+                    <textarea id="dialog-input" class="w-full p-2 border-none rounded-md bg-white/20 text-white placeholder-gray-300 h-24"></textarea>
+                </div>
+                <div id="dialog-buttons" class="flex justify-end space-x-2"></div>
+            </div>
+        </div>
+        <input type="file" id="bg-upload" accept="image/*" class="hidden">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const get = id => document.getElementById(id);
+            const APP_VERSION = "1.2"; // Version updated for new features
+
+            // Page elements
+            const pages = {
+                home: get('home-page'),
+                chat: get('chat-page'),
+                role: get('role-page'),
+                settings: get('settings-page'),
+                memory: get('memory-page'),
+                diary: get('diary-page') // New diary page
+            };
+
+            // Buttons
+            const strategyBtn = get('strategy-btn');
+            const memoryBtn = get('memory-btn');
+            const roleBtn = get('role-btn');
+            const settingsBtn = get('settings-btn');
+            const addMemoryBtn = get('add-memory-btn');
+            const saveRoleBtn = get('save-role-btn');
+            const saveSettingsBtn = get('save-settings-btn');
+            const backBtns = document.querySelectorAll('#chat-back-btn, #role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn');
+            const exportDataBtn = get('export-data-btn');
+            const importDataBtn = get('import-data-btn');
+            const importFileInput = get('import-file-input');
+            const diaryBtn = get('diary-btn');
+
+            // Home page elements
+            const avatarContainer = get('avatar-container');
+            const avatarImg = get('avatar-img');
+            const avatarFrame = get('avatar-frame');
+            const avatarUpload = get('avatar-upload');
+            const signatureDisplay = get('signature');
+            const timeDisplay = get('time-display');
+            const dateDisplay = get('date-display');
+
+            // Chat elements
+            const chatHistory = get('chat-history');
+            const userInput = get('user-input');
+            const sendBtn = get('send-btn');
+            const aiReplyBtn = get('ai-reply-btn');
+            const restartChatBtn = get('restart-chat-btn');
+            const summarizeMemoryBtn = get('summarize-memory-btn');
+            const affinityDisplay = get('affinity-display');
+            const chatFooter = document.querySelector('.chat-footer');
+
+            // Memory elements
+            const memoryListEl = get('memory-list');
+            
+            // Diary elements
+            const diaryListContainer = get('diary-list-container');
+            const generateDiaryBtn = get('generate-diary-btn');
+            const batchDeleteDiariesBtn = get('batch-delete-diaries-btn');
+            const diaryBatchActions = get('diary-batch-actions');
+            const confirmBatchDeleteBtn = get('confirm-batch-delete-btn');
+            const cancelBatchDeleteBtn = get('cancel-batch-delete-btn');
+            let isBatchDeleteMode = false;
+
+            // Dialog elements
+            const dialog = get('custom-dialog');
+            const dialogTitle = get('dialog-title');
+            const dialogMessage = get('dialog-message');
+            const dialogInputContainer = get('dialog-input-container');
+            const dialogInput = get('dialog-input');
+            const dialogButtons = get('dialog-buttons');
+            
+            const themeBgColor = get('theme-bg-color');
+            const themeTextColor = get('theme-text-color');
+            const themeGlassBg = get('theme-glass-bg');
+            const themeUserBubble = get('theme-user-bubble');
+            const themeAiBubble = get('theme-ai-bubble');
+            const themeUserText = get('theme-user-text');
+            const themeAiText = get('theme-ai-text');
+            
+            const fontUpload = get('font-upload');
+            const fontFamilySelect = get('font-family-select');
+            
+            const bgUploadBtn = get('bg-upload-btn');
+            const restoreBgBtn = get('restore-bg-btn');
+            const bgUpload = get('bg-upload');
+            
+            const apiBaseUrl = get('api-baseurl');
+            const apiKey = get('api-key');
+            const apiModel = get('api-model');
+
+            const state = {
+                version: APP_VERSION,
+                config: {
+                    bgImage: null,
+                    avatarImage: null,
+                    avatarFrameUrl: '',
+                    signature: '个性签名',
+                    api: { baseUrl: '', key: '', model: '' },
+                    colors: {
+                        bgColor: '#1a202c',
+                        textColor: '#ffffff',
+                        glassBg: 'rgba(255, 255, 255, 0.15)',
+                        userBubble: 'rgba(60, 179, 113, 0.7)',
+                        userText: '#ffffff',
+                        aiBubble: 'rgba(255, 255, 255, 0.8)',
+                        aiText: '#000000',
+                    },
+                    fontFamily: "'Inter', sans-serif",
+                    customFont: null
+                },
+                role: {
+                    playerName: '', playerGender: '', playerPersona: '',
+                    roleName: '', roleGender: '', rolePersona: '',
+                    promptInstructions: ''
+                },
+                chat: { history: [], affinity: 0 },
+                memories: [],
+                diaries: [], // New state for diaries
+                music: {
+                    playlist: [],
+                    currentSongIndex: -1,
+                    albumArt: null,
+                    volume: 0.7
+                }
+            };
+            
+            const applyColors = (colors) => {
+                document.documentElement.style.setProperty('--bg-color', colors.bgColor);
+                document.documentElement.style.setProperty('--text-color', colors.textColor);
+                document.documentElement.style.setProperty('--glass-container-bg', colors.glassBg);
+                document.documentElement.style.setProperty('--user-bubble-bg', colors.userBubble);
+                document.documentElement.style.setProperty('--user-bubble-text', colors.userText);
+                document.documentElement.style.setProperty('--ai-bubble-bg', colors.aiBubble);
+                document.documentElement.style.setProperty('--ai-bubble-text', colors.aiText);
+                document.body.style.backgroundColor = colors.bgColor;
+            };
+            
+            const applyFont = (fontFamily, customFontData = null) => {
+                if (customFontData) {
+                    const fontFace = new FontFace('custom-font', `url(${customFontData})`);
+                    fontFace.load().then(function(loadedFace) {
+                        document.fonts.add(loadedFace);
+                        document.documentElement.style.setProperty('--custom-font', "'custom-font', sans-serif");
+                    }).catch(function(error) {
+                        console.error('字体加载失败:', error);
+                    });
+                }
+                document.documentElement.style.setProperty('--custom-font', fontFamily);
+                document.body.style.fontFamily = `var(--custom-font)`;
+            };
+
+            const saveState = () => {
+                try {
+                    state.version = APP_VERSION;
+                    localStorage.setItem('game_state_v5', JSON.stringify(state));
+                } catch (e) {
+                    console.error("Failed to save state, possibly too large.", e);
+                    showDialog("保存失败", "数据过大，无法保存。请尝试减少音乐列表或记忆条目。");
+                }
+            };
+
+            const loadState = () => {
+                try {
+                    const savedState = JSON.parse(localStorage.getItem('game_state_v5'));
+                    if (savedState) {
+                        Object.keys(state).forEach(key => {
+                            if (savedState[key] !== undefined && savedState[key] !== null) {
+                                if (Array.isArray(state[key])) {
+                                    if(Array.isArray(savedState[key])) {
+                                        state[key] = savedState[key];
+                                    }
+                                } else if (typeof state[key] === 'object' && state[key] !== null) {
+                                     state[key] = { ...state[key], ...savedState[key] };
+                                } else {
+                                    state[key] = savedState[key];
+                                }
+                            }
+                        });
+                        if(savedState.config && savedState.config.colors) {
+                           state.config.colors = { ...state.config.colors, ...savedState.config.colors };
+                        }
+                    }
+                } catch (e) { 
+                    console.error("Failed to load state, possibly corrupt data. Resetting state.", e);
+                    localStorage.removeItem('game_state_v5');
+                }
+                
+                if (state.config.bgImage) {
+                    document.body.style.backgroundImage = `url(${state.config.bgImage})`;
+                } else {
+                    document.body.style.backgroundImage = '';
+                }
+                if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
+                if (state.config.avatarFrameUrl) avatarFrame.src = state.config.avatarFrameUrl;
+                signatureDisplay.textContent = state.config.signature;
+                applyColors(state.config.colors);
+                applyFont(state.config.fontFamily, state.config.customFont);
+                
+                initMusicPlayer();
+                renderChatHistory();
+                renderMemoryList();
+                renderDiaryList();
+            };
+
+            const showView = (view) => {
+                Object.values(pages).forEach(p => p.classList.add('hidden'));
+                if(pages[view]) pages[view].classList.remove('hidden');
+            };
+
+            const showDialog = (title, message, options = {}) => {
+                return new Promise((resolve) => {
+                    dialogTitle.textContent = title;
+                    dialogMessage.textContent = message;
+                    dialogButtons.innerHTML = '';
+
+                    if (options.input) {
+                        dialogInputContainer.classList.remove('hidden');
+                        dialogInput.value = options.defaultValue || '';
+                    } else {
+                        dialogInputContainer.classList.add('hidden');
+                    }
+
+                    const buttons = options.buttons || [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '确定', value: true, class: 'bg-blue-500' }];
+                    buttons.forEach(btnInfo => {
+                        const button = document.createElement('button');
+                        button.textContent = btnInfo.text;
+                        button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
+                        button.onclick = () => {
+                            dialog.classList.add('hidden');
+                            dialog.style.display = 'none';
+                            const result = options.input ? (btnInfo.value === false ? false : dialogInput.value) : btnInfo.value;
+                            resolve(result);
+                        };
+                        dialogButtons.appendChild(button);
+                    });
+                    
+                    dialog.classList.remove('hidden');
+                    dialog.style.display = 'flex';
+                    if (options.input) dialogInput.focus();
+                });
+            };
+
+            const showToast = (message) => {
+                const toast = document.createElement('div');
+                toast.textContent = message;
+                toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 z-50 opacity-0';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.classList.remove('opacity-0'), 10);
+                setTimeout(() => {
+                    toast.classList.add('opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            };
+            
+            const updateDateTime = () => {
+                const now = new Date();
+                timeDisplay.textContent = now.toLocaleTimeString('zh-CN');
+                dateDisplay.textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            };
+            
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // --- Mini Music Player Logic ---
+            function initMusicPlayer() {
+                const audio = get('main-audio');
+                const playPauseBtn = get('play-pause');
+                const prevBtn = get('prev');
+                const nextBtn = get('next');
+                const volumeSlider = get('volume');
+                const progressContainer = document.querySelector('.progress-container');
+                const progressBar = document.querySelector('.progress-bar');
+                const currentTimeEl = get('current-time');
+                const totalTimeEl = get('total-time');
+                const songTitle = get('song-title');
+                const songArtist = get('song-artist');
+                const albumArtLabel = get('album-art-label');
+                const fileInput = get('file-input');
+                const coverInput = get('cover-input');
+                const playlistEl = get('playlist');
+                const togglePlaylistBtn = get('toggle-playlist');
+                
+                let isPlaying = false;
+
+                function renderPlaylist() {
+                    playlistEl.innerHTML = '';
+                    if (!state.music.playlist || state.music.playlist.length === 0) return;
+
+                    state.music.playlist.forEach((song, index) => {
+                        const songItem = document.createElement('div');
+                        songItem.className = 'song-item';
+                        songItem.textContent = song.name;
+                        
+                        songItem.addEventListener('click', () => {
+                            loadSong(index, true);
+                        });
+
+                        let pressTimer;
+                        songItem.addEventListener('mousedown', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); });
+                        songItem.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                        songItem.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                        songItem.addEventListener('touchstart', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); }, { passive: true });
+                        songItem.addEventListener('touchend', () => clearTimeout(pressTimer));
+
+                        playlistEl.appendChild(songItem);
+                    });
+                }
+
+                function managePlaylistItem(index) {
+                    const song = state.music.playlist[index];
+                    if (!song) return;
+
+                    showDialog('删除歌曲', `确定要从列表中删除 "${song.name}" 吗？`)
+                        .then(confirmed => {
+                            if (confirmed) {
+                                const wasPlaying = (index === state.music.currentSongIndex);
+                                if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
+                                state.music.playlist.splice(index, 1);
+                                if (wasPlaying) {
+                                    audio.pause(); audio.src = ''; state.music.currentSongIndex = -1;
+                                    songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家';
+                                    currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00';
+                                    albumArtLabel.innerHTML = '<i class="fas fa-music"></i>'; albumArtLabel.classList.remove('rotating');
+                                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                                }
+                                saveState(); renderPlaylist();
+                                if(state.music.currentSongIndex !== -1) {
+                                    const activeSongEl = playlistEl.children[state.music.currentSongIndex];
+                                    if (activeSongEl) activeSongEl.classList.add('active');
+                                }
+                                showToast('歌曲已删除');
+                            }
+                        });
+                }
+                
+                function loadSong(index, play = false) {
+                    if (!state.music.playlist || index < 0 || index >= state.music.playlist.length) return;
+                    state.music.currentSongIndex = index;
+                    const song = state.music.playlist[index];
+                    if (!song.dataUrl) {
+                        showToast(`请重新导入歌曲: ${song.name}`); songTitle.textContent = song.name; songArtist.textContent = '需要重新导入'; return;
+                    }
+                    songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; audio.src = song.dataUrl;
+                    playlistEl.querySelectorAll('.song-item').forEach((item, idx) => item.classList.toggle('active', idx === index));
+                    if (play) audio.play();
+                    saveState();
+                }
+
+                function togglePlay() {
+                    if (state.music.playlist.length === 0) return;
+                    if (audio.paused) {
+                        if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true);
+                        else if (!audio.src) loadSong(0, true);
+                        else audio.play();
+                    } else audio.pause();
+                }
+
+                audio.onplay = () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; albumArtLabel.classList.add('rotating'); };
+                audio.onpause = () => { isPlaying = false; playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; albumArtLabel.classList.remove('rotating'); };
+                audio.onended = () => nextSong();
+
+                function updateProgress() {
+                    const { currentTime, duration } = audio;
+                    if (duration) {
+                        progressBar.style.width = `${(currentTime / duration) * 100}%`;
+                        currentTimeEl.textContent = formatTime(currentTime);
+                        totalTimeEl.textContent = formatTime(duration);
+                    }
+                }
+                
+                function setProgress(e) {
+                    if (state.music.playlist.length === 0 || !audio.duration) return;
+                    audio.currentTime = (e.offsetX / this.clientWidth) * audio.duration;
+                }
+                
+                function formatTime(seconds) {
+                    if (isNaN(seconds)) return '0:00';
+                    const minutes = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60);
+                    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+                }
+                
+                const prevSong = () => { if (state.music.playlist.length === 0) return; loadSong((state.music.currentSongIndex - 1 + state.music.playlist.length) % state.music.playlist.length, true); };
+                const nextSong = () => { if (state.music.playlist.length === 0) return; loadSong((state.music.currentSongIndex + 1) % state.music.playlist.length, true); };
+                
+                const setVolume = () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; saveState(); };
+
+                async function handleFileSelect(e) {
+                    const files = Array.from(e.target.files);
+                    if (files.length === 0) return;
+                    showToast(`正在导入 ${files.length} 首歌曲...`);
+                    const readAsDataURL = (file) => new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve({ name: file.name.replace(/\.[^/.]+$/, ""), dataUrl: reader.result });
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                    try {
+                        const newSongs = await Promise.all(files.map(readAsDataURL));
+                        newSongs.forEach(newSong => {
+                            const existingSongIndex = state.music.playlist.findIndex(s => s.name === newSong.name && !s.dataUrl);
+                            if (existingSongIndex > -1) state.music.playlist[existingSongIndex].dataUrl = newSong.dataUrl;
+                            else state.music.playlist.push(newSong);
+                        });
+                        renderPlaylist(); showToast('歌曲导入完成！');
+                        if (!isPlaying && state.music.currentSongIndex === -1) loadSong(state.music.playlist.length - newSongs.length, true);
+                        else {
+                            const currentSong = state.music.playlist[state.music.currentSongIndex];
+                            if(currentSong && !currentSong.dataUrl) {
+                                const matchingNewSong = newSongs.find(ns => ns.name === currentSong.name);
+                                if(matchingNewSong) loadSong(state.music.currentSongIndex, true);
+                            }
+                        }
+                        saveState();
+                    } catch(error) { console.error("Error reading files:", error); showDialog('错误', '导入歌曲时发生错误。'); }
+                }
+                
+                function handleCoverSelect(e) {
+                    const file = e.target.files[0];
+                    if (!file || !file.type.match('image.*')) return;
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        state.music.albumArt = e.target.result;
+                        albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
+                        saveState();
+                    };
+                    reader.readAsDataURL(file);
+                }
+                
+                renderPlaylist();
+                if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
+                if (state.music.currentSongIndex > -1) loadSong(state.music.currentSongIndex, false);
+                volumeSlider.value = state.music.volume; audio.volume = state.music.volume;
+                playPauseBtn.addEventListener('click', togglePlay);
+                prevBtn.addEventListener('click', prevSong);
+                nextBtn.addEventListener('click', nextSong);
+                audio.addEventListener('timeupdate', updateProgress);
+                progressContainer.addEventListener('click', setProgress);
+                volumeSlider.addEventListener('input', setVolume);
+                fileInput.addEventListener('change', handleFileSelect);
+                coverInput.addEventListener('change', handleCoverSelect);
+                togglePlaylistBtn.addEventListener('click', () => { playlistEl.style.display = (playlistEl.style.display === 'block') ? 'none' : 'block'; });
+            }
+
+            // Navigation
+            strategyBtn.addEventListener('click', () => showView('chat'));
+            memoryBtn.addEventListener('click', () => { renderMemoryList(); showView('memory'); });
+            diaryBtn.addEventListener('click', () => { renderDiaryList(); showView('diary'); });
+            roleBtn.addEventListener('click', () => {
+                get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender;
+                get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName;
+                get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona;
+                get('prompt-instructions').value = state.role.promptInstructions;
+                showView('role');
+            });
+            settingsBtn.addEventListener('click', () => {
+                get('signature-input').value = state.config.signature; get('avatar-frame-url').value = state.config.avatarFrameUrl;
+                apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model;
+                themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor;
+                themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble);
+                themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble);
+                themeAiText.value = state.config.colors.aiText;
+                fontFamilySelect.value = (state.config.fontFamily === 'custom-font' && state.config.customFont) ? 'custom-font' : state.config.fontFamily;
+                showView('settings');
+            });
+            backBtns.forEach(btn => btn.addEventListener('click', () => showView('home')));
+            avatarContainer.addEventListener('click', () => avatarUpload.click());
+
+            avatarUpload.addEventListener('change', e => {
+                if (!e.target.files || e.target.files.length === 0) return;
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    state.config.avatarImage = event.target.result;
+                    avatarImg.src = state.config.avatarImage;
+                    saveState(); showToast('头像已更换');
+                };
+                reader.readAsDataURL(file);
+            });
+
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+
+            const rgbaToHex = (rgba) => {
+                if (!rgba || !rgba.startsWith('rgba')) return '#000000';
+                const parts = rgba.substring(rgba.indexOf('(') + 1, rgba.lastIndexOf(')')).split(',');
+                const r = parseInt(parts[0].trim()), g = parseInt(parts[1].trim()), b = parseInt(parts[2].trim());
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            };
+            
+            fontUpload.addEventListener('change', e => {
+                if (!e.target.files || e.target.files.length === 0) return;
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    state.config.customFont = event.target.result; state.config.fontFamily = 'custom-font';
+                    applyFont('custom-font', state.config.customFont); fontFamilySelect.value = 'custom-font';
+                    saveState(); showToast('自定义字体已上传并应用');
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            fontFamilySelect.addEventListener('change', e => {
+                const selectedFont = e.target.value;
+                if (selectedFont === 'custom-font') {
+                    if (state.config.customFont) { state.config.fontFamily = 'custom-font'; applyFont('custom-font', state.config.customFont); } 
+                    else { showToast('请先上传自定义字体'); e.target.value = state.config.fontFamily; }
+                } else { state.config.fontFamily = selectedFont; applyFont(selectedFont); }
+                saveState();
+            });
+
+            saveSettingsBtn.addEventListener('click', () => {
+                state.config.signature = get('signature-input').value; state.config.avatarFrameUrl = get('avatar-frame-url').value;
+                state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
+                state.config.colors.bgColor = themeBgColor.value; state.config.colors.textColor = themeTextColor.value;
+                state.config.colors.glassBg = hexToRgba(themeGlassBg.value, 0.15); state.config.colors.userBubble = hexToRgba(themeUserBubble.value, 0.7);
+                state.config.colors.userText = themeUserText.value; state.config.colors.aiBubble = hexToRgba(themeAiBubble.value, 0.8);
+                state.config.colors.aiText = themeAiText.value;
+                applyColors(state.config.colors); signatureDisplay.textContent = state.config.signature; avatarFrame.src = state.config.avatarFrameUrl;
+                saveState(); showToast('设置已保存');
+            });
+            
+            bgUploadBtn.addEventListener('click', () => bgUpload.click());
+            bgUpload.addEventListener('change', (e) => {
+                if (!e.target.files || e.target.files.length === 0) return;
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    state.config.bgImage = event.target.result; document.body.style.backgroundImage = `url(${state.config.bgImage})`;
+                    saveState(); showToast('背景已更换');
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            restoreBgBtn.addEventListener('click', () => {
+                state.config.bgImage = null; document.body.style.backgroundImage = '';
+                applyColors(state.config.colors); saveState(); showToast('已还原为默认背景');
+            });
+
+            saveRoleBtn.addEventListener('click', () => {
+                state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value;
+                state.role.playerPersona = get('player-persona').value; state.role.roleName = get('role-name').value;
+                state.role.roleGender = get('role-gender').value; state.role.rolePersona = get('role-persona').value;
+                state.role.promptInstructions = get('prompt-instructions').value;
+                saveState(); showToast('角色设置已保存');
+            });
+
+            // Chat Functionality
+            const renderChatHistory = () => {
+                chatHistory.innerHTML = '';
+                if (!state.chat.history) state.chat.history = [];
+                state.chat.history.forEach((msg, index) => {
+                    const bubble = document.createElement('div');
+                    bubble.className = `message-bubble ${msg.sender}`;
+                    bubble.textContent = msg.text;
+                    let pressTimer;
+                    bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
+                    bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                    bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                    bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
+                    bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    chatHistory.appendChild(bubble);
+                });
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                affinityDisplay.textContent = `好感度：${state.chat.affinity}/100`;
+            };
+
+            const manageChatMessage = (index) => {
+                const msg = state.chat.history[index];
+                if (!msg) return;
+                showDialog('管理消息', `"${msg.text}"`, { buttons: [
+                    {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
+                    {text: '删除', value: 'delete', class: 'bg-red-500/80'},
+                    {text: '编辑', value: 'edit', class: 'bg-blue-500'}
+                ]}).then(action => {
+                    if (action === 'edit') {
+                        showDialog('编辑消息', '', { input: true, defaultValue: msg.text }).then(newText => {
+                            if (newText) {
+                                state.chat.history[index].text = newText;
+                                saveState(); renderChatHistory(); showToast('消息已更新');
+                            }
+                        });
+                    } else if (action === 'delete') {
+                        showDialog('确认删除', '确定要删除这条消息吗？').then(confirmed => {
+                            if (confirmed) {
+                                state.chat.history.splice(index, 1);
+                                saveState(); renderChatHistory(); showToast('消息已删除');
+                            }
+                        });
+                    }
+                });
+            };
+
+            const sendMessage = (sender, text) => {
+                if (!text || !text.trim()) return;
+                state.chat.history.push({ sender, text });
+                renderChatHistory(); 
+                if (sender === 'user') userInput.value = '';
+                saveState();
+            };
+
+            async function sendAiMessages(texts) {
+                for (const text of texts) {
+                    const trimmedText = text.trim();
+                    if (trimmedText) {
+                        sendMessage('ai', trimmedText);
+                        await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
+                    }
+                }
+                renderChatHistory();
+            }
+            
+            sendBtn.addEventListener('click', () => sendMessage('user', userInput.value));
+            userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage('user', userInput.value); }});
+            // Fix for mobile keyboard covering input
+            userInput.addEventListener('focus', () => {
+                setTimeout(() => {
+                    chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 300);
+            });
+            
+            aiReplyBtn.addEventListener('click', async () => {
+                if (!state.config.api.baseUrl || !state.config.api.key) { 
+                    showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); });
+                    return;
+                }
+                showToast('角色正在思考中...');
+                aiReplyBtn.disabled = true;
+                try {
+                    const messages = createApiPrompt();
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
+                    }
+                    const data = await response.json();
+                    let aiResponse = data.choices?.[0]?.message?.content;
+                    if (!aiResponse) throw new Error("无法解析API响应格式");
+                    
+                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/;
+                    const match = aiResponse.match(affinityRegex);
+                    if (match && match[1]) {
+                        state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10)));
+                        aiResponse = aiResponse.replace(affinityRegex, '').trim();
+                    }
+                    
+                    const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
+                    await sendAiMessages(replyMessages);
+
+                } catch (error) {
+                    console.error("API请求失败:", error);
+                    showDialog('API请求失败', `错误: ${error.message}`);
+                } finally {
+                    aiReplyBtn.disabled = false;
+                }
+            });
+
+            const createApiPrompt = () => {
+                let systemPrompt = `你是一个AI角色，正在与玩家互动。
+玩家信息: 名称=${state.role.playerName || '玩家'}, 性别=${state.role.playerGender}, 人设=${state.role.playerPersona}.
+你的角色信息: 名称=${state.role.roleName || 'AI'}, 性别=${state.role.roleGender}, 人设=${state.role.rolePersona}.
+重要规则：
+1. 你的回复必须模仿短信聊天，一次性发送多条短消息。请将你的回复分成至少3到15个独立的句子，并用句号、问号或感叹号结尾。
+2. 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
+                if(state.memories && state.memories.length > 0) systemPrompt += `\n你们共同的记忆: ${state.memories.map(m => m.content).join('; ')}.`;
+                if(state.role.promptInstructions) systemPrompt += `\n请遵循以下额外指令: ${state.role.promptInstructions}.`;
+                const messages = [{ role: 'system', content: systemPrompt }];
+                state.chat.history.forEach(msg => messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: msg.text }));
+                return messages;
+            };
+
+            restartChatBtn.addEventListener('click', () => {
+                showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。').then(ok => {
+                    if (ok) {
+                        state.chat = { history: [], affinity: 0 };
+                        saveState(); renderChatHistory(); showToast('对话已清空');
+                    }
+                });
+            });
+            
+            summarizeMemoryBtn.addEventListener('click', async () => {
+                if (state.chat.history.length === 0) { showDialog('错误', '没有聊天记录可以总结。'); return; }
+                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+                showToast('正在总结聊天内容...');
+                summarizeMemoryBtn.disabled = true;
+                try {
+                    const chatContent = state.chat.history.map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}：${msg.text}`).join('\n');
+                    const systemPrompt = "你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁的记忆存档。";
+                    const messages = [ { role: 'system', content: systemPrompt }, { role: 'user', content: `对话内容:\n${chatContent}\n\n请简洁地总结以上对话内容，例如：'玩家与[角色]在[地点]讨论了[主题]。'` } ];
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
+                    }
+                    const data = await response.json();
+                    let summaryText = data.choices?.[0]?.message?.content;
+                    if (summaryText) {
+                        state.memories.push({ id: Date.now(), content: summaryText, timestamp: new Date().toLocaleString() });
+                        saveState(); renderMemoryList(); showToast('记忆已成功存档！');
+                    } else { throw new Error("API response is empty or malformed."); }
+                } catch (error) {
+                    console.error("API请求失败:", error);
+                    showDialog('API请求失败', `总结记忆时发生错误: ${error.message}`);
+                } finally { summarizeMemoryBtn.disabled = false; }
+            });
+            
+            // Memory Page
+            addMemoryBtn.addEventListener('click', () => {
+                showDialog('添加新记忆', '请输入记忆内容:', { input: true, defaultValue: '' }).then(content => {
+                    if (content) {
+                        state.memories.push({ id: Date.now(), content, timestamp: new Date().toLocaleString() });
+                        saveState(); renderMemoryList(); showToast('记忆已添加');
+                    }
+                });
+            });
+
+            const renderMemoryList = () => {
+                if (!state.memories) state.memories = [];
+                memoryListEl.innerHTML = state.memories.length === 0 ? '<p class="text-white/70 text-center">沒有记忆存档。</p>' : '';
+                [...state.memories].reverse().forEach((mem, index) => {
+                    const originalIndex = state.memories.length - 1 - index;
+                    const item = document.createElement('div');
+                    item.className = 'p-4 rounded-xl cursor-pointer hover:bg-white/20 transition-colors duration-300';
+                    item.innerHTML = `<p class="text-white whitespace-pre-wrap">${mem.content}</p><p class="text-xs text-white/50 mt-1">${mem.timestamp}</p>`;
+                    item.addEventListener('click', () => showMemoryDetails(mem, originalIndex));
+                    memoryListEl.appendChild(item);
+                });
+            };
+
+            const showMemoryDetails = (mem, index) => {
+                showDialog('管理记忆', '请选择操作', { buttons: [
+                    {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
+                    {text: '删除', value: 'delete', class: 'bg-red-500/80'},
+                    {text: '编辑', value: 'edit', class: 'bg-blue-500'}
+                ]}).then(action => {
+                    if (action === 'edit') {
+                        showDialog('编辑记忆', '', { input: true, defaultValue: mem.content }).then(newContent => {
+                            if (newContent) {
+                                state.memories[index].content = newContent; state.memories[index].timestamp = new Date().toLocaleString();
+                                saveState(); renderMemoryList(); showToast('记忆已更新');
+                            }
+                        });
+                    } else if (action === 'delete') {
+                        showDialog('确认删除', '确定要删除这条记忆吗？').then(confirmed => {
+                            if (confirmed) {
+                                state.memories.splice(index, 1);
+                                saveState(); renderMemoryList(); showToast('记忆已删除');
+                            }
+                        });
+                    }
+                });
+            };
+
+            // --- Diary Functionality ---
+            const renderMarkdown = (text) => {
+                return text
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/~~(.*?)~~/g, '<del>$1</del>');
+            };
+
+            const renderDiaryList = () => {
+                if (!state.diaries) state.diaries = [];
+                diaryListContainer.innerHTML = state.diaries.length === 0 ? '<p class="text-white/70 text-center">还没有日记，试着生成一篇吧。</p>' : '';
+                
+                [...state.diaries].reverse().forEach(diary => {
+                    const item = document.createElement('div');
+                    item.className = 'diary-entry';
+                    item.dataset.id = diary.id;
+                    let innerHTML = '';
+                    if (isBatchDeleteMode) {
+                        innerHTML += `<input type="checkbox" class="diary-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">`;
+                        item.classList.add('pl-12');
+                    } else {
+                        innerHTML += `<button class="diary-delete-btn" title="删除日记"><i class="fas fa-times"></i></button>`;
+                        item.classList.remove('pl-12');
+                    }
+                    innerHTML += `<p class="text-xs text-white/50 mb-2">${diary.timestamp}</p>`;
+                    innerHTML += `<div class="diary-content">${renderMarkdown(diary.content)}</div>`;
+                    item.innerHTML = innerHTML;
+                    
+                    if (!isBatchDeleteMode) {
+                        item.querySelector('.diary-delete-btn').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showDialog('删除日记', '确定要删除这篇日记吗？').then(confirmed => {
+                                if (confirmed) {
+                                    state.diaries = state.diaries.filter(d => d.id !== diary.id);
+                                    saveState(); renderDiaryList(); showToast('日记已删除');
+                                }
+                            });
+                        });
+                    }
+                    diaryListContainer.appendChild(item);
+                });
+
+                diaryBatchActions.style.display = isBatchDeleteMode ? 'flex' : 'none';
+            };
+
+            generateDiaryBtn.addEventListener('click', async () => {
+                if (state.chat.history.length < 5) { showDialog('无法生成', '聊天记录太少，无法生成有意义的日记。'); return; }
+                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+                
+                showToast('AI正在撰写日记...');
+                generateDiaryBtn.disabled = true;
+                try {
+                    const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。
+请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。
+共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}
+最近的对话(最多20条):
+${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}
+
+写作要求:
+- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。
+- 必须超过200字。
+- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。
+- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`;
+
+                    const messages = [{ role: 'system', content: systemPrompt }];
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
+                    }
+                    const data = await response.json();
+                    const diaryContent = data.choices?.[0]?.message?.content;
+                    if (diaryContent) {
+                        state.diaries.push({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString() });
+                        saveState(); renderDiaryList(); showToast('日记已生成！');
+                    } else { throw new Error("API did not return diary content."); }
+                } catch (error) {
+                    console.error("Diary generation failed:", error);
+                    showDialog('生成失败', `生成日记时发生错误: ${error.message}`);
+                } finally {
+                    generateDiaryBtn.disabled = false;
+                }
+            });
+
+            batchDeleteDiariesBtn.addEventListener('click', () => {
+                isBatchDeleteMode = true;
+                renderDiaryList();
+            });
+
+            cancelBatchDeleteBtn.addEventListener('click', () => {
+                isBatchDeleteMode = false;
+                renderDiaryList();
+            });
+
+            confirmBatchDeleteBtn.addEventListener('click', () => {
+                const selectedIds = [];
+                diaryListContainer.querySelectorAll('.diary-entry').forEach(entry => {
+                    const checkbox = entry.querySelector('.diary-checkbox');
+                    if (checkbox && checkbox.checked) {
+                        selectedIds.push(parseInt(entry.dataset.id));
+                    }
+                });
+
+                if (selectedIds.length === 0) {
+                    showToast('没有选中任何日记');
+                    return;
+                }
+
+                showDialog('批量删除', `确定要删除选中的 ${selectedIds.length} 篇日记吗？`).then(confirmed => {
+                    if (confirmed) {
+                        state.diaries = state.diaries.filter(d => !selectedIds.includes(d.id));
+                        saveState();
+                        isBatchDeleteMode = false;
+                        renderDiaryList();
+                        showToast('日记已删除');
+                    }
+                });
+            });
+
+            // --- Data Export/Import ---
+            exportDataBtn.addEventListener('click', async () => {
+                const confirmed = await showDialog('导出数据', '这将导出所有设置、聊天记录、记忆和日记。音乐文件本身不会被导出。是否继续？');
+                if (!confirmed) return;
+
+                try {
+                    const exportState = JSON.parse(JSON.stringify(state));
+                    if (exportState.music && exportState.music.playlist) {
+                        exportState.music.playlist.forEach(song => { delete song.dataUrl; });
+                    }
+                    const dataStr = JSON.stringify(exportState, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast('数据已成功导出');
+                } catch(e) {
+                    showDialog('错误', '导出数据失败: ' + e.message);
+                }
+            });
+
+            importDataBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            importFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const importedState = JSON.parse(event.target.result);
+                        if (!importedState.version || !importedState.config || !importedState.role || !importedState.chat) {
+                            throw new Error('文件格式无效或不兼容。');
+                        }
+                        const confirmed = await showDialog('导入数据', '这将覆盖所有当前数据，确定要继续吗？');
+                        if (confirmed) {
+                            localStorage.setItem('game_state_v5', JSON.stringify(importedState));
+                            showToast('数据导入成功，正在刷新...');
+                            setTimeout(() => window.location.reload(), 1500);
+                        }
+                    } catch (err) {
+                        showDialog('导入失败', '无法解析文件或文件格式错误: ' + err.message);
+                    } finally {
+                        importFileInput.value = '';
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            loadState();
+            showView('home');
+        });
+    </script>
+</body>
+</html>
