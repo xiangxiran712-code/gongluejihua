@@ -98,11 +98,13 @@
         }
         .message-bubble {
             display: inline-block;
-            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            padding: 0.6rem 0.9rem;
             max-width: 75%;
             word-wrap: break-word;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             cursor: pointer;
+            position: relative;
         }
         .message-bubble.user {
             background-color: var(--user-bubble-bg);
@@ -116,7 +118,7 @@
             border-radius: 12px 12px 12px 0;
             color: var(--ai-bubble-text);
         }
-        .chat-header, .chat-footer {
+        .chat-header, .chat-footer, .batch-actions-footer {
             position: sticky;
             width: 100%;
             z-index: 10;
@@ -124,7 +126,7 @@
             padding-right: 1rem;
         }
         .chat-header { top: 0; padding-top: 1rem; padding-bottom: 0.5rem; }
-        .chat-footer { bottom: 0; padding-bottom: 1rem; padding-top: 0.5rem; }
+        .chat-footer, .batch-actions-footer { bottom: 0; padding-bottom: 1rem; padding-top: 0.5rem; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 20px; }
         
@@ -144,7 +146,7 @@
             font-weight: bold;
         }
         .date {
-            font-size: 1rem;
+            font-size: 0.8rem;
             opacity: 0.8;
         }
         #diary-btn {
@@ -219,14 +221,15 @@
         .song-item.active { background: rgba(255, 255, 255, 0.3); font-weight: 500; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .rotating { animation: rotate 15s linear infinite; }
-        .diary-entry { background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; position: relative; }
+        .diary-entry, .memory-item { background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; position: relative; }
         .diary-content { white-space: pre-wrap; line-height: 1.6; color: var(--text-color); }
         .diary-content strong { font-weight: bold; color: #fcd34d; }
         .diary-content em { font-style: italic; color: #93c5fd; }
         .diary-content del { text-decoration: line-through; opacity: 0.7; }
         .diary-delete-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: var(--text-color); opacity: 0.5; cursor: pointer; transition: opacity 0.2s; }
         .diary-delete-btn:hover { opacity: 1; }
-        .diary-checkbox { position: absolute; top: 0.75rem; left: 0.75rem; }
+        .batch-delete-checkbox { position: absolute; top: 0.75rem; left: 0.75rem; }
+        .form-checkbox { background-color: #4a5568; border-color: #718096; }
     </style>
 </head>
 <body>
@@ -253,7 +256,7 @@
                                     <img id="avatar-img" src="https://placehold.co/120x120/334155/FFFFFF?text=头像" alt="Avatar" class="w-28 h-28 object-cover rounded-full">
                                 </div>
                                 <input type="file" id="avatar-upload" accept="image/*" class="hidden">
-                                <h2 id="signature" class="text-1xl font-semibold tracking-wide">个性签名</h2>
+                                <h2 id="signature" class="text-xs font-semibold tracking-wide">个性签名</h2>
                             </div>
                             <div class="w-1/2 flex flex-col items-end space-y-4">
                                 <button id="strategy-btn" class="menu-btn">攻略</button>
@@ -323,7 +326,7 @@
                             </div>
                         </div>
                         <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col"></div>
-                        <div class="chat-footer">
+                        <div id="chat-footer" class="chat-footer">
                             <div class="flex items-center space-x-2">
                                 <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
                                 <div class="flex-1 relative">
@@ -332,6 +335,12 @@
                                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                        <div id="chat-batch-actions" class="batch-actions-footer hidden">
+                            <div class="flex w-full space-x-2">
+                                <button id="confirm-batch-delete-chat-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
+                                <button id="cancel-batch-delete-chat-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
                             </div>
                         </div>
                     </div>
@@ -443,9 +452,16 @@
                         <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
                              <button id="memory-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                             <h1 class="text-2xl font-bold text-white">记忆存档</h1>
-                            <button id="add-memory-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                            <div class="flex items-center space-x-2">
+                                <button id="batch-delete-memories-btn" title="批量删除" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><i class="fas fa-trash-alt"></i></button>
+                                <button id="add-memory-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                            </div>
                         </div>
                         <div id="memory-list" class="glass-container p-4 w-full max-w-lg mx-auto flex-1 overflow-y-auto space-y-2"></div>
+                        <div id="memory-batch-actions" class="hidden w-full max-w-lg mx-auto mt-4 flex space-x-2">
+                            <button id="confirm-batch-delete-memories-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
+                            <button id="cancel-batch-delete-memories-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
+                        </div>
                     </div>
 
                     <!-- 日记页面 -->
@@ -460,7 +476,7 @@
                         </div>
                         <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4"></div>
                         <div id="diary-batch-actions" class="hidden w-full max-w-2xl mx-auto mt-4 flex space-x-2">
-                            <button id="confirm-batch-delete-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
+                            <button id="confirm-batch-delete-diaries-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
                             <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
                         </div>
                     </div>
@@ -484,202 +500,189 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.6"; // Version updated for large music file support
+            const APP_VERSION = "1.8.1"; // Version with API fix
 
-            // NEW: In-memory cache for music files. This is not saved to localStorage.
+            // --- IndexedDB Helper ---
+            const db = {
+                _db: null,
+                init: function(dbName, storeName) {
+                    return new Promise((resolve, reject) => {
+                        const request = indexedDB.open(dbName, 1);
+                        request.onerror = () => reject("IndexedDB error: " + request.error);
+                        request.onsuccess = (event) => { this._db = event.target.result; resolve(this); };
+                        request.onupgradeneeded = (event) => {
+                            const db = event.target.result;
+                            if (!db.objectStoreNames.contains(storeName)) {
+                                db.createObjectStore(storeName);
+                            }
+                        };
+                    });
+                },
+                set: function(storeName, key, value) {
+                    return new Promise((resolve, reject) => {
+                        if (!this._db) return reject("DB not initialized");
+                        try {
+                            const transaction = this._db.transaction([storeName], 'readwrite');
+                            const store = transaction.objectStore(storeName);
+                            const request = store.put(value, key);
+                            request.onsuccess = () => resolve();
+                            request.onerror = () => reject("Failed to save to DB: " + request.error);
+                        } catch (e) { reject(e); }
+                    });
+                },
+                get: function(storeName, key) {
+                    return new Promise((resolve, reject) => {
+                        if (!this._db) return reject("DB not initialized");
+                        const transaction = this._db.transaction([storeName]);
+                        const store = transaction.objectStore(storeName);
+                        const request = store.get(key);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject("Failed to get from DB: " + request.error);
+                    });
+                },
+                delete: function(storeName, key) {
+                    return new Promise((resolve, reject) => {
+                        if (!this._db) return reject("DB not initialized");
+                        const transaction = this._db.transaction([storeName], 'readwrite');
+                        const store = transaction.objectStore(storeName);
+                        const request = store.delete(key);
+                        request.onsuccess = () => resolve();
+                        request.onerror = () => reject("Failed to delete from DB: " + request.error);
+                    });
+                }
+            };
+            await db.init('GameDataStore', 'assets');
+
             let musicFileCache = new Map();
 
             // Page elements
             const phoneScreen = get('phone-screen');
-            const pages = {
-                home: get('home-page'),
-                chat: get('chat-page'),
-                role: get('role-page'),
-                settings: get('settings-page'),
-                memory: get('memory-page'),
-                diary: get('diary-page')
-            };
+            const pages = { home: get('home-page'), chat: get('chat-page'), role: get('role-page'), settings: get('settings-page'), memory: get('memory-page'), diary: get('diary-page') };
 
             // Buttons
-            const strategyBtn = get('strategy-btn');
-            const memoryBtn = get('memory-btn');
-            const roleBtn = get('role-btn');
-            const settingsBtn = get('settings-btn');
-            const addMemoryBtn = get('add-memory-btn');
-            const saveRoleBtn = get('save-role-btn');
-            const saveSettingsBtn = get('save-settings-btn');
+            const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
             const backBtns = document.querySelectorAll('#chat-back-btn, #role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn');
-            const exportDataBtn = get('export-data-btn');
-            const importDataBtn = get('import-data-btn');
-            const importFileInput = get('import-file-input');
-            const diaryBtn = get('diary-btn');
+            const exportDataBtn = get('export-data-btn'), importDataBtn = get('import-data-btn'), importFileInput = get('import-file-input'), diaryBtn = get('diary-btn');
 
             // Home page elements
-            const avatarContainer = get('avatar-container');
-            const avatarImg = get('avatar-img');
-            const avatarFrame = get('avatar-frame');
-            const avatarUpload = get('avatar-upload');
-            const signatureDisplay = get('signature');
-            const timeDisplay = get('time-display');
-            const dateDisplay = get('date-display');
+            const avatarContainer = get('avatar-container'), avatarImg = get('avatar-img'), avatarFrame = get('avatar-frame'), avatarUpload = get('avatar-upload');
+            const signatureDisplay = get('signature'), timeDisplay = get('time-display'), dateDisplay = get('date-display');
 
             // Chat elements
-            const chatHistory = get('chat-history');
-            const userInput = get('user-input');
-            const sendBtn = get('send-btn');
-            const aiReplyBtn = get('ai-reply-btn');
-            const restartChatBtn = get('restart-chat-btn');
-            const summarizeMemoryBtn = get('summarize-memory-btn');
-            const affinityDisplay = get('affinity-display');
-            const chatFooter = document.querySelector('.chat-footer');
+            const chatHistory = get('chat-history'), userInput = get('user-input'), sendBtn = get('send-btn'), aiReplyBtn = get('ai-reply-btn');
+            const restartChatBtn = get('restart-chat-btn'), summarizeMemoryBtn = get('summarize-memory-btn'), affinityDisplay = get('affinity-display'), chatFooter = get('chat-footer');
+            const chatBatchActions = get('chat-batch-actions'), confirmBatchDeleteChatBtn = get('confirm-batch-delete-chat-btn'), cancelBatchDeleteChatBtn = get('cancel-batch-delete-chat-btn');
+            let isChatBatchDeleteMode = false;
 
             // Memory elements
-            const memoryListEl = get('memory-list');
+            const memoryListEl = get('memory-list'), addMemoryBtn = get('add-memory-btn'), batchDeleteMemoriesBtn = get('batch-delete-memories-btn');
+            const memoryBatchActions = get('memory-batch-actions'), confirmBatchDeleteMemoriesBtn = get('confirm-batch-delete-memories-btn'), cancelBatchDeleteMemoriesBtn = get('cancel-batch-delete-memories-btn');
+            let isMemoryBatchDeleteMode = false;
             
             // Diary elements
-            const diaryListContainer = get('diary-list-container');
-            const generateDiaryBtn = get('generate-diary-btn');
-            const batchDeleteDiariesBtn = get('batch-delete-diaries-btn');
-            const diaryBatchActions = get('diary-batch-actions');
-            const confirmBatchDeleteBtn = get('confirm-batch-delete-btn');
-            const cancelBatchDeleteBtn = get('cancel-batch-delete-btn');
-            let isBatchDeleteMode = false;
+            const diaryListContainer = get('diary-list-container'), generateDiaryBtn = get('generate-diary-btn'), batchDeleteDiariesBtn = get('batch-delete-diaries-btn');
+            const diaryBatchActions = get('diary-batch-actions'), confirmBatchDeleteBtn = get('confirm-batch-delete-diaries-btn'), cancelBatchDeleteBtn = get('cancel-batch-delete-btn');
+            let isDiaryBatchDeleteMode = false;
 
             // Dialog elements
-            const dialog = get('custom-dialog');
-            const dialogTitle = get('dialog-title');
-            const dialogMessage = get('dialog-message');
-            const dialogInputContainer = get('dialog-input-container');
-            const dialogInput = get('dialog-input');
-            const dialogButtons = get('dialog-buttons');
+            const dialog = get('custom-dialog'), dialogTitle = get('dialog-title'), dialogMessage = get('dialog-message');
+            const dialogInputContainer = get('dialog-input-container'), dialogInput = get('dialog-input'), dialogButtons = get('dialog-buttons');
             
             // Settings Elements
-            const themeBgColor = get('theme-bg-color');
-            const themeTextColor = get('theme-text-color');
-            const themeGlassBg = get('theme-glass-bg');
-            const themeUserBubble = get('theme-user-bubble');
-            const themeAiBubble = get('theme-ai-bubble');
-            const themeUserText = get('theme-user-text');
-            const themeAiText = get('theme-ai-text');
-            const fontUpload = get('font-upload');
-            const fontFamilySelect = get('font-family-select');
-            const bgUploadBtn = get('bg-upload-btn');
-            const bgUploadInput = get('bg-upload-input');
-            const avatarFrameUploadBtn = get('avatar-frame-upload-btn');
-            const avatarFrameUploadInput = get('avatar-frame-upload-input');
-            const restoreAppearanceBtn = get('restore-appearance-btn');
-            const apiBaseUrl = get('api-baseurl');
-            const apiKey = get('api-key');
-            const apiModel = get('api-model');
+            const themeBgColor = get('theme-bg-color'), themeTextColor = get('theme-text-color'), themeGlassBg = get('theme-glass-bg'), themeUserBubble = get('theme-user-bubble');
+            const themeAiBubble = get('theme-ai-bubble'), themeUserText = get('theme-user-text'), themeAiText = get('theme-ai-text');
+            const fontUpload = get('font-upload'), fontFamilySelect = get('font-family-select'), bgUploadBtn = get('bg-upload-btn'), bgUploadInput = get('bg-upload-input');
+            const avatarFrameUploadBtn = get('avatar-frame-upload-btn'), avatarFrameUploadInput = get('avatar-frame-upload-input'), restoreAppearanceBtn = get('restore-appearance-btn');
+            const apiBaseUrl = get('api-baseurl'), apiKey = get('api-key'), apiModel = get('api-model');
 
             const state = {
                 version: APP_VERSION,
-                config: {
-                    bgImage: null,
-                    avatarImage: null,
-                    avatarFrameImage: null,
-                    signature: '个性签名',
-                    api: { baseUrl: '', key: '', model: '' },
-                    colors: {
-                        bgColor: '#1a202c',
-                        textColor: '#ffffff',
-                        glassBg: 'rgba(255, 255, 255, 0.15)',
-                        userBubble: 'rgba(60, 179, 113, 0.7)',
-                        userText: '#ffffff',
-                        aiBubble: 'rgba(255, 255, 255, 0.8)',
-                        aiText: '#000000',
-                    },
-                    fontFamily: "'Inter', sans-serif",
-                    customFont: null
-                },
-                role: {
-                    playerName: '', playerGender: '', playerPersona: '',
-                    roleName: '', roleGender: '', rolePersona: '',
-                    promptInstructions: ''
-                },
+                config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFont: null },
+                role: { playerName: '', playerGender: '', playerPersona: '', roleName: '', roleGender: '', rolePersona: '', promptInstructions: '' },
                 chat: { history: [], affinity: 0 },
                 memories: [],
                 diaries: [],
-                music: {
-                    playlist: [], // IMPORTANT: Now only stores metadata like {name: '...'}
-                    currentSongIndex: -1,
-                    albumArt: null,
-                    volume: 0.7
-                }
+                music: { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 }
             };
             
             const applyColors = (colors) => {
-                document.documentElement.style.setProperty('--bg-color', colors.bgColor);
-                document.documentElement.style.setProperty('--text-color', colors.textColor);
-                document.documentElement.style.setProperty('--glass-container-bg', colors.glassBg);
-                document.documentElement.style.setProperty('--user-bubble-bg', colors.userBubble);
-                document.documentElement.style.setProperty('--user-bubble-text', colors.userText);
-                document.documentElement.style.setProperty('--ai-bubble-bg', colors.aiBubble);
-                document.documentElement.style.setProperty('--ai-bubble-text', colors.aiText);
-                phoneScreen.style.backgroundColor = colors.bgColor;
+                document.documentElement.style.setProperty('--bg-color', colors.bgColor); document.documentElement.style.setProperty('--text-color', colors.textColor);
+                document.documentElement.style.setProperty('--glass-container-bg', colors.glassBg); document.documentElement.style.setProperty('--user-bubble-bg', colors.userBubble);
+                document.documentElement.style.setProperty('--user-bubble-text', colors.userText); document.documentElement.style.setProperty('--ai-bubble-bg', colors.aiBubble);
+                document.documentElement.style.setProperty('--ai-bubble-text', colors.aiText); phoneScreen.style.backgroundColor = colors.bgColor;
             };
             
             const applyFont = (fontFamily, customFontData = null) => {
-                if (customFontData) {
+                if (fontFamily === 'custom-font' && customFontData) {
                     const fontFace = new FontFace('custom-font', `url(${customFontData})`);
-                    fontFace.load().then(function(loadedFace) {
+                    fontFace.load().then(loadedFace => {
                         document.fonts.add(loadedFace);
                         document.documentElement.style.setProperty('--custom-font', "'custom-font', sans-serif");
-                    }).catch(function(error) {
-                        console.error('字体加载失败:', error);
-                    });
+                    }).catch(error => console.error('Custom font failed to load:', error));
+                } else {
+                    document.documentElement.style.setProperty('--custom-font', fontFamily);
                 }
-                document.documentElement.style.setProperty('--custom-font', fontFamily);
-                document.body.style.fontFamily = `var(--custom-font)`;
             };
 
-            const saveState = () => {
+            const ASSET_KEYS = ['bgImage', 'avatarImage', 'avatarFrameImage', 'customFont'];
+
+            async function saveState() {
                 try {
                     state.version = APP_VERSION;
-                    // Create a deep copy of the state to avoid modifying the original
                     const stateToSave = JSON.parse(JSON.stringify(state));
-                    // Ensure no large data is in the music playlist before saving
+
+                    for (const key of ASSET_KEYS) {
+                        const assetData = stateToSave.config[key];
+                        if (assetData && assetData.startsWith('data:')) {
+                            await db.set('assets', key, assetData);
+                            stateToSave.config[key] = 'indexed';
+                        } else if (!assetData) {
+                            await db.delete('assets', key).catch(e => console.warn(`Could not delete ${key} from DB`, e));
+                        }
+                    }
+                    
                     if (stateToSave.music && stateToSave.music.playlist) {
                         stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
                     }
                     localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
                 } catch (e) {
                     console.error("Failed to save state.", e);
-                    showDialog("保存失败", "数据无法保存，可能是浏览器限制。");
+                    showDialog("保存失败", "数据无法保存，可能是浏览器存储空间已满。");
                 }
             };
 
-            const loadState = () => {
+            async function loadState() {
                 try {
                     const savedState = JSON.parse(localStorage.getItem('game_state_v5'));
                     if (savedState) {
                         Object.keys(state).forEach(key => {
-                            if (savedState[key] !== undefined && savedState[key] !== null) {
-                                if (Array.isArray(state[key])) {
-                                    if(Array.isArray(savedState[key])) {
-                                        state[key] = savedState[key];
-                                    }
-                                } else if (typeof state[key] === 'object' && state[key] !== null) {
-                                     state[key] = { ...state[key], ...savedState[key] };
+                            if (savedState[key] !== undefined) {
+                                if (typeof state[key] === 'object' && state[key] !== null && !Array.isArray(state[key])) {
+                                    state[key] = { ...state[key], ...savedState[key] };
                                 } else {
                                     state[key] = savedState[key];
                                 }
                             }
                         });
-                        if(savedState.config && savedState.config.colors) {
+                         if(savedState.config && savedState.config.colors) {
                            state.config.colors = { ...state.config.colors, ...savedState.config.colors };
                         }
                     }
                 } catch (e) { 
-                    console.error("Failed to load state, possibly corrupt data. Resetting state.", e);
+                    console.error("Failed to load state from localStorage, possibly corrupt data.", e);
                     localStorage.removeItem('game_state_v5');
+                }
+
+                for (const key of ASSET_KEYS) {
+                    if (state.config[key] === 'indexed') {
+                        const data = await db.get('assets', key);
+                        if (data) state.config[key] = data;
+                    }
                 }
                 
                 if (state.config.bgImage) phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
-                else phoneScreen.style.backgroundImage = '';
-                
                 if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
                 if (state.config.avatarFrameImage) avatarFrame.src = state.config.avatarFrameImage;
                 
@@ -700,33 +703,22 @@
 
             const showDialog = (title, message, options = {}) => {
                 return new Promise((resolve) => {
-                    dialogTitle.textContent = title;
-                    dialogMessage.textContent = message;
-                    dialogButtons.innerHTML = '';
-
-                    if (options.input) {
-                        dialogInputContainer.classList.remove('hidden');
-                        dialogInput.value = options.defaultValue || '';
-                    } else {
-                        dialogInputContainer.classList.add('hidden');
-                    }
+                    dialogTitle.textContent = title; dialogMessage.textContent = message; dialogButtons.innerHTML = '';
+                    dialogInputContainer.classList.toggle('hidden', !options.input);
+                    if (options.input) dialogInput.value = options.defaultValue || '';
 
                     const buttons = options.buttons || [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '确定', value: true, class: 'bg-blue-500' }];
                     buttons.forEach(btnInfo => {
                         const button = document.createElement('button');
-                        button.textContent = btnInfo.text;
-                        button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
+                        button.textContent = btnInfo.text; button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
                         button.onclick = () => {
-                            dialog.classList.add('hidden');
-                            dialog.style.display = 'none';
+                            dialog.classList.add('hidden'); dialog.style.display = 'none';
                             const result = options.input ? (btnInfo.value === false ? false : dialogInput.value) : btnInfo.value;
                             resolve(result);
                         };
                         dialogButtons.appendChild(button);
                     });
-                    
-                    dialog.classList.remove('hidden');
-                    dialog.style.display = 'flex';
+                    dialog.classList.remove('hidden'); dialog.style.display = 'flex';
                     if (options.input) dialogInput.focus();
                 });
             };
@@ -737,10 +729,7 @@
                 toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 z-50 opacity-0';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.classList.remove('opacity-0'), 10);
-                setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 2000);
+                setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 2000);
             };
             
             const updateDateTime = () => {
@@ -749,30 +738,15 @@
                 dateDisplay.textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
             };
             
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
+            updateDateTime(); setInterval(updateDateTime, 1000);
             
-            // --- REFACTORED: Mini Music Player Logic ---
             function initMusicPlayer() {
-                const audio = get('main-audio');
-                const playPauseBtn = get('play-pause');
-                const prevBtn = get('prev');
-                const nextBtn = get('next');
-                const volumeSlider = get('volume');
-                const progressContainer = document.querySelector('.progress-container');
-                const progressBar = document.querySelector('.progress-bar');
-                const currentTimeEl = get('current-time');
-                const totalTimeEl = get('total-time');
-                const songTitle = get('song-title');
-                const songArtist = get('song-artist');
-                const albumArtLabel = get('album-art-label');
-                const fileInput = get('file-input');
-                const coverInput = get('cover-input');
-                const playlistEl = get('playlist');
-                const togglePlaylistBtn = get('toggle-playlist');
-                
+                const audio = get('main-audio'), playPauseBtn = get('play-pause'), prevBtn = get('prev'), nextBtn = get('next'), volumeSlider = get('volume');
+                const progressContainer = document.querySelector('.progress-container'), progressBar = document.querySelector('.progress-bar');
+                const currentTimeEl = get('current-time'), totalTimeEl = get('total-time'), songTitle = get('song-title'), songArtist = get('song-artist');
+                const albumArtLabel = get('album-art-label'), fileInput = get('file-input'), coverInput = get('cover-input'), playlistEl = get('playlist'), togglePlaylistBtn = get('toggle-playlist');
                 let isPlaying = false;
-
+                
                 function renderPlaylist() {
                     playlistEl.innerHTML = '';
                     if (!state.music.playlist || state.music.playlist.length === 0) return;
@@ -781,16 +755,13 @@
                         const songItem = document.createElement('div');
                         songItem.className = 'song-item';
                         songItem.textContent = song.name;
-                        
                         songItem.addEventListener('click', () => { loadSong(index, true); });
-
                         let pressTimer;
                         songItem.addEventListener('mousedown', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); });
                         songItem.addEventListener('mouseup', () => clearTimeout(pressTimer));
                         songItem.addEventListener('mouseleave', () => clearTimeout(pressTimer));
                         songItem.addEventListener('touchstart', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); }, { passive: true });
                         songItem.addEventListener('touchend', () => clearTimeout(pressTimer));
-
                         playlistEl.appendChild(songItem);
                     });
                 }
@@ -798,38 +769,18 @@
                 function managePlaylistItem(index) {
                     const song = state.music.playlist[index];
                     if (!song) return;
-
                     showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？ (文件不会被删除)`, {
-                        buttons: [
-                            {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
-                            {text: '移除', value: 'delete', class: 'bg-red-500/80'}
-                        ]
-                    }).then(action => {
+                        buttons: [{text: '取消', value: 'cancel', class: 'bg-gray-500/50'}, {text: '移除', value: 'delete', class: 'bg-red-500/80'}]
+                    }).then(async action => {
                         if (action === 'delete') {
                             const wasPlaying = (index === state.music.currentSongIndex);
                             const removedSongName = state.music.playlist[index].name;
-
                             if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
                             state.music.playlist.splice(index, 1);
-                            
-                            // Remove from cache and revoke URL
-                            if (musicFileCache.has(removedSongName)) {
-                                URL.revokeObjectURL(musicFileCache.get(removedSongName));
-                                musicFileCache.delete(removedSongName);
-                            }
-
-                            if (wasPlaying) {
-                                audio.pause(); audio.src = ''; state.music.currentSongIndex = -1;
-                                songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家';
-                                currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00';
-                                albumArtLabel.classList.remove('rotating');
-                                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                            }
-                            saveState(); renderPlaylist();
-                            if(state.music.currentSongIndex !== -1) {
-                                const activeSongEl = playlistEl.children[state.music.currentSongIndex];
-                                if (activeSongEl) activeSongEl.classList.add('active');
-                            }
+                            if (musicFileCache.has(removedSongName)) { URL.revokeObjectURL(musicFileCache.get(removedSongName)); musicFileCache.delete(removedSongName); }
+                            if (wasPlaying) { audio.pause(); audio.src = ''; state.music.currentSongIndex = -1; songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家'; currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00'; albumArtLabel.classList.remove('rotating'); playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; }
+                            await saveState(); renderPlaylist();
+                            if(state.music.currentSongIndex !== -1) { const activeSongEl = playlistEl.children[state.music.currentSongIndex]; if (activeSongEl) activeSongEl.classList.add('active'); }
                             showToast('歌曲已从列表移除');
                         }
                     });
@@ -837,396 +788,188 @@
                 
                 function loadSong(index, play = false) {
                     if (!state.music.playlist || index < 0 || index >= state.music.playlist.length) return;
-                    state.music.currentSongIndex = index;
-                    const song = state.music.playlist[index];
-                    const songUrl = musicFileCache.get(song.name);
-
-                    if (!songUrl) {
-                        showToast(`请重新导入歌曲: ${song.name}`);
-                        songTitle.textContent = song.name;
-                        songArtist.textContent = '需重新导入';
-                        // Automatically open file dialog to prompt user
-                        setTimeout(() => fileInput.click(), 500);
-                        return;
-                    }
-
-                    songTitle.textContent = song.name;
-                    songArtist.textContent = '本地音乐';
-                    audio.src = songUrl;
+                    state.music.currentSongIndex = index; const song = state.music.playlist[index]; const songUrl = musicFileCache.get(song.name);
+                    if (!songUrl) { showToast(`请重新导入歌曲: ${song.name}`); songTitle.textContent = song.name; songArtist.textContent = '需重新导入'; setTimeout(() => fileInput.click(), 500); return; }
+                    songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; audio.src = songUrl;
                     playlistEl.querySelectorAll('.song-item').forEach((item, idx) => item.classList.toggle('active', idx === index));
                     if (play) audio.play();
                     saveState();
                 }
 
                 function togglePlay() {
-                    if (state.music.playlist.length === 0) {
-                        showToast('请先导入音乐');
-                        fileInput.click();
-                        return;
-                    }
-                    if (audio.paused) {
-                        if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true);
-                        else if (!audio.src) loadSong(0, true);
-                        else audio.play();
-                    } else audio.pause();
+                    if (state.music.playlist.length === 0) { showToast('请先导入音乐'); fileInput.click(); return; }
+                    if (audio.paused) { if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true); else if (!audio.src) loadSong(0, true); else audio.play(); } else audio.pause();
                 }
 
                 audio.onplay = () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; albumArtLabel.classList.add('rotating'); };
                 audio.onpause = () => { isPlaying = false; playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; albumArtLabel.classList.remove('rotating'); };
                 audio.onended = () => nextSong();
-
-                function updateProgress() {
-                    const { currentTime, duration } = audio;
-                    if (duration) {
-                        progressBar.style.width = `${(currentTime / duration) * 100}%`;
-                        currentTimeEl.textContent = formatTime(currentTime);
-                        totalTimeEl.textContent = formatTime(duration);
-                    }
-                }
-                
-                function setProgress(e) {
-                    if (state.music.playlist.length === 0 || !audio.duration) return;
-                    audio.currentTime = (e.offsetX / this.clientWidth) * audio.duration;
-                }
-                
-                function formatTime(seconds) {
-                    if (isNaN(seconds)) return '0:00';
-                    const minutes = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60);
-                    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-                }
-                
+                function updateProgress() { const { currentTime, duration } = audio; if (duration) { progressBar.style.width = `${(currentTime / duration) * 100}%`; currentTimeEl.textContent = formatTime(currentTime); totalTimeEl.textContent = formatTime(duration); } }
+                function setProgress(e) { if (state.music.playlist.length === 0 || !audio.duration) return; audio.currentTime = (e.offsetX / this.clientWidth) * audio.duration; }
+                function formatTime(seconds) { if (isNaN(seconds)) return '0:00'; const minutes = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60); return `${minutes}:${secs < 10 ? '0' : ''}${secs}`; }
                 const prevSong = () => { if (state.music.playlist.length === 0) return; loadSong((state.music.currentSongIndex - 1 + state.music.playlist.length) % state.music.playlist.length, true); };
                 const nextSong = () => { if (state.music.playlist.length === 0) return; loadSong((state.music.currentSongIndex + 1) % state.music.playlist.length, true); };
-                
-                const setVolume = () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; saveState(); };
+                const setVolume = async () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; await saveState(); };
 
-                function handleFileSelect(e) {
-                    const files = Array.from(e.target.files);
-                    if (files.length === 0) return;
-                    showToast(`正在处理 ${files.length} 首歌曲...`);
-                    
+                async function handleFileSelect(e) {
+                    const files = Array.from(e.target.files); if (files.length === 0) return; showToast(`正在处理 ${files.length} 首歌曲...`);
                     let firstNewSongIndex = -1;
-
                     files.forEach(file => {
                         const songName = file.name.replace(/\.[^/.]+$/, "");
-                        
-                        // Revoke old URL if it exists, to prevent memory leaks
-                        if (musicFileCache.has(songName)) {
-                            URL.revokeObjectURL(musicFileCache.get(songName));
-                        }
-                        
-                        // Create a new temporary URL and store it in the cache
-                        const objectURL = URL.createObjectURL(file);
-                        musicFileCache.set(songName, objectURL);
-
-                        // Add to playlist if not already there
+                        if (musicFileCache.has(songName)) { URL.revokeObjectURL(musicFileCache.get(songName)); }
+                        const objectURL = URL.createObjectURL(file); musicFileCache.set(songName, objectURL);
                         const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName);
-                        if (existingSongIndex === -1) {
-                            state.music.playlist.push({ name: songName });
-                            if (firstNewSongIndex === -1) {
-                                firstNewSongIndex = state.music.playlist.length - 1;
-                            }
-                        }
+                        if (existingSongIndex === -1) { state.music.playlist.push({ name: songName }); if (firstNewSongIndex === -1) { firstNewSongIndex = state.music.playlist.length - 1; } }
                     });
-
-                    renderPlaylist();
-                    showToast('歌曲处理完成！');
-                    
-                    // If not playing, or if the current song was one that needed re-importing, play the first new song
-                    if (!isPlaying && firstNewSongIndex !== -1) {
-                        loadSong(firstNewSongIndex, true);
-                    } else if (state.music.currentSongIndex !== -1) {
-                        // If a song was waiting for re-import, try to load it again
-                        const currentSong = state.music.playlist[state.music.currentSongIndex];
-                        if (currentSong && !musicFileCache.has(currentSong.name)) {
-                           // This case is less likely now, but as a fallback
-                        } else if (currentSong && musicFileCache.has(currentSong.name) && !audio.src) {
-                            loadSong(state.music.currentSongIndex, isPlaying);
-                        }
-                    }
-                    saveState();
+                    renderPlaylist(); showToast('歌曲处理完成！');
+                    if (!isPlaying && firstNewSongIndex !== -1) { loadSong(firstNewSongIndex, true); } 
+                    else if (state.music.currentSongIndex !== -1) { const currentSong = state.music.playlist[state.music.currentSongIndex]; if (currentSong && musicFileCache.has(currentSong.name) && !audio.src) { loadSong(state.music.currentSongIndex, isPlaying); } }
+                    await saveState();
                 }
-                
-                function handleCoverSelect(e) {
-                    const file = e.target.files[0];
-                    if (!file || !file.type.match('image.*')) return;
-                    const reader = new FileReader();
-                    reader.onload = e => {
-                        state.music.albumArt = e.target.result;
-                        albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
-                        saveState();
-                    };
+                async function handleCoverSelect(e) {
+                    const file = e.target.files[0]; if (!file || !file.type.match('image.*')) return; const reader = new FileReader();
+                    reader.onload = async e => { state.music.albumArt = e.target.result; albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`; await saveState(); };
                     reader.readAsDataURL(file);
                 }
-                
-                // On initial load, the playlist is rendered, but no songs are playable yet
-                renderPlaylist();
-                if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
-                if (state.music.currentSongIndex > -1) {
-                    const song = state.music.playlist[state.music.currentSongIndex];
-                    if(song) {
-                        songTitle.textContent = song.name;
-                        songArtist.textContent = '需重新导入';
-                    }
-                }
+
+                renderPlaylist(); if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
+                if (state.music.currentSongIndex > -1) { const song = state.music.playlist[state.music.currentSongIndex]; if(song) { songTitle.textContent = song.name; songArtist.textContent = '需重新导入'; } }
                 volumeSlider.value = state.music.volume; audio.volume = state.music.volume;
-                playPauseBtn.addEventListener('click', togglePlay);
-                prevBtn.addEventListener('click', prevSong);
-                nextBtn.addEventListener('click', nextSong);
-                audio.addEventListener('timeupdate', updateProgress);
-                progressContainer.addEventListener('click', setProgress);
-                volumeSlider.addEventListener('input', setVolume);
-                fileInput.addEventListener('change', handleFileSelect);
-                coverInput.addEventListener('change', handleCoverSelect);
+                playPauseBtn.addEventListener('click', togglePlay); prevBtn.addEventListener('click', prevSong); nextBtn.addEventListener('click', nextSong);
+                audio.addEventListener('timeupdate', updateProgress); progressContainer.addEventListener('click', setProgress); volumeSlider.addEventListener('input', setVolume);
+                fileInput.addEventListener('change', handleFileSelect); coverInput.addEventListener('change', handleCoverSelect);
                 togglePlaylistBtn.addEventListener('click', () => { playlistEl.style.display = (playlistEl.style.display === 'block') ? 'none' : 'block'; });
             }
 
-            // Clean up temporary URLs when the page is closed
-            window.addEventListener('beforeunload', () => {
-                musicFileCache.forEach(url => URL.revokeObjectURL(url));
-            });
+            window.addEventListener('beforeunload', () => { musicFileCache.forEach(url => URL.revokeObjectURL(url)); });
 
-            // Navigation
-            strategyBtn.addEventListener('click', () => showView('chat'));
+            // --- Navigation & Page Setup ---
+            strategyBtn.addEventListener('click', () => { showView('chat'); setTimeout(() => { chatHistory.scrollTop = chatHistory.scrollHeight; }, 0); });
             memoryBtn.addEventListener('click', () => { renderMemoryList(); showView('memory'); });
             diaryBtn.addEventListener('click', () => { renderDiaryList(); showView('diary'); });
-            roleBtn.addEventListener('click', () => {
-                get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender;
-                get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName;
-                get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona;
-                get('prompt-instructions').value = state.role.promptInstructions;
-                showView('role');
-            });
-            settingsBtn.addEventListener('click', () => {
-                get('signature-input').value = state.config.signature;
-                apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model;
-                themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor;
-                themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble);
-                themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble);
-                themeAiText.value = state.config.colors.aiText;
-                fontFamilySelect.value = (state.config.fontFamily === 'custom-font' && state.config.customFont) ? 'custom-font' : state.config.fontFamily;
-                showView('settings');
-            });
+            roleBtn.addEventListener('click', () => { get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender; get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName; get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona; get('prompt-instructions').value = state.role.promptInstructions; showView('role'); });
+            settingsBtn.addEventListener('click', () => { get('signature-input').value = state.config.signature; apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model; themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor; themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble); themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble); themeAiText.value = state.config.colors.aiText; fontFamilySelect.value = (state.config.fontFamily === 'custom-font' && state.config.customFont) ? 'custom-font' : state.config.fontFamily; showView('settings'); });
             backBtns.forEach(btn => btn.addEventListener('click', () => showView('home')));
             avatarContainer.addEventListener('click', () => avatarUpload.click());
 
-            avatarUpload.addEventListener('change', e => {
-                if (!e.target.files || e.target.files.length === 0) return;
-                const file = e.target.files[0];
+            const handleAssetUpload = async (file, assetKey, elementToUpdate, isImageSrc) => {
+                if (!file) return;
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    state.config.avatarImage = event.target.result;
-                    avatarImg.src = state.config.avatarImage;
-                    saveState(); showToast('头像已更换');
+                reader.onload = async (event) => {
+                    const dataUrl = event.target.result;
+                    state.config[assetKey] = dataUrl;
+                    if (isImageSrc) elementToUpdate.src = dataUrl;
+                    else elementToUpdate.style.backgroundImage = `url(${dataUrl})`;
+                    await saveState();
+                    showToast('资源已更新');
                 };
                 reader.readAsDataURL(file);
-            });
-
-            const hexToRgba = (hex, alpha) => {
-                const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
             };
 
-            const rgbaToHex = (rgba) => {
-                if (!rgba || !rgba.startsWith('rgba')) return '#000000';
-                const parts = rgba.substring(rgba.indexOf('(') + 1, rgba.lastIndexOf(')')).split(',');
-                const r = parseInt(parts[0].trim()), g = parseInt(parts[1].trim()), b = parseInt(parts[2].trim());
-                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-            };
+            avatarUpload.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'avatarImage', avatarImg, true));
+            bgUploadInput.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'bgImage', phoneScreen, false));
+            avatarFrameUploadInput.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'avatarFrameImage', avatarFrame, true));
+            bgUploadBtn.addEventListener('click', () => bgUploadInput.click());
+            avatarFrameUploadBtn.addEventListener('click', () => avatarFrameUploadInput.click());
+
+            const hexToRgba = (hex, alpha) => { const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r}, ${g}, ${b}, ${alpha})`; };
+            const rgbaToHex = (rgba) => { if (!rgba || !rgba.startsWith('rgba')) return '#000000'; const parts = rgba.substring(rgba.indexOf('(') + 1, rgba.lastIndexOf(')')).split(','); const r = parseInt(parts[0].trim()), g = parseInt(parts[1].trim()), b = parseInt(parts[2].trim()); return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1); };
             
-            fontUpload.addEventListener('change', e => {
+            fontUpload.addEventListener('change', async e => {
                 if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = async (event) => {
                     state.config.customFont = event.target.result; state.config.fontFamily = 'custom-font';
                     applyFont('custom-font', state.config.customFont); fontFamilySelect.value = 'custom-font';
-                    saveState(); showToast('自定义字体已上传并应用');
+                    await saveState(); showToast('自定义字体已上传并应用');
                 };
                 reader.readAsDataURL(file);
             });
             
-            fontFamilySelect.addEventListener('change', e => {
+            fontFamilySelect.addEventListener('change', async e => {
                 const selectedFont = e.target.value;
                 if (selectedFont === 'custom-font') {
                     if (state.config.customFont) { state.config.fontFamily = 'custom-font'; applyFont('custom-font', state.config.customFont); } 
-                    else { showToast('请先上传自定义字体'); e.target.value = state.config.fontFamily; }
+                    else { showToast('请先上传自定义字体'); e.target.value = state.config.fontFamily; return; }
                 } else { state.config.fontFamily = selectedFont; applyFont(selectedFont); }
-                saveState();
+                await saveState();
             });
 
-            saveSettingsBtn.addEventListener('click', () => {
-                state.config.signature = get('signature-input').value;
-                state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
-                state.config.colors.bgColor = themeBgColor.value; state.config.colors.textColor = themeTextColor.value;
-                state.config.colors.glassBg = hexToRgba(themeGlassBg.value, 0.15); state.config.colors.userBubble = hexToRgba(themeUserBubble.value, 0.7);
-                state.config.colors.userText = themeUserText.value; state.config.colors.aiBubble = hexToRgba(themeAiBubble.value, 0.8);
-                state.config.colors.aiText = themeAiText.value;
+            saveSettingsBtn.addEventListener('click', async () => {
+                state.config.signature = get('signature-input').value; state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
+                state.config.colors.bgColor = themeBgColor.value; state.config.colors.textColor = themeTextColor.value; state.config.colors.glassBg = hexToRgba(themeGlassBg.value, 0.15); state.config.colors.userBubble = hexToRgba(themeUserBubble.value, 0.7);
+                state.config.colors.userText = themeUserText.value; state.config.colors.aiBubble = hexToRgba(themeAiBubble.value, 0.8); state.config.colors.aiText = themeAiText.value;
                 applyColors(state.config.colors); signatureDisplay.textContent = state.config.signature;
-                saveState(); showToast('设置已保存');
-            });
-            
-            bgUploadBtn.addEventListener('click', () => bgUploadInput.click());
-            bgUploadInput.addEventListener('change', (e) => {
-                if (!e.target.files || e.target.files.length === 0) return;
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    state.config.bgImage = event.target.result; 
-                    phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
-                    saveState(); showToast('背景已更换');
-                };
-                reader.readAsDataURL(file);
+                await saveState(); showToast('设置已保存');
             });
 
-            avatarFrameUploadBtn.addEventListener('click', () => avatarFrameUploadInput.click());
-            avatarFrameUploadInput.addEventListener('change', (e) => {
-                if (!e.target.files || e.target.files.length === 0) return;
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    state.config.avatarFrameImage = event.target.result; 
-                    avatarFrame.src = state.config.avatarFrameImage;
-                    saveState(); showToast('头像框已更换');
-                };
-                reader.readAsDataURL(file);
+            restoreAppearanceBtn.addEventListener('click', async () => {
+                const confirmed = await showDialog('还原外观', '确定要移除背景图和头像框吗？');
+                if (confirmed) {
+                    state.config.bgImage = null; state.config.avatarFrameImage = null;
+                    phoneScreen.style.backgroundImage = ''; avatarFrame.src = '';
+                    await saveState(); showToast('已还原默认外观');
+                }
             });
 
-            restoreAppearanceBtn.addEventListener('click', () => {
-                showDialog('还原外观', '确定要移除背景图和头像框吗？').then(confirmed => {
-                    if (confirmed) {
-                        state.config.bgImage = null;
-                        state.config.avatarFrameImage = null;
-                        phoneScreen.style.backgroundImage = '';
-                        avatarFrame.src = '';
-                        saveState();
-                        showToast('已还原默认外观');
-                    }
-                });
+            saveRoleBtn.addEventListener('click', async () => {
+                state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value; state.role.playerPersona = get('player-persona').value; state.role.roleName = get('role-name').value; state.role.roleGender = get('role-gender').value; state.role.rolePersona = get('role-persona').value; state.role.promptInstructions = get('prompt-instructions').value;
+                await saveState(); showToast('角色设置已保存');
             });
 
-
-            saveRoleBtn.addEventListener('click', () => {
-                state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value;
-                state.role.playerPersona = get('player-persona').value; state.role.roleName = get('role-name').value;
-                state.role.roleGender = get('role-gender').value; state.role.rolePersona = get('role-persona').value;
-                state.role.promptInstructions = get('prompt-instructions').value;
-                saveState(); showToast('角色设置已保存');
-            });
-
-            // Chat Functionality
+            // --- Chat Functionality (with Batch Delete) ---
             const renderChatHistory = () => {
-                chatHistory.innerHTML = '';
-                if (!state.chat.history) state.chat.history = [];
+                chatHistory.innerHTML = ''; if (!state.chat.history) state.chat.history = [];
                 state.chat.history.forEach((msg, index) => {
                     const bubble = document.createElement('div');
-                    bubble.className = `message-bubble ${msg.sender}`;
-                    bubble.textContent = msg.text;
-                    let pressTimer;
-                    bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
-                    bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
-                    bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-                    bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
-                    bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    bubble.className = `message-bubble ${msg.sender}`; bubble.textContent = msg.text; bubble.dataset.index = index;
+                    if(isChatBatchDeleteMode) {
+                        bubble.classList.add('pl-12');
+                        const checkbox = document.createElement('input'); checkbox.type = 'checkbox';
+                        checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                        bubble.prepend(checkbox);
+                    } else {
+                        let pressTimer;
+                        bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
+                        bubble.addEventListener('mouseup', () => clearTimeout(pressTimer)); bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                        bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
+                        bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    }
                     chatHistory.appendChild(bubble);
                 });
-                chatHistory.scrollTop = chatHistory.scrollHeight;
+                chatFooter.style.display = isChatBatchDeleteMode ? 'none' : 'flex'; chatBatchActions.style.display = isChatBatchDeleteMode ? 'flex' : 'none';
+                if (!isChatBatchDeleteMode) { chatHistory.scrollTop = chatHistory.scrollHeight; }
                 affinityDisplay.textContent = `好感度：${state.chat.affinity}/100`;
             };
 
             const manageChatMessage = (index) => {
-                const msg = state.chat.history[index];
-                if (!msg) return;
+                const msg = state.chat.history[index]; if (!msg) return;
                 showDialog('管理消息', `"${msg.text}"`, { buttons: [
                     {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
+                    {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'},
                     {text: '删除', value: 'delete', class: 'bg-red-500/80'},
                     {text: '编辑', value: 'edit', class: 'bg-blue-500'}
-                ]}).then(action => {
+                ]}).then(async action => {
                     if (action === 'edit') {
-                        showDialog('编辑消息', '', { input: true, defaultValue: msg.text }).then(newText => {
-                            if (newText) {
-                                state.chat.history[index].text = newText;
-                                saveState(); renderChatHistory(); showToast('消息已更新');
-                            }
-                        });
+                        const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
+                        if (newText) { state.chat.history[index].text = newText; await saveState(); renderChatHistory(); showToast('消息已更新'); }
                     } else if (action === 'delete') {
-                        showDialog('确认删除', '确定要删除这条消息吗？').then(confirmed => {
-                            if (confirmed) {
-                                state.chat.history.splice(index, 1);
-                                saveState(); renderChatHistory(); showToast('消息已删除');
-                            }
-                        });
+                        const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
+                        if (confirmed) { state.chat.history.splice(index, 1); await saveState(); renderChatHistory(); showToast('消息已删除'); }
+                    } else if (action === 'batch-delete') {
+                        isChatBatchDeleteMode = true; renderChatHistory();
                     }
                 });
             };
 
-            const sendMessage = (sender, text) => {
-                if (!text || !text.trim()) return;
-                state.chat.history.push({ sender, text });
-                renderChatHistory(); 
-                if (sender === 'user') userInput.value = '';
-                saveState();
-            };
-
-            async function sendAiMessages(texts) {
-                for (const text of texts) {
-                    const trimmedText = text.trim();
-                    if (trimmedText) {
-                        sendMessage('ai', trimmedText);
-                        await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
-                    }
-                }
-                renderChatHistory();
-            }
-            
+            const sendMessage = async (sender, text) => { if (!text || !text.trim()) return; state.chat.history.push({ sender, text }); if (sender === 'user') userInput.value = ''; await saveState(); renderChatHistory(); };
+            async function sendAiMessages(texts) { for (const text of texts) { const trimmedText = text.trim(); if (trimmedText) { await sendMessage('ai', trimmedText); await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400)); } } renderChatHistory(); }
             sendBtn.addEventListener('click', () => sendMessage('user', userInput.value));
             userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage('user', userInput.value); }});
-            userInput.addEventListener('focus', () => {
-                setTimeout(() => {
-                    chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                }, 300);
-            });
+            userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
             
-            aiReplyBtn.addEventListener('click', async () => {
-                if (!state.config.api.baseUrl || !state.config.api.key) { 
-                    showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); });
-                    return;
-                }
-                showToast('角色正在思考中...');
-                aiReplyBtn.disabled = true;
-                try {
-                    const messages = createApiPrompt();
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                    }
-                    const data = await response.json();
-                    let aiResponse = data.choices?.[0]?.message?.content;
-                    if (!aiResponse) throw new Error("无法解析API响应格式");
-                    
-                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/;
-                    const match = aiResponse.match(affinityRegex);
-                    if (match && match[1]) {
-                        state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10)));
-                        aiResponse = aiResponse.replace(affinityRegex, '').trim();
-                    }
-                    
-                    const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
-                    await sendAiMessages(replyMessages);
-
-                } catch (error) {
-                    console.error("API请求失败:", error);
-                    showDialog('API请求失败', `错误: ${error.message}`);
-                } finally {
-                    aiReplyBtn.disabled = false;
-                }
-            });
-
+            // CORRECTED FUNCTION
             const createApiPrompt = () => {
                 let systemPrompt = `你是一个AI角色，正在与玩家互动。
 玩家信息: 名称=${state.role.playerName || '玩家'}, 性别=${state.role.playerGender}, 人设=${state.role.playerPersona}.
@@ -1236,272 +979,158 @@
 2. 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
                 if(state.memories && state.memories.length > 0) systemPrompt += `\n你们共同的记忆: ${state.memories.map(m => m.content).join('; ')}.`;
                 if(state.role.promptInstructions) systemPrompt += `\n请遵循以下额外指令: ${state.role.promptInstructions}.`;
+                
                 const messages = [{ role: 'system', content: systemPrompt }];
                 state.chat.history.forEach(msg => messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: msg.text }));
+                
                 return messages;
             };
 
-            restartChatBtn.addEventListener('click', () => {
-                showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。').then(ok => {
-                    if (ok) {
-                        state.chat = { history: [], affinity: 0 };
-                        saveState(); renderChatHistory(); showToast('对话已清空');
-                    }
-                });
+            aiReplyBtn.addEventListener('click', async () => {
+                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+                showToast('角色正在思考中...'); aiReplyBtn.disabled = true;
+                try {
+                    const messages = createApiPrompt(); // This will now work
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false }) });
+                    if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
+                    const data = await response.json(); let aiResponse = data.choices?.[0]?.message?.content; if (!aiResponse) throw new Error("无法解析API响应格式");
+                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/; const match = aiResponse.match(affinityRegex);
+                    if (match && match[1]) { state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10))); aiResponse = aiResponse.replace(affinityRegex, '').trim(); }
+                    const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
+                    await sendAiMessages(replyMessages);
+                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
+            });
+
+            restartChatBtn.addEventListener('click', async () => { const ok = await showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。'); if (ok) { state.chat = { history: [], affinity: 0 }; await saveState(); renderChatHistory(); showToast('对话已清空'); } });
+            cancelBatchDeleteChatBtn.addEventListener('click', () => { isChatBatchDeleteMode = false; renderChatHistory(); });
+            confirmBatchDeleteChatBtn.addEventListener('click', async () => {
+                const indicesToDelete = []; chatHistory.querySelectorAll('.message-bubble').forEach(bubble => { const checkbox = bubble.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { indicesToDelete.push(parseInt(bubble.dataset.index)); } });
+                if (indicesToDelete.length === 0) { showToast('没有选中任何消息'); return; }
+                const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 条消息吗？`);
+                if (confirmed) { indicesToDelete.sort((a, b) => b - a).forEach(index => state.chat.history.splice(index, 1)); await saveState(); isChatBatchDeleteMode = false; renderChatHistory(); showToast('消息已删除'); }
             });
             
             summarizeMemoryBtn.addEventListener('click', async () => {
-                if (state.chat.history.length === 0) { showDialog('错误', '没有聊天记录可以总结。'); return; }
-                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-                showToast('正在总结聊天内容...');
-                summarizeMemoryBtn.disabled = true;
+                if (state.chat.history.length === 0) { showDialog('错误', '没有聊天记录可以总结。'); return; } if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+                showToast('正在总结聊天内容...'); summarizeMemoryBtn.disabled = true;
                 try {
                     const chatContent = state.chat.history.map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}：${msg.text}`).join('\n');
-                    const systemPrompt = "你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁的记忆存档。";
-                    const messages = [ { role: 'system', content: systemPrompt }, { role: 'user', content: `对话内容:\n${chatContent}\n\n请简洁地总结以上对话内容，例如：'玩家与[角色]在[地点]讨论了[主题]。'` } ];
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                    }
-                    const data = await response.json();
-                    let summaryText = data.choices?.[0]?.message?.content;
-                    if (summaryText) {
-                        state.memories.push({ id: Date.now(), content: summaryText, timestamp: new Date().toLocaleString() });
-                        saveState(); renderMemoryList(); showToast('记忆已成功存档！');
-                    } else { throw new Error("API response is empty or malformed."); }
-                } catch (error) {
-                    console.error("API请求失败:", error);
-                    showDialog('API请求失败', `总结记忆时发生错误: ${error.message}`);
-                } finally { summarizeMemoryBtn.disabled = false; }
+                    const systemPrompt = "你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁的记忆存档。"; const messages = [ { role: 'system', content: systemPrompt }, { role: 'user', content: `对话内容:\n${chatContent}\n\n请简洁地总结以上对话内容，例如：'玩家与[角色]在[地点]讨论了[主题]。'` } ];
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 }) });
+                    if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
+                    const data = await response.json(); let summaryText = data.choices?.[0]?.message?.content;
+                    if (summaryText) { state.memories.push({ id: Date.now(), content: summaryText, timestamp: new Date().toLocaleString() }); await saveState(); renderMemoryList(); showToast('记忆已成功存档！'); } else { throw new Error("API response is empty or malformed."); }
+                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `总结记忆时发生错误: ${error.message}`); } finally { summarizeMemoryBtn.disabled = false; }
             });
             
-            // Memory Page
-            addMemoryBtn.addEventListener('click', () => {
-                showDialog('添加新记忆', '请输入记忆内容:', { input: true, defaultValue: '' }).then(content => {
-                    if (content) {
-                        state.memories.push({ id: Date.now(), content, timestamp: new Date().toLocaleString() });
-                        saveState(); renderMemoryList(); showToast('记忆已添加');
-                    }
-                });
-            });
-
+            // --- Memory Page ---
+            addMemoryBtn.addEventListener('click', async () => { const content = await showDialog('添加新记忆', '请输入记忆内容:', { input: true, defaultValue: '' }); if (content) { state.memories.push({ id: Date.now(), content, timestamp: new Date().toLocaleString() }); await saveState(); renderMemoryList(); showToast('记忆已添加'); } });
             const renderMemoryList = () => {
                 if (!state.memories) state.memories = [];
                 memoryListEl.innerHTML = state.memories.length === 0 ? '<p class="text-white/70 text-center">沒有记忆存档。</p>' : '';
-                [...state.memories].reverse().forEach((mem, index) => {
-                    const originalIndex = state.memories.length - 1 - index;
-                    const item = document.createElement('div');
-                    item.className = 'p-4 rounded-xl cursor-pointer hover:bg-white/20 transition-colors duration-300';
-                    item.innerHTML = `<p class="text-white whitespace-pre-wrap">${mem.content}</p><p class="text-xs text-white/50 mt-1">${mem.timestamp}</p>`;
-                    item.addEventListener('click', () => showMemoryDetails(mem, originalIndex));
+                [...state.memories].reverse().forEach(mem => {
+                    const item = document.createElement('div'); item.className = 'memory-item'; item.dataset.id = mem.id;
+                    let innerHTML = `<p class="text-white whitespace-pre-wrap">${mem.content}</p><p class="text-xs text-white/50 mt-1">${mem.timestamp}</p>`;
+                    if (isMemoryBatchDeleteMode) { item.classList.add('pl-12'); innerHTML = `<input type="checkbox" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">` + innerHTML; }
+                    item.innerHTML = innerHTML;
+                    if (!isMemoryBatchDeleteMode) { item.addEventListener('click', () => showMemoryDetails(mem.id)); }
                     memoryListEl.appendChild(item);
                 });
+                memoryBatchActions.style.display = isMemoryBatchDeleteMode ? 'flex' : 'none';
             };
-
-            const showMemoryDetails = (mem, index) => {
-                showDialog('管理记忆', '请选择操作', { buttons: [
-                    {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
-                    {text: '删除', value: 'delete', class: 'bg-red-500/80'},
-                    {text: '编辑', value: 'edit', class: 'bg-blue-500'}
-                ]}).then(action => {
+            const showMemoryDetails = (memId) => {
+                const memIndex = state.memories.findIndex(m => m.id === memId); if (memIndex === -1) return; const mem = state.memories[memIndex];
+                showDialog('管理记忆', '请选择操作', { buttons: [{text: '取消', value: 'cancel', class: 'bg-gray-500/50'}, {text: '删除', value: 'delete', class: 'bg-red-500/80'}, {text: '编辑', value: 'edit', class: 'bg-blue-500'}]
+                }).then(async action => {
                     if (action === 'edit') {
-                        showDialog('编辑记忆', '', { input: true, defaultValue: mem.content }).then(newContent => {
-                            if (newContent) {
-                                state.memories[index].content = newContent; state.memories[index].timestamp = new Date().toLocaleString();
-                                saveState(); renderMemoryList(); showToast('记忆已更新');
-                            }
-                        });
+                        const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: mem.content });
+                        if (newContent) { state.memories[memIndex].content = newContent; state.memories[memIndex].timestamp = new Date().toLocaleString(); await saveState(); renderMemoryList(); showToast('记忆已更新'); }
                     } else if (action === 'delete') {
-                        showDialog('确认删除', '确定要删除这条记忆吗？').then(confirmed => {
-                            if (confirmed) {
-                                state.memories.splice(index, 1);
-                                saveState(); renderMemoryList(); showToast('记忆已删除');
-                            }
-                        });
+                        const confirmed = await showDialog('确认删除', '确定要删除这条记忆吗？');
+                        if (confirmed) { state.memories.splice(memIndex, 1); await saveState(); renderMemoryList(); showToast('记忆已删除'); }
                     }
                 });
             };
+            batchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = true; renderMemoryList(); }); cancelBatchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = false; renderMemoryList(); });
+            confirmBatchDeleteMemoriesBtn.addEventListener('click', async () => {
+                const selectedIds = []; memoryListEl.querySelectorAll('.memory-item').forEach(item => { const checkbox = item.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { selectedIds.push(parseInt(item.dataset.id)); } });
+                if (selectedIds.length === 0) { showToast('没有选中任何记忆'); return; }
+                const confirmed = await showDialog('批量删除', `确定要删除选中的 ${selectedIds.length} 条记忆吗？`);
+                if (confirmed) { state.memories = state.memories.filter(d => !selectedIds.includes(d.id)); await saveState(); isMemoryBatchDeleteMode = false; renderMemoryList(); showToast('记忆已删除'); }
+            });
 
-            // --- Diary Functionality ---
-            const renderMarkdown = (text) => {
-                return text
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/~~(.*?)~~/g, '<del>$1</del>');
-            };
-
+            // --- Diary Page ---
+            const renderMarkdown = (text) => text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/~~(.*?)~~/g, '<del>$1</del>');
             const renderDiaryList = () => {
                 if (!state.diaries) state.diaries = [];
                 diaryListContainer.innerHTML = state.diaries.length === 0 ? '<p class="text-white/70 text-center">还没有日记，试着生成一篇吧。</p>' : '';
-                
                 [...state.diaries].reverse().forEach(diary => {
-                    const item = document.createElement('div');
-                    item.className = 'diary-entry';
-                    item.dataset.id = diary.id;
-                    let innerHTML = '';
-                    if (isBatchDeleteMode) {
-                        innerHTML += `<input type="checkbox" class="diary-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">`;
-                        item.classList.add('pl-12');
-                    } else {
-                        innerHTML += `<button class="diary-delete-btn" title="删除日记"><i class="fas fa-times"></i></button>`;
-                        item.classList.remove('pl-12');
-                    }
-                    innerHTML += `<p class="text-xs text-white/50 mb-2">${diary.timestamp}</p>`;
-                    innerHTML += `<div class="diary-content">${renderMarkdown(diary.content)}</div>`;
+                    const item = document.createElement('div'); item.className = 'diary-entry'; item.dataset.id = diary.id; let innerHTML = '';
+                    if (isDiaryBatchDeleteMode) { innerHTML += `<input type="checkbox" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">`; item.classList.add('pl-12'); } 
+                    else { innerHTML += `<button class="diary-delete-btn" title="删除日记"><i class="fas fa-times"></i></button>`; item.classList.remove('pl-12'); }
+                    innerHTML += `<p class="text-xs text-white/50 mb-2">${diary.timestamp}</p><div class="diary-content">${renderMarkdown(diary.content)}</div>`;
                     item.innerHTML = innerHTML;
-                    
-                    if (!isBatchDeleteMode) {
+                    if (!isDiaryBatchDeleteMode) {
                         item.querySelector('.diary-delete-btn').addEventListener('click', (e) => {
                             e.stopPropagation();
-                            showDialog('删除日记', '确定要删除这篇日记吗？').then(confirmed => {
-                                if (confirmed) {
-                                    state.diaries = state.diaries.filter(d => d.id !== diary.id);
-                                    saveState(); renderDiaryList(); showToast('日记已删除');
-                                }
+                            showDialog('删除日记', '确定要删除这篇日记吗？').then(async confirmed => {
+                                if (confirmed) { state.diaries = state.diaries.filter(d => d.id !== diary.id); await saveState(); renderDiaryList(); showToast('日记已删除'); }
                             });
                         });
                     }
                     diaryListContainer.appendChild(item);
                 });
-
-                diaryBatchActions.style.display = isBatchDeleteMode ? 'flex' : 'none';
+                diaryBatchActions.style.display = isDiaryBatchDeleteMode ? 'flex' : 'none';
             };
-
             generateDiaryBtn.addEventListener('click', async () => {
-                if (state.chat.history.length < 5) { showDialog('无法生成', '聊天记录太少，无法生成有意义的日记。'); return; }
-                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-                
-                showToast('AI正在撰写日记...');
-                generateDiaryBtn.disabled = true;
+                if (state.chat.history.length < 5) { showDialog('无法生成', '聊天记录太少，无法生成有意义的日记。'); return; } if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+                showToast('AI正在撰写日记...'); generateDiaryBtn.disabled = true;
                 try {
-                    const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。
-请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。
-共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}
-最近的对话(最多20条):
-${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}
-
-写作要求:
-- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。
-- 必须超过200字。
-- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。
-- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`;
-
+                    const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`;
                     const messages = [{ role: 'system', content: systemPrompt }];
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
-                    }
-                    const data = await response.json();
-                    const diaryContent = data.choices?.[0]?.message?.content;
-                    if (diaryContent) {
-                        state.diaries.push({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString() });
-                        saveState(); renderDiaryList(); showToast('日记已生成！');
-                    } else { throw new Error("API did not return diary content."); }
-                } catch (error) {
-                    console.error("Diary generation failed:", error);
-                    showDialog('生成失败', `生成日记时发生错误: ${error.message}`);
-                } finally {
-                    generateDiaryBtn.disabled = false;
-                }
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 }) });
+                    if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
+                    const data = await response.json(); const diaryContent = data.choices?.[0]?.message?.content;
+                    if (diaryContent) { state.diaries.push({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString() }); await saveState(); renderDiaryList(); showToast('日记已生成！'); } else { throw new Error("API did not return diary content."); }
+                } catch (error) { console.error("Diary generation failed:", error); showDialog('生成失败', `生成日记时发生错误: ${error.message}`); } finally { generateDiaryBtn.disabled = false; }
             });
-
-            batchDeleteDiariesBtn.addEventListener('click', () => {
-                isBatchDeleteMode = true;
-                renderDiaryList();
-            });
-
-            cancelBatchDeleteBtn.addEventListener('click', () => {
-                isBatchDeleteMode = false;
-                renderDiaryList();
-            });
-
-            confirmBatchDeleteBtn.addEventListener('click', () => {
-                const selectedIds = [];
-                diaryListContainer.querySelectorAll('.diary-entry').forEach(entry => {
-                    const checkbox = entry.querySelector('.diary-checkbox');
-                    if (checkbox && checkbox.checked) {
-                        selectedIds.push(parseInt(entry.dataset.id));
-                    }
-                });
-
-                if (selectedIds.length === 0) {
-                    showToast('没有选中任何日记');
-                    return;
-                }
-
-                showDialog('批量删除', `确定要删除选中的 ${selectedIds.length} 篇日记吗？`).then(confirmed => {
-                    if (confirmed) {
-                        state.diaries = state.diaries.filter(d => !selectedIds.includes(d.id));
-                        saveState();
-                        isBatchDeleteMode = false;
-                        renderDiaryList();
-                        showToast('日记已删除');
-                    }
-                });
+            batchDeleteDiariesBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = true; renderDiaryList(); }); cancelBatchDeleteBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = false; renderDiaryList(); });
+            confirmBatchDeleteBtn.addEventListener('click', async () => {
+                const selectedIds = []; diaryListContainer.querySelectorAll('.diary-entry').forEach(entry => { const checkbox = entry.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { selectedIds.push(parseInt(entry.dataset.id)); } });
+                if (selectedIds.length === 0) { showToast('没有选中任何日记'); return; }
+                const confirmed = await showDialog('批量删除', `确定要删除选中的 ${selectedIds.length} 篇日记吗？`);
+                if (confirmed) { state.diaries = state.diaries.filter(d => !selectedIds.includes(d.id)); await saveState(); isDiaryBatchDeleteMode = false; renderDiaryList(); showToast('日记已删除'); }
             });
 
             // --- Data Export/Import ---
             exportDataBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('导出数据', '这将导出所有设置、聊天记录、记忆和日记。音乐文件本身不会被导出，但播放列表会被保存。是否继续？');
+                const confirmed = await showDialog('导出数据', '这将导出一个包含您所有设置、聊天、记忆和日记的JSON文件。注意：背景、头像和字体等媒体文件不会被包含在内。导入后，您需要重新上传这些文件。是否继续？');
                 if (!confirmed) return;
-
                 try {
-                    const dataStr = JSON.stringify(state, null, 2);
-                    const blob = new Blob([dataStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    showToast('数据已成功导出');
-                } catch(e) {
-                    showDialog('错误', '导出数据失败: ' + e.message);
-                }
+                    const stateToExport = JSON.parse(JSON.stringify(state));
+                    for (const key of ASSET_KEYS) { if (stateToExport.config[key]) stateToExport.config[key] = 'indexed'; }
+                    const dataStr = JSON.stringify(stateToExport, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast('数据已成功导出');
+                } catch(e) { showDialog('错误', '导出数据失败: ' + e.message); }
             });
-
-            importDataBtn.addEventListener('click', () => {
-                importFileInput.click();
-            });
-
+            importDataBtn.addEventListener('click', () => { importFileInput.click(); });
             importFileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
+                const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
                 reader.onload = async (event) => {
                     try {
                         const importedState = JSON.parse(event.target.result);
-                        if (!importedState.version || !importedState.config || !importedState.role || !importedState.chat) {
-                            throw new Error('文件格式无效或不兼容。');
-                        }
-                        const confirmed = await showDialog('导入数据', '这将覆盖所有当前数据，确定要继续吗？');
-                        if (confirmed) {
-                            localStorage.setItem('game_state_v5', JSON.stringify(importedState));
-                            showToast('数据导入成功，正在刷新...');
-                            setTimeout(() => window.location.reload(), 1500);
-                        }
-                    } catch (err) {
-                        showDialog('导入失败', '无法解析文件或文件格式错误: ' + err.message);
-                    } finally {
-                        importFileInput.value = '';
-                    }
+                        if (!importedState.version || !importedState.config || !importedState.role) throw new Error('文件格式无效或不兼容。');
+                        const confirmed = await showDialog('导入数据', '这将使用文件中的数据覆盖所有当前数据。媒体文件（背景、头像等）需要您在导入后手动重新上传。确定要继续吗？');
+                        if (confirmed) { localStorage.setItem('game_state_v5', JSON.stringify(importedState)); showToast('数据导入成功，正在刷新...'); setTimeout(() => window.location.reload(), 1500); }
+                    } catch (err) { showDialog('导入失败', '无法解析文件或文件格式错误: ' + err.message); } finally { importFileInput.value = ''; }
                 };
                 reader.readAsText(file);
             });
 
-            loadState();
+            await loadState();
             showView('home');
-        });
+        })();
     </script>
 </body>
 </html>
