@@ -9,7 +9,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         
-        /* Define CSS Variables for theming */
         :root {
             --bg-color: #1a202c;
             --text-color: #ffffff;
@@ -23,16 +22,13 @@
             --custom-font: 'Inter', sans-serif;
         }
 
-        /* --- ADJUSTED: Phone Frame Styles --- */
-        html {
-            height: 100%;
-        }
+        html { height: 100%; }
         body {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #2d3748; /* Neutral dark background */
+            background-color: #2d3748;
             padding: 20px;
             box-sizing: border-box;
             font-family: var(--custom-font);
@@ -49,36 +45,31 @@
             width: 100%;
             height: 100%;
             background: #111;
-            border-radius: 40px; /* Thinner border feel */
+            border-radius: 40px;
             box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.1);
-            padding: 10px; /* Thinner border */
+            padding: 10px;
             box-sizing: border-box;
         }
         #phone-screen {
             width: 100%;
             height: 100%;
             background-color: var(--bg-color);
-            border-radius: 30px; /* Adjusted to match frame */
+            border-radius: 30px;
             overflow: hidden;
             position: relative;
-            /* App background styles moved here */
             transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out;
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
-        /* Notch removed */
-
-        /* Original body styles now apply to #phone-screen or are handled by the frame */
         #app.container {
-            height: 100%; /* Changed from 100vh */
+            height: 100%;
             width: 100%;
-            overflow: hidden; /* Prevent internal content from breaking frame */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        
         .glass-container {
             background: var(--glass-container-bg);
             backdrop-filter: blur(10px);
@@ -86,7 +77,6 @@
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        /* --- ADJUSTED: Menu Button Size --- */
         .menu-btn {
             padding: 0.6rem 1.5rem;
             font-weight: bold;
@@ -149,7 +139,6 @@
             align-items: center;
             gap: 1rem;
         }
-        /* --- ADJUSTED: Time/Date Size --- */
         .time {
             font-size: 2.5rem;
             font-weight: bold;
@@ -162,7 +151,7 @@
             background: none;
             border: none;
             color: white;
-            font-size: 1.5rem; /* 24px */
+            font-size: 1.5rem;
             opacity: 0.8;
             transition: all 0.3s ease;
             cursor: pointer;
@@ -171,8 +160,6 @@
             opacity: 1;
             transform: scale(1.1);
         }
-
-        /* --- ADJUSTED: Mini Music Player Styles --- */
         .mini-player-container {
             position: absolute;
             bottom: 1rem;
@@ -232,39 +219,14 @@
         .song-item.active { background: rgba(255, 255, 255, 0.3); font-weight: 500; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .rotating { animation: rotate 15s linear infinite; }
-        
-        /* Diary Page Styles */
-        .diary-entry {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 1rem;
-            position: relative;
-        }
-        .diary-content {
-            white-space: pre-wrap;
-            line-height: 1.6;
-            color: var(--text-color);
-        }
+        .diary-entry { background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; position: relative; }
+        .diary-content { white-space: pre-wrap; line-height: 1.6; color: var(--text-color); }
         .diary-content strong { font-weight: bold; color: #fcd34d; }
         .diary-content em { font-style: italic; color: #93c5fd; }
         .diary-content del { text-decoration: line-through; opacity: 0.7; }
-        .diary-delete-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            opacity: 0.5;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
+        .diary-delete-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: var(--text-color); opacity: 0.5; cursor: pointer; transition: opacity 0.2s; }
         .diary-delete-btn:hover { opacity: 1; }
-        .diary-checkbox {
-            position: absolute;
-            top: 0.75rem;
-            left: 0.75rem;
-        }
+        .diary-checkbox { position: absolute; top: 0.75rem; left: 0.75rem; }
     </style>
 </head>
 <body>
@@ -414,17 +376,16 @@
                                 <label for="signature-input" class="text-white mb-2">个性签名</label>
                                 <input type="text" id="signature-input" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="请输入个性签名...">
                             </div>
-                            <div class="flex flex-col">
-                                <label for="avatar-frame-url" class="text-white mb-2">头像框图片URL (可选)</label>
-                                <input type="text" id="avatar-frame-url" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="图片URL">
-                            </div>
-                             <div class="mt-6 pt-6 border-t border-white/20">
-                                <h2 class="text-xl font-bold mb-4 text-white">背景设置</h2>
-                                 <div class="flex space-x-2">
+                            <div class="mt-6 pt-6 border-t border-white/20">
+                                <h2 class="text-xl font-bold mb-4 text-white">外观设置</h2>
+                                <div class="flex space-x-2">
+                                    <button id="avatar-frame-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
+                                        选择头像框
+                                    </button>
                                     <button id="bg-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
                                         选择背景图片
                                     </button>
-                                    <button id="restore-bg-btn" title="还原默认背景" class="p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors duration-300">
+                                    <button id="restore-appearance-btn" title="还原默认" class="p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors duration-300">
                                         <i class="fas fa-undo"></i>
                                     </button>
                                  </div>
@@ -465,7 +426,6 @@
                                 <input type="text" id="api-key" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="API 密钥">
                                 <input type="text" id="api-model" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="模型名称 (例如: gpt-3.5-turbo)">
                             </div>
-                            <!-- Data Management Section -->
                             <div class="mt-6 pt-6 border-t border-white/20">
                                 <h2 class="text-xl font-bold mb-4 text-white">数据管理</h2>
                                 <div class="flex space-x-4">
@@ -498,9 +458,7 @@
                                 <button id="batch-delete-diaries-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="批量删除"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
-                        <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4">
-                            <!-- Diary entries will be injected here -->
-                        </div>
+                        <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4"></div>
                         <div id="diary-batch-actions" class="hidden w-full max-w-2xl mx-auto mt-4 flex space-x-2">
                             <button id="confirm-batch-delete-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
                             <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
@@ -518,7 +476,8 @@
                             <div id="dialog-buttons" class="flex justify-end space-x-2"></div>
                         </div>
                     </div>
-                    <input type="file" id="bg-upload" accept="image/*" class="hidden">
+                    <input type="file" id="bg-upload-input" accept="image/*" class="hidden">
+                    <input type="file" id="avatar-frame-upload-input" accept="image/*" class="hidden">
                 </div>
             </div>
         </div>
@@ -527,7 +486,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.4"; // Version updated for frame refinement
+            const APP_VERSION = "1.6"; // Version updated for large music file support
+
+            // NEW: In-memory cache for music files. This is not saved to localStorage.
+            let musicFileCache = new Map();
 
             // Page elements
             const phoneScreen = get('phone-screen');
@@ -593,6 +555,7 @@
             const dialogInput = get('dialog-input');
             const dialogButtons = get('dialog-buttons');
             
+            // Settings Elements
             const themeBgColor = get('theme-bg-color');
             const themeTextColor = get('theme-text-color');
             const themeGlassBg = get('theme-glass-bg');
@@ -600,14 +563,13 @@
             const themeAiBubble = get('theme-ai-bubble');
             const themeUserText = get('theme-user-text');
             const themeAiText = get('theme-ai-text');
-            
             const fontUpload = get('font-upload');
             const fontFamilySelect = get('font-family-select');
-            
             const bgUploadBtn = get('bg-upload-btn');
-            const restoreBgBtn = get('restore-bg-btn');
-            const bgUpload = get('bg-upload');
-            
+            const bgUploadInput = get('bg-upload-input');
+            const avatarFrameUploadBtn = get('avatar-frame-upload-btn');
+            const avatarFrameUploadInput = get('avatar-frame-upload-input');
+            const restoreAppearanceBtn = get('restore-appearance-btn');
             const apiBaseUrl = get('api-baseurl');
             const apiKey = get('api-key');
             const apiModel = get('api-model');
@@ -617,7 +579,7 @@
                 config: {
                     bgImage: null,
                     avatarImage: null,
-                    avatarFrameUrl: '',
+                    avatarFrameImage: null,
                     signature: '个性签名',
                     api: { baseUrl: '', key: '', model: '' },
                     colors: {
@@ -641,7 +603,7 @@
                 memories: [],
                 diaries: [],
                 music: {
-                    playlist: [],
+                    playlist: [], // IMPORTANT: Now only stores metadata like {name: '...'}
                     currentSongIndex: -1,
                     albumArt: null,
                     volume: 0.7
@@ -676,10 +638,16 @@
             const saveState = () => {
                 try {
                     state.version = APP_VERSION;
-                    localStorage.setItem('game_state_v5', JSON.stringify(state));
+                    // Create a deep copy of the state to avoid modifying the original
+                    const stateToSave = JSON.parse(JSON.stringify(state));
+                    // Ensure no large data is in the music playlist before saving
+                    if (stateToSave.music && stateToSave.music.playlist) {
+                        stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
+                    }
+                    localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
                 } catch (e) {
-                    console.error("Failed to save state, possibly too large.", e);
-                    showDialog("保存失败", "数据过大，无法保存。请尝试减少音乐列表或记忆条目。");
+                    console.error("Failed to save state.", e);
+                    showDialog("保存失败", "数据无法保存，可能是浏览器限制。");
                 }
             };
 
@@ -709,13 +677,12 @@
                     localStorage.removeItem('game_state_v5');
                 }
                 
-                if (state.config.bgImage) {
-                    phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
-                } else {
-                    phoneScreen.style.backgroundImage = '';
-                }
+                if (state.config.bgImage) phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
+                else phoneScreen.style.backgroundImage = '';
+                
                 if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
-                if (state.config.avatarFrameUrl) avatarFrame.src = state.config.avatarFrameUrl;
+                if (state.config.avatarFrameImage) avatarFrame.src = state.config.avatarFrameImage;
+                
                 signatureDisplay.textContent = state.config.signature;
                 applyColors(state.config.colors);
                 applyFont(state.config.fontFamily, state.config.customFont);
@@ -785,7 +752,7 @@
             updateDateTime();
             setInterval(updateDateTime, 1000);
             
-            // --- Mini Music Player Logic ---
+            // --- REFACTORED: Mini Music Player Logic ---
             function initMusicPlayer() {
                 const audio = get('main-audio');
                 const playPauseBtn = get('play-pause');
@@ -815,9 +782,7 @@
                         songItem.className = 'song-item';
                         songItem.textContent = song.name;
                         
-                        songItem.addEventListener('click', () => {
-                            loadSong(index, true);
-                        });
+                        songItem.addEventListener('click', () => { loadSong(index, true); });
 
                         let pressTimer;
                         songItem.addEventListener('mousedown', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); });
@@ -834,44 +799,71 @@
                     const song = state.music.playlist[index];
                     if (!song) return;
 
-                    showDialog('删除歌曲', `确定要从列表中删除 "${song.name}" 吗？`)
-                        .then(confirmed => {
-                            if (confirmed) {
-                                const wasPlaying = (index === state.music.currentSongIndex);
-                                if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
-                                state.music.playlist.splice(index, 1);
-                                if (wasPlaying) {
-                                    audio.pause(); audio.src = ''; state.music.currentSongIndex = -1;
-                                    songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家';
-                                    currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00';
-                                    albumArtLabel.innerHTML = '<i class="fas fa-music"></i>'; albumArtLabel.classList.remove('rotating');
-                                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                                }
-                                saveState(); renderPlaylist();
-                                if(state.music.currentSongIndex !== -1) {
-                                    const activeSongEl = playlistEl.children[state.music.currentSongIndex];
-                                    if (activeSongEl) activeSongEl.classList.add('active');
-                                }
-                                showToast('歌曲已删除');
+                    showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？ (文件不会被删除)`, {
+                        buttons: [
+                            {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
+                            {text: '移除', value: 'delete', class: 'bg-red-500/80'}
+                        ]
+                    }).then(action => {
+                        if (action === 'delete') {
+                            const wasPlaying = (index === state.music.currentSongIndex);
+                            const removedSongName = state.music.playlist[index].name;
+
+                            if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
+                            state.music.playlist.splice(index, 1);
+                            
+                            // Remove from cache and revoke URL
+                            if (musicFileCache.has(removedSongName)) {
+                                URL.revokeObjectURL(musicFileCache.get(removedSongName));
+                                musicFileCache.delete(removedSongName);
                             }
-                        });
+
+                            if (wasPlaying) {
+                                audio.pause(); audio.src = ''; state.music.currentSongIndex = -1;
+                                songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家';
+                                currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00';
+                                albumArtLabel.classList.remove('rotating');
+                                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                            }
+                            saveState(); renderPlaylist();
+                            if(state.music.currentSongIndex !== -1) {
+                                const activeSongEl = playlistEl.children[state.music.currentSongIndex];
+                                if (activeSongEl) activeSongEl.classList.add('active');
+                            }
+                            showToast('歌曲已从列表移除');
+                        }
+                    });
                 }
                 
                 function loadSong(index, play = false) {
                     if (!state.music.playlist || index < 0 || index >= state.music.playlist.length) return;
                     state.music.currentSongIndex = index;
                     const song = state.music.playlist[index];
-                    if (!song.dataUrl) {
-                        showToast(`请重新导入歌曲: ${song.name}`); songTitle.textContent = song.name; songArtist.textContent = '需要重新导入'; return;
+                    const songUrl = musicFileCache.get(song.name);
+
+                    if (!songUrl) {
+                        showToast(`请重新导入歌曲: ${song.name}`);
+                        songTitle.textContent = song.name;
+                        songArtist.textContent = '需重新导入';
+                        // Automatically open file dialog to prompt user
+                        setTimeout(() => fileInput.click(), 500);
+                        return;
                     }
-                    songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; audio.src = song.dataUrl;
+
+                    songTitle.textContent = song.name;
+                    songArtist.textContent = '本地音乐';
+                    audio.src = songUrl;
                     playlistEl.querySelectorAll('.song-item').forEach((item, idx) => item.classList.toggle('active', idx === index));
                     if (play) audio.play();
                     saveState();
                 }
 
                 function togglePlay() {
-                    if (state.music.playlist.length === 0) return;
+                    if (state.music.playlist.length === 0) {
+                        showToast('请先导入音乐');
+                        fileInput.click();
+                        return;
+                    }
                     if (audio.paused) {
                         if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true);
                         else if (!audio.src) loadSong(0, true);
@@ -908,34 +900,51 @@
                 
                 const setVolume = () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; saveState(); };
 
-                async function handleFileSelect(e) {
+                function handleFileSelect(e) {
                     const files = Array.from(e.target.files);
                     if (files.length === 0) return;
-                    showToast(`正在导入 ${files.length} 首歌曲...`);
-                    const readAsDataURL = (file) => new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve({ name: file.name.replace(/\.[^/.]+$/, ""), dataUrl: reader.result });
-                        reader.onerror = reject;
-                        reader.readAsDataURL(file);
-                    });
-                    try {
-                        const newSongs = await Promise.all(files.map(readAsDataURL));
-                        newSongs.forEach(newSong => {
-                            const existingSongIndex = state.music.playlist.findIndex(s => s.name === newSong.name && !s.dataUrl);
-                            if (existingSongIndex > -1) state.music.playlist[existingSongIndex].dataUrl = newSong.dataUrl;
-                            else state.music.playlist.push(newSong);
-                        });
-                        renderPlaylist(); showToast('歌曲导入完成！');
-                        if (!isPlaying && state.music.currentSongIndex === -1) loadSong(state.music.playlist.length - newSongs.length, true);
-                        else {
-                            const currentSong = state.music.playlist[state.music.currentSongIndex];
-                            if(currentSong && !currentSong.dataUrl) {
-                                const matchingNewSong = newSongs.find(ns => ns.name === currentSong.name);
-                                if(matchingNewSong) loadSong(state.music.currentSongIndex, true);
+                    showToast(`正在处理 ${files.length} 首歌曲...`);
+                    
+                    let firstNewSongIndex = -1;
+
+                    files.forEach(file => {
+                        const songName = file.name.replace(/\.[^/.]+$/, "");
+                        
+                        // Revoke old URL if it exists, to prevent memory leaks
+                        if (musicFileCache.has(songName)) {
+                            URL.revokeObjectURL(musicFileCache.get(songName));
+                        }
+                        
+                        // Create a new temporary URL and store it in the cache
+                        const objectURL = URL.createObjectURL(file);
+                        musicFileCache.set(songName, objectURL);
+
+                        // Add to playlist if not already there
+                        const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName);
+                        if (existingSongIndex === -1) {
+                            state.music.playlist.push({ name: songName });
+                            if (firstNewSongIndex === -1) {
+                                firstNewSongIndex = state.music.playlist.length - 1;
                             }
                         }
-                        saveState();
-                    } catch(error) { console.error("Error reading files:", error); showDialog('错误', '导入歌曲时发生错误。'); }
+                    });
+
+                    renderPlaylist();
+                    showToast('歌曲处理完成！');
+                    
+                    // If not playing, or if the current song was one that needed re-importing, play the first new song
+                    if (!isPlaying && firstNewSongIndex !== -1) {
+                        loadSong(firstNewSongIndex, true);
+                    } else if (state.music.currentSongIndex !== -1) {
+                        // If a song was waiting for re-import, try to load it again
+                        const currentSong = state.music.playlist[state.music.currentSongIndex];
+                        if (currentSong && !musicFileCache.has(currentSong.name)) {
+                           // This case is less likely now, but as a fallback
+                        } else if (currentSong && musicFileCache.has(currentSong.name) && !audio.src) {
+                            loadSong(state.music.currentSongIndex, isPlaying);
+                        }
+                    }
+                    saveState();
                 }
                 
                 function handleCoverSelect(e) {
@@ -950,9 +959,16 @@
                     reader.readAsDataURL(file);
                 }
                 
+                // On initial load, the playlist is rendered, but no songs are playable yet
                 renderPlaylist();
                 if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
-                if (state.music.currentSongIndex > -1) loadSong(state.music.currentSongIndex, false);
+                if (state.music.currentSongIndex > -1) {
+                    const song = state.music.playlist[state.music.currentSongIndex];
+                    if(song) {
+                        songTitle.textContent = song.name;
+                        songArtist.textContent = '需重新导入';
+                    }
+                }
                 volumeSlider.value = state.music.volume; audio.volume = state.music.volume;
                 playPauseBtn.addEventListener('click', togglePlay);
                 prevBtn.addEventListener('click', prevSong);
@@ -964,6 +980,11 @@
                 coverInput.addEventListener('change', handleCoverSelect);
                 togglePlaylistBtn.addEventListener('click', () => { playlistEl.style.display = (playlistEl.style.display === 'block') ? 'none' : 'block'; });
             }
+
+            // Clean up temporary URLs when the page is closed
+            window.addEventListener('beforeunload', () => {
+                musicFileCache.forEach(url => URL.revokeObjectURL(url));
+            });
 
             // Navigation
             strategyBtn.addEventListener('click', () => showView('chat'));
@@ -977,7 +998,7 @@
                 showView('role');
             });
             settingsBtn.addEventListener('click', () => {
-                get('signature-input').value = state.config.signature; get('avatar-frame-url').value = state.config.avatarFrameUrl;
+                get('signature-input').value = state.config.signature;
                 apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model;
                 themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor;
                 themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble);
@@ -1035,18 +1056,18 @@
             });
 
             saveSettingsBtn.addEventListener('click', () => {
-                state.config.signature = get('signature-input').value; state.config.avatarFrameUrl = get('avatar-frame-url').value;
+                state.config.signature = get('signature-input').value;
                 state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
                 state.config.colors.bgColor = themeBgColor.value; state.config.colors.textColor = themeTextColor.value;
                 state.config.colors.glassBg = hexToRgba(themeGlassBg.value, 0.15); state.config.colors.userBubble = hexToRgba(themeUserBubble.value, 0.7);
                 state.config.colors.userText = themeUserText.value; state.config.colors.aiBubble = hexToRgba(themeAiBubble.value, 0.8);
                 state.config.colors.aiText = themeAiText.value;
-                applyColors(state.config.colors); signatureDisplay.textContent = state.config.signature; avatarFrame.src = state.config.avatarFrameUrl;
+                applyColors(state.config.colors); signatureDisplay.textContent = state.config.signature;
                 saveState(); showToast('设置已保存');
             });
             
-            bgUploadBtn.addEventListener('click', () => bgUpload.click());
-            bgUpload.addEventListener('change', (e) => {
+            bgUploadBtn.addEventListener('click', () => bgUploadInput.click());
+            bgUploadInput.addEventListener('change', (e) => {
                 if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
                 const reader = new FileReader();
@@ -1057,12 +1078,33 @@
                 };
                 reader.readAsDataURL(file);
             });
-            
-            restoreBgBtn.addEventListener('click', () => {
-                state.config.bgImage = null; 
-                phoneScreen.style.backgroundImage = '';
-                applyColors(state.config.colors); saveState(); showToast('已还原为默认背景');
+
+            avatarFrameUploadBtn.addEventListener('click', () => avatarFrameUploadInput.click());
+            avatarFrameUploadInput.addEventListener('change', (e) => {
+                if (!e.target.files || e.target.files.length === 0) return;
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    state.config.avatarFrameImage = event.target.result; 
+                    avatarFrame.src = state.config.avatarFrameImage;
+                    saveState(); showToast('头像框已更换');
+                };
+                reader.readAsDataURL(file);
             });
+
+            restoreAppearanceBtn.addEventListener('click', () => {
+                showDialog('还原外观', '确定要移除背景图和头像框吗？').then(confirmed => {
+                    if (confirmed) {
+                        state.config.bgImage = null;
+                        state.config.avatarFrameImage = null;
+                        phoneScreen.style.backgroundImage = '';
+                        avatarFrame.src = '';
+                        saveState();
+                        showToast('已还原默认外观');
+                    }
+                });
+            });
+
 
             saveRoleBtn.addEventListener('click', () => {
                 state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value;
@@ -1409,15 +1451,11 @@ ${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role
 
             // --- Data Export/Import ---
             exportDataBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('导出数据', '这将导出所有设置、聊天记录、记忆和日记。音乐文件本身不会被导出。是否继续？');
+                const confirmed = await showDialog('导出数据', '这将导出所有设置、聊天记录、记忆和日记。音乐文件本身不会被导出，但播放列表会被保存。是否继续？');
                 if (!confirmed) return;
 
                 try {
-                    const exportState = JSON.parse(JSON.stringify(state));
-                    if (exportState.music && exportState.music.playlist) {
-                        exportState.music.playlist.forEach(song => { delete song.dataUrl; });
-                    }
-                    const dataStr = JSON.stringify(exportState, null, 2);
+                    const dataStr = JSON.stringify(state, null, 2);
                     const blob = new Blob([dataStr], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
