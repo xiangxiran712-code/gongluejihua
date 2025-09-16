@@ -23,28 +23,62 @@
             --custom-font: 'Inter', sans-serif;
         }
 
-        html, body {
+        /* --- ADJUSTED: Phone Frame Styles --- */
+        html {
             height: 100%;
-            overflow: hidden;
         }
         body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #2d3748; /* Neutral dark background */
+            padding: 20px;
+            box-sizing: border-box;
             font-family: var(--custom-font);
-            background-color: var(--bg-color);
             color: var(--text-color);
+        }
+        .phone-wrapper {
+            width: 95vw;
+            max-width: 420px;
+            aspect-ratio: 390 / 844;
+            margin: auto;
+        }
+        #phone-frame {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #111;
+            border-radius: 40px; /* Thinner border feel */
+            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.1);
+            padding: 10px; /* Thinner border */
+            box-sizing: border-box;
+        }
+        #phone-screen {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            border-radius: 30px; /* Adjusted to match frame */
+            overflow: hidden;
+            position: relative;
+            /* App background styles moved here */
             transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out;
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none; /* IE 10+ */
-            user-select: none; /* Standard syntax */
         }
-        .container {
-            height: 100vh; /* Use 100vh for the main container */
+        /* Notch removed */
+
+        /* Original body styles now apply to #phone-screen or are handled by the frame */
+        #app.container {
+            height: 100%; /* Changed from 100vh */
+            width: 100%;
+            overflow: hidden; /* Prevent internal content from breaking frame */
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+        
         .glass-container {
             background: var(--glass-container-bg);
             backdrop-filter: blur(10px);
@@ -52,11 +86,12 @@
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        /* --- ADJUSTED: Menu Button Size --- */
         .menu-btn {
-            padding: 0.75rem 2rem;
+            padding: 0.6rem 1.5rem;
             font-weight: bold;
-            font-size: 1.125rem;
-            width: 180px;
+            font-size: 1rem;
+            width: 140px;
             text-align: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -114,12 +149,13 @@
             align-items: center;
             gap: 1rem;
         }
+        /* --- ADJUSTED: Time/Date Size --- */
         .time {
-            font-size: 4rem;
+            font-size: 2.5rem;
             font-weight: bold;
         }
         .date {
-            font-size: 1.1rem;
+            font-size: 1rem;
             opacity: 0.8;
         }
         #diary-btn {
@@ -136,15 +172,15 @@
             transform: scale(1.1);
         }
 
-        /* Mini Music Player Styles (ADJUSTED for embedding) */
+        /* --- ADJUSTED: Mini Music Player Styles --- */
         .mini-player-container {
             position: absolute;
-            bottom: 2rem;
-            left: 2rem;
+            bottom: 1rem;
+            left: 1rem;
             z-index: 20;
         }
         .mini-player {
-            width: 340px;
+            width: 300px;
             max-width: 90vw;
             background: var(--glass-container-bg);
             backdrop-filter: blur(12px);
@@ -152,39 +188,39 @@
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            padding: 12px;
+            padding: 10px;
             color: var(--text-color);
             position: relative;
             overflow: hidden;
         }
-        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .player-header h2 { font-size: 14px; font-weight: 600; text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
-        .import-btn { background: rgba(255, 255, 255, 0.2); border: none; color: inherit; padding: 5px 10px; border-radius: 50px; font-size: 11px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; }
+        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .player-header h2 { font-size: 12px; font-weight: 600; text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
+        .import-btn { background: rgba(255, 255, 255, 0.2); border: none; color: inherit; padding: 4px 8px; border-radius: 50px; font-size: 10px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; }
         .import-btn:hover { background: rgba(255, 255, 255, 0.3); }
-        .player-content { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .player-content { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
         .info-section { flex-grow: 1; min-width: 0; }
-        .song-info { margin-bottom: 8px; }
-        .song-info h3 { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
-        .song-info p { font-size: 11px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .album-art { width: 60px; height: 60px; border-radius: 8px; background: linear-gradient(45deg, #ee9ca7, #ffdde1); overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.3); flex-shrink: 0; cursor: pointer; position: relative; transition: all 0.3s ease; }
+        .song-info { margin-bottom: 6px; }
+        .song-info h3 { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .song-info p { font-size: 10px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .album-art { width: 50px; height: 50px; border-radius: 6px; background: linear-gradient(45deg, #ee9ca7, #ffdde1); overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.3); flex-shrink: 0; cursor: pointer; position: relative; transition: all 0.3s ease; }
         .album-art:hover::after { content: '换封面'; position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.7); color: white; font-size: 9px; padding: 2px; text-align: center; }
-        .album-art i { font-size: 24px; color: rgba(255, 255, 255, 0.8); }
+        .album-art i { font-size: 20px; color: rgba(255, 255, 255, 0.8); }
         .album-art img { width: 100%; height: 100%; object-fit: cover; }
-        .progress-area { margin-bottom: 8px; }
-        .progress-container { background: rgba(255, 255, 255, 0.2); border-radius: 5px; height: 4px; margin-bottom: 5px; cursor: pointer; position: relative; }
+        .progress-area { margin-bottom: 6px; }
+        .progress-container { background: rgba(255, 255, 255, 0.2); border-radius: 5px; height: 4px; margin-bottom: 4px; cursor: pointer; position: relative; }
         .progress-bar { background: linear-gradient(90deg, #fff, #c2e9fb); border-radius: 5px; height: 100%; width: 0%; transition: width 0.1s linear; }
-        .progress-time { display: flex; justify-content: space-between; font-size: 10px; opacity: 0.8; }
+        .progress-time { display: flex; justify-content: space-between; font-size: 9px; opacity: 0.8; }
         .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
-        .control-btn { background: none; border: none; color: inherit; font-size: 12px; cursor: pointer; padding: 6px; opacity: 0.8; transition: all 0.2s; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+        .control-btn { background: none; border: none; color: inherit; font-size: 11px; cursor: pointer; padding: 4px; opacity: 0.8; transition: all 0.2s; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
         .control-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
-        .play-pause { background: rgba(255, 255, 255, 0.2); width: 32px; height: 32px; border-radius: 50%; font-size: 12px; }
+        .play-pause { background: rgba(255, 255, 255, 0.2); width: 28px; height: 28px; border-radius: 50%; font-size: 11px; }
         .play-pause:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
-        .volume-container { display: flex; align-items: center; gap: 6px; }
-        .volume-container i { font-size: 12px; opacity: 0.8; }
-        .volume-slider { -webkit-appearance: none; width: 60px; height: 3px; background: rgba(255, 255, 255, 0.2); border-radius: 5px; outline: none; }
+        .volume-container { display: flex; align-items: center; gap: 5px; }
+        .volume-container i { font-size: 11px; opacity: 0.8; }
+        .volume-slider { -webkit-appearance: none; width: 50px; height: 3px; background: rgba(255, 255, 255, 0.2); border-radius: 5px; outline: none; }
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: white; cursor: pointer; }
         .file-input, .cover-input { display: none; }
-        .playlist-btn { background: none; border: none; color: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px; opacity: 0.8; transition: all 0.2s; border-radius: 4px; }
+        .playlist-btn { background: none; border: none; color: inherit; font-size: 11px; cursor: pointer; padding: 4px 6px; opacity: 0.8; transition: all 0.2s; border-radius: 4px; }
         .playlist-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
         .song-list { margin-top: 10px; text-align: left; max-height: 100px; overflow-y: auto; background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px; display: none; }
         .song-list::-webkit-scrollbar { width: 5px; }
@@ -231,270 +267,277 @@
         }
     </style>
 </head>
-<body class="text-white">
-    <div id="app" class="container">
-        <!-- 主页 -->
-        <div id="home-page" class="w-full h-full flex flex-col p-6 transition-all duration-500 relative">
-            <div class="datetime-display glass-container px-4 py-2">
-                <div>
-                    <div id="time-display" class="time">00:00:00</div>
-                    <div id="date-display" class="date">0000年00月00日 星期X</div>
-                </div>
-                <button id="diary-btn" title="小秘密">
-                    <i class="fa-solid fa-feather-pointed"></i> <!-- Using a feather icon as a placeholder for butterfly -->
-                </button>
-            </div>
-            
-            <div class="w-full flex-1 flex items-center mt-12">
-                <div class="w-1/2 flex flex-col items-start">
-                    <div id="avatar-container" class="relative rounded-full p-1 cursor-pointer w-32 h-32 flex items-center justify-center mb-4">
-                        <img id="avatar-frame" src="" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-10">
-                        <img id="avatar-img" src="https://placehold.co/120x120/334155/FFFFFF?text=头像" alt="Avatar" class="w-28 h-28 object-cover rounded-full">
-                    </div>
-                    <input type="file" id="avatar-upload" accept="image/*" class="hidden">
-                    <h2 id="signature" class="text-1xl font-semibold tracking-wide">个性签名</h2>
-                </div>
-                <div class="w-1/2 flex flex-col items-end space-y-5">
-                    <button id="strategy-btn" class="menu-btn">攻略</button>
-                    <button id="memory-btn" class="menu-btn">记忆</button>
-                    <button id="role-btn" class="menu-btn">角色</button>
-                    <button id="settings-btn" class="menu-btn">设置</button>
-                </div>
-            </div>
-
-            <!-- Mini Music Player -->
-            <div class="mini-player-container">
-                <div class="mini-player">
-                    <audio id="main-audio"></audio>
-                    <div class="player-header">
-                        <h2>迷你音乐</h2>
-                        <label for="file-input" class="import-btn">
-                            <i class="fas fa-file-audio"></i> 导入
-                        </label>
-                        <input type="file" id="file-input" class="file-input" accept="audio/*" multiple>
-                    </div>
-                    <div class="player-content">
-                        <div class="info-section">
-                            <div class="song-info">
-                                <h3 id="song-title">选择一首歌曲</h3>
-                                <p id="song-artist">未知艺术家</p>
+<body>
+    <div class="phone-wrapper">
+        <div id="phone-frame">
+            <div id="phone-screen">
+                <div id="app" class="container">
+                    <!-- 主页 -->
+                    <div id="home-page" class="w-full h-full flex flex-col p-6 transition-all duration-500 relative">
+                        <div class="datetime-display glass-container px-4 py-2">
+                            <div>
+                                <div id="time-display" class="time">00:00:00</div>
+                                <div id="date-display" class="date">0000年00月00日 星期X</div>
                             </div>
-                            <div class="progress-area">
-                                <div class="progress-container">
-                                    <div class="progress-bar"></div>
+                            <button id="diary-btn" title="我的日记">
+                                <i class="fa-solid fa-feather-pointed"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="w-full flex-1 flex items-center mt-12">
+                            <div class="w-1/2 flex flex-col items-start">
+                                <div id="avatar-container" class="relative rounded-full p-1 cursor-pointer w-32 h-32 flex items-center justify-center mb-4">
+                                    <img id="avatar-frame" src="" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-10">
+                                    <img id="avatar-img" src="https://placehold.co/120x120/334155/FFFFFF?text=头像" alt="Avatar" class="w-28 h-28 object-cover rounded-full">
                                 </div>
-                                <div class="progress-time">
-                                    <span id="current-time">0:00</span>
-                                    <span id="total-time">0:00</span>
-                                </div>
+                                <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+                                <h2 id="signature" class="text-1xl font-semibold tracking-wide">个性签名</h2>
                             </div>
-                            <div class="controls">
-                                <button class="control-btn" id="prev"><i class="fas fa-step-backward"></i></button>
-                                <button class="control-btn play-pause" id="play-pause"><i class="fas fa-play"></i></button>
-                                <button class="control-btn" id="next"><i class="fas fa-step-forward"></i></button>
-                                <div class="volume-container">
-                                    <i class="fas fa-volume-up"></i>
-                                    <input type="range" class="volume-slider" id="volume" min="0" max="1" step="0.01" value="0.7">
-                                </div>
-                                <button class="playlist-btn" id="toggle-playlist"><i class="fas fa-list"></i></button>
+                            <div class="w-1/2 flex flex-col items-end space-y-4">
+                                <button id="strategy-btn" class="menu-btn">攻略</button>
+                                <button id="memory-btn" class="menu-btn">记忆</button>
+                                <button id="role-btn" class="menu-btn">角色</button>
+                                <button id="settings-btn" class="menu-btn">设置</button>
                             </div>
                         </div>
-                        <label for="cover-input" class="album-art" id="album-art-label">
-                            <i class="fas fa-music"></i>
-                        </label>
-                        <input type="file" id="cover-input" class="cover-input" accept="image/*">
-                    </div>
-                    <div class="song-list" id="playlist"></div>
-                </div>
-            </div>
-        </div>
 
-        <!-- 聊天界面 -->
-        <div id="chat-page" class="hidden w-full h-screen flex flex-col transition-all duration-500">
-            <div class="chat-header glass-container border-none rounded-b-2xl">
-                <div class="flex items-center justify-between text-white">
-                    <button id="chat-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                    <span id="affinity-display" class="text-lg font-semibold">好感度：0/100</span>
-                    <div class="flex items-center space-x-2">
-                        <button id="restart-chat-btn" title="新对话" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
-                        <button id="summarize-memory-btn" title="存档记忆" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v12l-3-3-3 3V4z" /></svg></button>
+                        <!-- Mini Music Player -->
+                        <div class="mini-player-container">
+                            <div class="mini-player">
+                                <audio id="main-audio"></audio>
+                                <div class="player-header">
+                                    <h2>迷你音乐</h2>
+                                    <label for="file-input" class="import-btn">
+                                        <i class="fas fa-file-audio"></i> 导入
+                                    </label>
+                                    <input type="file" id="file-input" class="file-input" accept="audio/*" multiple>
+                                </div>
+                                <div class="player-content">
+                                    <div class="info-section">
+                                        <div class="song-info">
+                                            <h3 id="song-title">选择一首歌曲</h3>
+                                            <p id="song-artist">未知艺术家</p>
+                                        </div>
+                                        <div class="progress-area">
+                                            <div class="progress-container">
+                                                <div class="progress-bar"></div>
+                                            </div>
+                                            <div class="progress-time">
+                                                <span id="current-time">0:00</span>
+                                                <span id="total-time">0:00</span>
+                                            </div>
+                                        </div>
+                                        <div class="controls">
+                                            <button class="control-btn" id="prev"><i class="fas fa-step-backward"></i></button>
+                                            <button class="control-btn play-pause" id="play-pause"><i class="fas fa-play"></i></button>
+                                            <button class="control-btn" id="next"><i class="fas fa-step-forward"></i></button>
+                                            <div class="volume-container">
+                                                <i class="fas fa-volume-up"></i>
+                                                <input type="range" class="volume-slider" id="volume" min="0" max="1" step="0.01" value="0.7">
+                                            </div>
+                                            <button class="playlist-btn" id="toggle-playlist"><i class="fas fa-list"></i></button>
+                                        </div>
+                                    </div>
+                                    <label for="cover-input" class="album-art" id="album-art-label">
+                                        <i class="fas fa-music"></i>
+                                    </label>
+                                    <input type="file" id="cover-input" class="cover-input" accept="image/*">
+                                </div>
+                                <div class="song-list" id="playlist"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col"></div>
-            <div class="chat-footer">
-                <div class="flex items-center space-x-2">
-                    <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
-                    <div class="flex-1 relative">
-                        <input type="text" id="user-input" class="w-full p-4 pr-14 rounded-full glass-container border-none outline-none text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-shadow duration-300" placeholder="请输入消息...">
-                         <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 text-white hover:text-pink-400 transition-colors duration-300">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 角色设置页面 -->
-        <div id="role-page" class="hidden w-full h-screen flex flex-col p-4 overflow-y-auto">
-            <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
-                 <button id="role-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                <h1 class="text-2xl font-bold text-white">角色设置</h1>
-                <div class="w-8"></div>
-            </div>
-            <div class="w-full max-w-lg mx-auto space-y-4 pb-8">
-                <div class="glass-container p-4 rounded-xl">
-                    <h2 class="text-xl font-bold mb-3 text-white">玩家人设</h2>
-                    <input type="text" id="player-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家名称">
-                    <input type="text" id="player-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家性别">
-                    <textarea id="player-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-24 focus:ring-2 focus:ring-blue-400" placeholder="玩家详细人设、背景故事、性格特点..."></textarea>
-                </div>
-                 <div class="glass-container p-4 rounded-xl">
-                    <h2 class="text-xl font-bold mb-3 text-white">攻略角色人设</h2>
-                    <input type="text" id="role-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色名称">
-                    <input type="text" id="role-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色性别">
-                    <textarea id="role-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="角色详细人设、背景故事、性格特点..."></textarea>
-                </div>
-                 <div class="glass-container p-4 rounded-xl">
-                    <h2 class="text-xl font-bold mb-3 text-white">AI行为指令</h2>
-                    <textarea id="prompt-instructions" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="给AI的特殊指令, 例如：'请以口语化的方式回复' 或 '在回复中加入表情符号'"></textarea>
-                </div>
-                <button id="save-role-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300">保存角色设置</button>
-            </div>
-        </div>
 
-        <!-- 设置页面 -->
-        <div id="settings-page" class="hidden w-full h-full flex-col p-4 overflow-y-auto">
-             <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
-                 <button id="settings-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                <h1 class="text-2xl font-bold text-white">设置</h1>
-                <div class="w-8"></div>
-            </div>
-            <div class="glass-container p-6 w-full max-w-lg mx-auto space-y-4">
-                <div class="flex flex-col">
-                    <label for="signature-input" class="text-white mb-2">个性签名</label>
-                    <input type="text" id="signature-input" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="请输入个性签名...">
-                </div>
-                <div class="flex flex-col">
-                    <label for="avatar-frame-url" class="text-white mb-2">头像框图片URL (可选)</label>
-                    <input type="text" id="avatar-frame-url" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="图片URL">
-                </div>
-                 <div class="mt-6 pt-6 border-t border-white/20">
-                    <h2 class="text-xl font-bold mb-4 text-white">背景设置</h2>
-                     <div class="flex space-x-2">
-                        <button id="bg-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
-                            选择背景图片
-                        </button>
-                        <button id="restore-bg-btn" title="还原默认背景" class="p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors duration-300">
-                            <i class="fas fa-undo"></i>
-                        </button>
-                     </div>
-                 </div>
-                 <div class="mt-6 pt-6 border-t border-white/20">
-                    <h2 class="text-xl font-bold mb-4 text-white">字体设置</h2>
-                    <div class="flex flex-col mb-2">
-                        <label for="font-upload" class="text-white mb-2">上传自定义字体</label>
-                        <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="w-full p-3 rounded-md bg-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <!-- 聊天界面 -->
+                    <div id="chat-page" class="hidden w-full h-full flex flex-col transition-all duration-500">
+                        <div class="chat-header glass-container border-none rounded-b-2xl">
+                            <div class="flex items-center justify-between text-white">
+                                <button id="chat-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                                <span id="affinity-display" class="text-lg font-semibold">好感度：0/100</span>
+                                <div class="flex items-center space-x-2">
+                                    <button id="restart-chat-btn" title="新对话" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                                    <button id="summarize-memory-btn" title="存档记忆" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v12l-3-3-3 3V4z" /></svg></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col"></div>
+                        <div class="chat-footer">
+                            <div class="flex items-center space-x-2">
+                                <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
+                                <div class="flex-1 relative">
+                                    <input type="text" id="user-input" class="w-full p-4 pr-14 rounded-full glass-container border-none outline-none text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-shadow duration-300" placeholder="请输入消息...">
+                                     <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 text-white hover:text-pink-400 transition-colors duration-300">
+                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label for="font-family-select">选择字体</label>
-                        <select id="font-family-select" class="w-48 p-2 rounded-md bg-white/20 text-white">
-                            <option value="'Inter', sans-serif">默认字体 (Inter)</option>
-                            <option value="'Arial', sans-serif">Arial</option>
-                            <option value="'Times New Roman', serif">Times New Roman</option>
-                            <option value="'Courier New', monospace">Courier New</option>
-                            <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
-                            <option value="custom-font">自定义字体</option>
-                        </select>
+                    
+                    <!-- 角色设置页面 -->
+                    <div id="role-page" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto">
+                        <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
+                             <button id="role-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                            <h1 class="text-2xl font-bold text-white">角色设置</h1>
+                            <div class="w-8"></div>
+                        </div>
+                        <div class="w-full max-w-lg mx-auto space-y-4 pb-8">
+                            <div class="glass-container p-4 rounded-xl">
+                                <h2 class="text-xl font-bold mb-3 text-white">玩家人设</h2>
+                                <input type="text" id="player-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家名称">
+                                <input type="text" id="player-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家性别">
+                                <textarea id="player-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-24 focus:ring-2 focus:ring-blue-400" placeholder="玩家详细人设、背景故事、性格特点..."></textarea>
+                            </div>
+                             <div class="glass-container p-4 rounded-xl">
+                                <h2 class="text-xl font-bold mb-3 text-white">攻略角色人设</h2>
+                                <input type="text" id="role-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色名称">
+                                <input type="text" id="role-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色性别">
+                                <textarea id="role-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="角色详细人设、背景故事、性格特点..."></textarea>
+                            </div>
+                             <div class="glass-container p-4 rounded-xl">
+                                <h2 class="text-xl font-bold mb-3 text-white">AI行为指令</h2>
+                                <textarea id="prompt-instructions" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="给AI的特殊指令, 例如：'请以口语化的方式回复' 或 '在回复中加入表情符号'"></textarea>
+                            </div>
+                            <button id="save-role-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300">保存角色设置</button>
+                        </div>
                     </div>
-                 </div>
-                 <div class="mt-6 pt-6 border-t border-white/20">
-                    <h2 class="text-xl font-bold mb-4 text-white">主题设置</h2>
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div class="flex items-center justify-between"><label for="theme-bg-color">背景色</label><input type="color" id="theme-bg-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
-                        <div class="flex items-center justify-between"><label for="theme-text-color">文字颜色</label><input type="color" id="theme-text-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
-                        <div class="flex items-center justify-between"><label for="theme-glass-bg">玻璃容器</label><input type="color" id="theme-glass-bg" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
-                        <div class="flex items-center justify-between"><label for="theme-user-bubble">用户气泡</label><input type="color" id="theme-user-bubble" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
-                        <div class="flex items-center justify-between"><label for="theme-ai-bubble">AI气泡</label><input type="color" id="theme-ai-bubble" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
-                        <div class="flex items-center justify-between"><label for="theme-user-text">用户文字</label><input type="color" id="theme-user-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
-                        <div class="flex items-center justify-between"><label for="theme-ai-text">AI文字</label><input type="color" id="theme-ai-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
-                    </div>
-                 </div>
-                <div class="mt-6 pt-6 border-t border-white/20">
-                    <h2 class="text-xl font-bold mb-4 text-white">API 设置</h2>
-                    <input type="text" id="api-baseurl" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="API Base URL (例如: https://api.openai.com/v1)">
-                    <input type="text" id="api-key" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="API 密钥">
-                    <input type="text" id="api-model" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="模型名称 (例如: gpt-3.5-turbo)">
-                </div>
-                <!-- Data Management Section -->
-                <div class="mt-6 pt-6 border-t border-white/20">
-                    <h2 class="text-xl font-bold mb-4 text-white">数据管理</h2>
-                    <div class="flex space-x-4">
-                        <button id="export-data-btn" class="w-full p-3 rounded-md bg-green-600 text-white font-bold hover:bg-green-700 transition-colors duration-300">导出数据</button>
-                        <button id="import-data-btn" class="w-full p-3 rounded-md bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors duration-300">导入数据</button>
-                    </div>
-                    <input type="file" id="import-file-input" class="hidden" accept=".json">
-                </div>
-                <button id="save-settings-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300 mt-4">保存所有设置</button>
-            </div>
-        </div>
-        
-        <!-- 记忆页面 -->
-        <div id="memory-page" class="hidden w-full h-screen flex flex-col p-4">
-            <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
-                 <button id="memory-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                <h1 class="text-2xl font-bold text-white">记忆存档</h1>
-                <button id="add-memory-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
-            </div>
-            <div id="memory-list" class="glass-container p-4 w-full max-w-lg mx-auto flex-1 overflow-y-auto space-y-2"></div>
-        </div>
 
-        <!-- 日记页面 -->
-        <div id="diary-page" class="hidden w-full h-screen flex flex-col p-4">
-            <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-4">
-                <button id="diary-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                <h1 class="text-2xl font-bold text-white">小秘密</h1>
-                <div class="flex items-center space-x-2">
-                    <button id="generate-diary-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="生成新日记"><i class="fas fa-pen-nib"></i></button>
-                    <button id="batch-delete-diaries-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="批量删除"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            </div>
-            <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4">
-                <!-- Diary entries will be injected here -->
-            </div>
-            <div id="diary-batch-actions" class="hidden w-full max-w-2xl mx-auto mt-4 flex space-x-2">
-                <button id="confirm-batch-delete-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
-                <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
-            </div>
-        </div>
+                    <!-- 设置页面 -->
+                    <div id="settings-page" class="hidden w-full h-full flex-col p-4 overflow-y-auto">
+                         <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
+                             <button id="settings-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                            <h1 class="text-2xl font-bold text-white">设置</h1>
+                            <div class="w-8"></div>
+                        </div>
+                        <div class="glass-container p-6 w-full max-w-lg mx-auto space-y-4">
+                            <div class="flex flex-col">
+                                <label for="signature-input" class="text-white mb-2">个性签名</label>
+                                <input type="text" id="signature-input" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="请输入个性签名...">
+                            </div>
+                            <div class="flex flex-col">
+                                <label for="avatar-frame-url" class="text-white mb-2">头像框图片URL (可选)</label>
+                                <input type="text" id="avatar-frame-url" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="图片URL">
+                            </div>
+                             <div class="mt-6 pt-6 border-t border-white/20">
+                                <h2 class="text-xl font-bold mb-4 text-white">背景设置</h2>
+                                 <div class="flex space-x-2">
+                                    <button id="bg-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
+                                        选择背景图片
+                                    </button>
+                                    <button id="restore-bg-btn" title="还原默认背景" class="p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors duration-300">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                 </div>
+                             </div>
+                             <div class="mt-6 pt-6 border-t border-white/20">
+                                <h2 class="text-xl font-bold mb-4 text-white">字体设置</h2>
+                                <div class="flex flex-col mb-2">
+                                    <label for="font-upload" class="text-white mb-2">上传自定义字体</label>
+                                    <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="w-full p-3 rounded-md bg-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                </div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="font-family-select">选择字体</label>
+                                    <select id="font-family-select" class="w-48 p-2 rounded-md bg-white/20 text-white">
+                                        <option value="'Inter', sans-serif">默认字体 (Inter)</option>
+                                        <option value="'Arial', sans-serif">Arial</option>
+                                        <option value="'Times New Roman', serif">Times New Roman</option>
+                                        <option value="'Courier New', monospace">Courier New</option>
+                                        <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                                        <option value="custom-font">自定义字体</option>
+                                    </select>
+                                </div>
+                             </div>
+                             <div class="mt-6 pt-6 border-t border-white/20">
+                                <h2 class="text-xl font-bold mb-4 text-white">主题设置</h2>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                                    <div class="flex items-center justify-between"><label for="theme-bg-color">背景色</label><input type="color" id="theme-bg-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                                    <div class="flex items-center justify-between"><label for="theme-text-color">文字颜色</label><input type="color" id="theme-text-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                                    <div class="flex items-center justify-between"><label for="theme-glass-bg">玻璃容器</label><input type="color" id="theme-glass-bg" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                                    <div class="flex items-center justify-between"><label for="theme-user-bubble">用户气泡</label><input type="color" id="theme-user-bubble" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                                    <div class="flex items-center justify-between"><label for="theme-ai-bubble">AI气泡</label><input type="color" id="theme-ai-bubble" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                                    <div class="flex items-center justify-between"><label for="theme-user-text">用户文字</label><input type="color" id="theme-user-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                                    <div class="flex items-center justify-between"><label for="theme-ai-text">AI文字</label><input type="color" id="theme-ai-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
+                                </div>
+                             </div>
+                            <div class="mt-6 pt-6 border-t border-white/20">
+                                <h2 class="text-xl font-bold mb-4 text-white">API 设置</h2>
+                                <input type="text" id="api-baseurl" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="API Base URL (例如: https://api.openai.com/v1)">
+                                <input type="text" id="api-key" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="API 密钥">
+                                <input type="text" id="api-model" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="模型名称 (例如: gpt-3.5-turbo)">
+                            </div>
+                            <!-- Data Management Section -->
+                            <div class="mt-6 pt-6 border-t border-white/20">
+                                <h2 class="text-xl font-bold mb-4 text-white">数据管理</h2>
+                                <div class="flex space-x-4">
+                                    <button id="export-data-btn" class="w-full p-3 rounded-md bg-green-600 text-white font-bold hover:bg-green-700 transition-colors duration-300">导出数据</button>
+                                    <button id="import-data-btn" class="w-full p-3 rounded-md bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors duration-300">导入数据</button>
+                                </div>
+                                <input type="file" id="import-file-input" class="hidden" accept=".json">
+                            </div>
+                            <button id="save-settings-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300 mt-4">保存所有设置</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 记忆页面 -->
+                    <div id="memory-page" class="hidden w-full h-full flex flex-col p-4">
+                        <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
+                             <button id="memory-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                            <h1 class="text-2xl font-bold text-white">记忆存档</h1>
+                            <button id="add-memory-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                        </div>
+                        <div id="memory-list" class="glass-container p-4 w-full max-w-lg mx-auto flex-1 overflow-y-auto space-y-2"></div>
+                    </div>
 
-        <!-- 自定义弹窗 -->
-        <div id="custom-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
-            <div class="glass-container p-6 shadow-xl w-full max-w-sm border-none">
-                <h3 id="dialog-title" class="text-xl font-bold mb-4 text-white"></h3>
-                <p id="dialog-message" class="mb-4 text-white"></p>
-                <div id="dialog-input-container" class="mb-4 hidden">
-                    <textarea id="dialog-input" class="w-full p-2 border-none rounded-md bg-white/20 text-white placeholder-gray-300 h-24"></textarea>
+                    <!-- 日记页面 -->
+                    <div id="diary-page" class="hidden w-full h-full flex flex-col p-4">
+                        <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-4">
+                            <button id="diary-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                            <h1 class="text-2xl font-bold text-white">我的日记</h1>
+                            <div class="flex items-center space-x-2">
+                                <button id="generate-diary-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="生成新日记"><i class="fas fa-pen-nib"></i></button>
+                                <button id="batch-delete-diaries-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="批量删除"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                        <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4">
+                            <!-- Diary entries will be injected here -->
+                        </div>
+                        <div id="diary-batch-actions" class="hidden w-full max-w-2xl mx-auto mt-4 flex space-x-2">
+                            <button id="confirm-batch-delete-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
+                            <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
+                        </div>
+                    </div>
+
+                    <!-- 自定义弹窗 -->
+                    <div id="custom-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+                        <div class="glass-container p-6 shadow-xl w-full max-w-sm border-none">
+                            <h3 id="dialog-title" class="text-xl font-bold mb-4 text-white"></h3>
+                            <p id="dialog-message" class="mb-4 text-white"></p>
+                            <div id="dialog-input-container" class="mb-4 hidden">
+                                <textarea id="dialog-input" class="w-full p-2 border-none rounded-md bg-white/20 text-white placeholder-gray-300 h-24"></textarea>
+                            </div>
+                            <div id="dialog-buttons" class="flex justify-end space-x-2"></div>
+                        </div>
+                    </div>
+                    <input type="file" id="bg-upload" accept="image/*" class="hidden">
                 </div>
-                <div id="dialog-buttons" class="flex justify-end space-x-2"></div>
             </div>
         </div>
-        <input type="file" id="bg-upload" accept="image/*" class="hidden">
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.2"; // Version updated for new features
+            const APP_VERSION = "1.4"; // Version updated for frame refinement
 
             // Page elements
+            const phoneScreen = get('phone-screen');
             const pages = {
                 home: get('home-page'),
                 chat: get('chat-page'),
                 role: get('role-page'),
                 settings: get('settings-page'),
                 memory: get('memory-page'),
-                diary: get('diary-page') // New diary page
+                diary: get('diary-page')
             };
 
             // Buttons
@@ -596,7 +639,7 @@
                 },
                 chat: { history: [], affinity: 0 },
                 memories: [],
-                diaries: [], // New state for diaries
+                diaries: [],
                 music: {
                     playlist: [],
                     currentSongIndex: -1,
@@ -613,7 +656,7 @@
                 document.documentElement.style.setProperty('--user-bubble-text', colors.userText);
                 document.documentElement.style.setProperty('--ai-bubble-bg', colors.aiBubble);
                 document.documentElement.style.setProperty('--ai-bubble-text', colors.aiText);
-                document.body.style.backgroundColor = colors.bgColor;
+                phoneScreen.style.backgroundColor = colors.bgColor;
             };
             
             const applyFont = (fontFamily, customFontData = null) => {
@@ -667,9 +710,9 @@
                 }
                 
                 if (state.config.bgImage) {
-                    document.body.style.backgroundImage = `url(${state.config.bgImage})`;
+                    phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
                 } else {
-                    document.body.style.backgroundImage = '';
+                    phoneScreen.style.backgroundImage = '';
                 }
                 if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
                 if (state.config.avatarFrameUrl) avatarFrame.src = state.config.avatarFrameUrl;
@@ -1008,14 +1051,16 @@
                 const file = e.target.files[0];
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    state.config.bgImage = event.target.result; document.body.style.backgroundImage = `url(${state.config.bgImage})`;
+                    state.config.bgImage = event.target.result; 
+                    phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
                     saveState(); showToast('背景已更换');
                 };
                 reader.readAsDataURL(file);
             });
             
             restoreBgBtn.addEventListener('click', () => {
-                state.config.bgImage = null; document.body.style.backgroundImage = '';
+                state.config.bgImage = null; 
+                phoneScreen.style.backgroundImage = '';
                 applyColors(state.config.colors); saveState(); showToast('已还原为默认背景');
             });
 
@@ -1094,7 +1139,6 @@
             
             sendBtn.addEventListener('click', () => sendMessage('user', userInput.value));
             userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage('user', userInput.value); }});
-            // Fix for mobile keyboard covering input
             userInput.addEventListener('focus', () => {
                 setTimeout(() => {
                     chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' });
