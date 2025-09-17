@@ -32,7 +32,7 @@
             padding: 20px;
             box-sizing: border-box;
             font-family: var(--custom-font);
-            color: var(--text-color);
+            color: var(--text-color); /* 全局文字颜色 */
         }
         .phone-wrapper {
             width: 95vw;
@@ -98,8 +98,8 @@
         }
         .message-bubble {
             display: inline-block;
-            font-size: 0.9rem; /* 调整字体大小 */
-            padding: 0.6rem 0.9rem; /* 调整内边距 */
+            font-size: 0.9rem;
+            padding: 0.6rem 0.9rem;
             max-width: 75%;
             word-wrap: break-word;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -110,13 +110,13 @@
             background-color: var(--user-bubble-bg);
             align-self: flex-end;
             border-radius: 12px 12px 0 12px;
-            color: var(--user-bubble-text);
+            color: var(--user-bubble-text); /* 独立颜色 */
         }
         .message-bubble.ai {
             background-color: var(--ai-bubble-bg);
             align-self: flex-start;
             border-radius: 12px 12px 12px 0;
-            color: var(--ai-bubble-text);
+            color: var(--ai-bubble-text); /* 独立颜色 */
         }
         .chat-header, .chat-footer, .batch-actions-footer {
             position: sticky;
@@ -152,7 +152,7 @@
         #diary-btn {
             background: none;
             border: none;
-            color: white;
+            color: inherit; /* 继承全局颜色 */
             font-size: 1.5rem;
             opacity: 0.8;
             transition: all 0.3s ease;
@@ -161,6 +161,17 @@
         #diary-btn:hover {
             opacity: 1;
             transform: scale(1.1);
+        }
+        /* --- 全局颜色应用强化 --- */
+        input, textarea, select {
+            color: var(--text-color);
+        }
+        input::placeholder, textarea::placeholder {
+            color: var(--text-color);
+            opacity: 0.6;
+        }
+        .mini-player, .diary-content {
+            color: var(--text-color);
         }
         .mini-player-container {
             position: absolute;
@@ -178,7 +189,6 @@
             border: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             padding: 10px;
-            color: var(--text-color);
             position: relative;
             overflow: hidden;
         }
@@ -222,11 +232,10 @@
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .rotating { animation: rotate 15s linear infinite; }
         .diary-entry, .memory-item { background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; position: relative; }
-        .diary-content { white-space: pre-wrap; line-height: 1.6; color: var(--text-color); }
         .diary-content strong { font-weight: bold; color: #fcd34d; }
         .diary-content em { font-style: italic; color: #93c5fd; }
         .diary-content del { text-decoration: line-through; opacity: 0.7; }
-        .diary-delete-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: var(--text-color); opacity: 0.5; cursor: pointer; transition: opacity 0.2s; }
+        .diary-delete-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: inherit; opacity: 0.5; cursor: pointer; transition: opacity 0.2s; }
         .diary-delete-btn:hover { opacity: 1; }
         .batch-delete-checkbox { position: absolute; top: 0.75rem; left: 0.75rem; }
         .form-checkbox { background-color: #4a5568; border-color: #718096; }
@@ -316,7 +325,7 @@
                     <!-- 聊天界面 -->
                     <div id="chat-page" class="hidden w-full h-full flex flex-col transition-all duration-500">
                         <div class="chat-header glass-container border-none rounded-b-2xl">
-                            <div class="flex items-center justify-between text-white">
+                            <div class="flex items-center justify-between">
                                 <button id="chat-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                                 <span id="affinity-display" class="text-lg font-semibold">好感度：0/100</span>
                                 <div class="flex items-center space-x-2">
@@ -330,8 +339,8 @@
                             <div class="flex items-center space-x-2">
                                 <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
                                 <div class="flex-1 relative">
-                                    <input type="text" id="user-input" class="w-full p-4 pr-14 rounded-full glass-container border-none outline-none text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-shadow duration-300" placeholder="请输入消息...">
-                                     <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 text-white hover:text-pink-400 transition-colors duration-300">
+                                    <input type="text" id="user-input" class="w-full p-4 pr-14 rounded-full glass-container border-none outline-none placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-shadow duration-300" placeholder="请输入消息...">
+                                     <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 text-pink-300 hover:text-pink-400 transition-colors duration-300">
                                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
                                     </button>
                                 </div>
@@ -349,25 +358,25 @@
                     <div id="role-page" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto">
                         <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
                              <button id="role-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                            <h1 class="text-2xl font-bold text-white">角色设置</h1>
+                            <h1 class="text-2xl font-bold">角色设置</h1>
                             <div class="w-8"></div>
                         </div>
                         <div class="w-full max-w-lg mx-auto space-y-4 pb-8">
                             <div class="glass-container p-4 rounded-xl">
-                                <h2 class="text-xl font-bold mb-3 text-white">玩家人设</h2>
-                                <input type="text" id="player-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家名称">
-                                <input type="text" id="player-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家性别">
-                                <textarea id="player-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-24 focus:ring-2 focus:ring-blue-400" placeholder="玩家详细人设、背景故事、性格特点..."></textarea>
+                                <h2 class="text-xl font-bold mb-3">玩家人设</h2>
+                                <input type="text" id="player-name" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家名称">
+                                <input type="text" id="player-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="玩家性别">
+                                <textarea id="player-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none h-24 focus:ring-2 focus:ring-blue-400" placeholder="玩家详细人设、背景故事、性格特点..."></textarea>
                             </div>
                              <div class="glass-container p-4 rounded-xl">
-                                <h2 class="text-xl font-bold mb-3 text-white">攻略角色人设</h2>
-                                <input type="text" id="role-name" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色名称">
-                                <input type="text" id="role-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色性别">
-                                <textarea id="role-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="角色详细人设、背景故事、性格特点..."></textarea>
+                                <h2 class="text-xl font-bold mb-3">攻略角色人设</h2>
+                                <input type="text" id="role-name" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色名称">
+                                <input type="text" id="role-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色性别">
+                                <textarea id="role-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="角色详细人设、背景故事、性格特点..."></textarea>
                             </div>
                              <div class="glass-container p-4 rounded-xl">
-                                <h2 class="text-xl font-bold mb-3 text-white">AI行为指令</h2>
-                                <textarea id="prompt-instructions" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="给AI的特殊指令, 例如：'请以口语化的方式回复' 或 '在回复中加入表情符号'"></textarea>
+                                <h2 class="text-xl font-bold mb-3">AI行为指令</h2>
+                                <textarea id="prompt-instructions" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="给AI的特殊指令, 例如：'请以口语化的方式回复' 或 '在回复中加入表情符号'"></textarea>
                             </div>
                             <button id="save-role-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300">保存角色设置</button>
                         </div>
@@ -377,16 +386,16 @@
                     <div id="settings-page" class="hidden w-full h-full flex-col p-4 overflow-y-auto">
                          <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
                              <button id="settings-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                            <h1 class="text-2xl font-bold text-white">设置</h1>
+                            <h1 class="text-2xl font-bold">设置</h1>
                             <div class="w-8"></div>
                         </div>
                         <div class="glass-container p-6 w-full max-w-lg mx-auto space-y-4">
                             <div class="flex flex-col">
-                                <label for="signature-input" class="text-white mb-2">个性签名</label>
-                                <input type="text" id="signature-input" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="请输入个性签名...">
+                                <label for="signature-input" class="mb-2">个性签名</label>
+                                <input type="text" id="signature-input" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="请输入个性签名...">
                             </div>
                             <div class="mt-6 pt-6 border-t border-white/20">
-                                <h2 class="text-xl font-bold mb-4 text-white">外观设置</h2>
+                                <h2 class="text-xl font-bold mb-4">外观设置</h2>
                                 <div class="flex space-x-2">
                                     <button id="avatar-frame-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
                                         选择头像框
@@ -400,25 +409,24 @@
                                  </div>
                              </div>
                              <div class="mt-6 pt-6 border-t border-white/20">
-                                <h2 class="text-xl font-bold mb-4 text-white">字体设置</h2>
+                                <h2 class="text-xl font-bold mb-4">字体设置</h2>
                                 <div class="flex flex-col mb-2">
-                                    <label for="font-upload" class="text-white mb-2">上传自定义字体</label>
-                                    <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="w-full p-3 rounded-md bg-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                    <label for="font-upload" class="mb-2">上传自定义字体</label>
+                                    <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="w-full p-3 rounded-md bg-white/20 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                 </div>
                                 <div class="flex items-center justify-between mb-2">
                                     <label for="font-family-select">选择字体</label>
-                                    <select id="font-family-select" class="w-48 p-2 rounded-md bg-white/20 text-white">
+                                    <select id="font-family-select" class="w-48 p-2 rounded-md bg-white/20">
                                         <option value="'Inter', sans-serif">默认字体 (Inter)</option>
                                         <option value="'Arial', sans-serif">Arial</option>
                                         <option value="'Times New Roman', serif">Times New Roman</option>
                                         <option value="'Courier New', monospace">Courier New</option>
                                         <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
-                                        <option value="custom-font">自定义字体</option>
                                     </select>
                                 </div>
                              </div>
                              <div class="mt-6 pt-6 border-t border-white/20">
-                                <h2 class="text-xl font-bold mb-4 text-white">主题设置</h2>
+                                <h2 class="text-xl font-bold mb-4">主题设置</h2>
                                 <div class="grid grid-cols-2 gap-x-4 gap-y-2">
                                     <div class="flex items-center justify-between"><label for="theme-bg-color">背景色</label><input type="color" id="theme-bg-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
                                     <div class="flex items-center justify-between"><label for="theme-text-color">文字颜色</label><input type="color" id="theme-text-color" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
@@ -430,13 +438,13 @@
                                 </div>
                              </div>
                             <div class="mt-6 pt-6 border-t border-white/20">
-                                <h2 class="text-xl font-bold mb-4 text-white">API 设置</h2>
-                                <input type="text" id="api-baseurl" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none" placeholder="API Base URL (例如: https://api.openai.com/v1)">
-                                <input type="text" id="api-key" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="API 密钥">
-                                <input type="text" id="api-model" class="w-full p-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none mt-2" placeholder="模型名称 (例如: gpt-3.5-turbo)">
+                                <h2 class="text-xl font-bold mb-4">API 设置</h2>
+                                <input type="text" id="api-baseurl" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="API Base URL (例如: https://api.openai.com/v1)">
+                                <input type="text" id="api-key" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="API 密钥">
+                                <input type="text" id="api-model" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="模型名称 (例如: gpt-3.5-turbo)">
                             </div>
                             <div class="mt-6 pt-6 border-t border-white/20">
-                                <h2 class="text-xl font-bold mb-4 text-white">数据管理</h2>
+                                <h2 class="text-xl font-bold mb-4">数据管理</h2>
                                 <div class="flex space-x-4">
                                     <button id="export-data-btn" class="w-full p-3 rounded-md bg-green-600 text-white font-bold hover:bg-green-700 transition-colors duration-300">导出数据</button>
                                     <button id="import-data-btn" class="w-full p-3 rounded-md bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors duration-300">导入数据</button>
@@ -451,7 +459,7 @@
                     <div id="memory-page" class="hidden w-full h-full flex flex-col p-4">
                         <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
                              <button id="memory-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                            <h1 class="text-2xl font-bold text-white">记忆存档</h1>
+                            <h1 class="text-2xl font-bold">记忆存档</h1>
                             <div class="flex items-center space-x-2">
                                 <button id="batch-delete-memories-btn" title="批量删除" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><i class="fas fa-trash-alt"></i></button>
                                 <button id="add-memory-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
@@ -468,7 +476,7 @@
                     <div id="diary-page" class="hidden w-full h-full flex flex-col p-4">
                         <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-4">
                             <button id="diary-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                            <h1 class="text-2xl font-bold text-white">我的日记</h1>
+                            <h1 class="text-2xl font-bold">我的日记</h1>
                             <div class="flex items-center space-x-2">
                                 <button id="generate-diary-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="生成新日记"><i class="fas fa-pen-nib"></i></button>
                                 <button id="batch-delete-diaries-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="批量删除"><i class="fas fa-trash-alt"></i></button>
@@ -484,10 +492,10 @@
                     <!-- 自定义弹窗 -->
                     <div id="custom-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
                         <div class="glass-container p-6 shadow-xl w-full max-w-sm border-none">
-                            <h3 id="dialog-title" class="text-xl font-bold mb-4 text-white"></h3>
-                            <p id="dialog-message" class="mb-4 text-white"></p>
+                            <h3 id="dialog-title" class="text-xl font-bold mb-4"></h3>
+                            <p id="dialog-message" class="mb-4"></p>
                             <div id="dialog-input-container" class="mb-4 hidden">
-                                <textarea id="dialog-input" class="w-full p-2 border-none rounded-md bg-white/20 text-white placeholder-gray-300 h-24"></textarea>
+                                <textarea id="dialog-input" class="w-full p-2 border-none rounded-md bg-white/20 h-24"></textarea>
                             </div>
                             <div id="dialog-buttons" class="flex justify-end space-x-2"></div>
                         </div>
@@ -502,7 +510,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.8.2"; // Version with robust API error handling
+            const APP_VERSION = "1.9.1"; // Version with global text color control
 
             // --- IndexedDB Helper ---
             const db = {
@@ -556,6 +564,7 @@
             await db.init('GameDataStore', 'assets');
 
             let musicFileCache = new Map();
+            let loadedFontFaces = new Set();
 
             // Page elements
             const phoneScreen = get('phone-screen');
@@ -599,7 +608,7 @@
 
             const state = {
                 version: APP_VERSION,
-                config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFont: null },
+                config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFonts: {} },
                 role: { playerName: '', playerGender: '', playerPersona: '', roleName: '', roleGender: '', rolePersona: '', promptInstructions: '' },
                 chat: { history: [], affinity: 0 },
                 memories: [],
@@ -614,32 +623,75 @@
                 document.documentElement.style.setProperty('--ai-bubble-text', colors.aiText); phoneScreen.style.backgroundColor = colors.bgColor;
             };
             
-            const applyFont = (fontFamily, customFontData = null) => {
-                if (fontFamily === 'custom-font' && customFontData) {
-                    const fontFace = new FontFace('custom-font', `url(${customFontData})`);
-                    fontFace.load().then(loadedFace => {
-                        document.fonts.add(loadedFace);
-                        document.documentElement.style.setProperty('--custom-font', "'custom-font', sans-serif");
-                    }).catch(error => console.error('Custom font failed to load:', error));
+            const applyFont = async (fontName) => {
+                if (state.config.customFonts[fontName]) {
+                    if (loadedFontFaces.has(fontName)) {
+                        document.documentElement.style.setProperty('--custom-font', `'${fontName}', sans-serif`);
+                        return;
+                    }
+                    try {
+                        const fontData = await db.get('assets', `font-${fontName}`);
+                        if (!fontData) throw new Error(`Font data for '${fontName}' not found in DB.`);
+                        const fontFace = new FontFace(fontName, `url(${fontData})`);
+                        await fontFace.load();
+                        document.fonts.add(fontFace);
+                        loadedFontFaces.add(fontName);
+                        document.documentElement.style.setProperty('--custom-font', `'${fontName}', sans-serif`);
+                    } catch (error) {
+                        console.error('Custom font failed to load:', error);
+                        document.documentElement.style.setProperty('--custom-font', "'Inter', sans-serif"); // Fallback
+                    }
                 } else {
-                    document.documentElement.style.setProperty('--custom-font', fontFamily);
+                    document.documentElement.style.setProperty('--custom-font', fontName);
+                }
+            };
+            
+            const renderFontOptions = () => {
+                const customFontOptions = fontFamilySelect.querySelectorAll('option.custom-font-option');
+                customFontOptions.forEach(opt => opt.remove());
+
+                for (const fontName in state.config.customFonts) {
+                    const option = document.createElement('option');
+                    option.value = fontName;
+                    option.textContent = fontName;
+                    option.className = 'custom-font-option';
+                    fontFamilySelect.appendChild(option);
                 }
             };
 
-            const ASSET_KEYS = ['bgImage', 'avatarImage', 'avatarFrameImage', 'customFont'];
+            const ASSET_KEYS = {
+                'bgImage': (s) => s.config.bgImage,
+                'avatarImage': (s) => s.config.avatarImage,
+                'avatarFrameImage': (s) => s.config.avatarFrameImage,
+                'albumArt': (s) => s.music.albumArt
+            };
+            const setAssetValue = (obj, key, value) => {
+                if (key === 'albumArt') obj.music.albumArt = value;
+                else obj.config[key] = value;
+            };
 
             async function saveState() {
                 try {
                     state.version = APP_VERSION;
                     const stateToSave = JSON.parse(JSON.stringify(state));
 
-                    for (const key of ASSET_KEYS) {
-                        const assetData = stateToSave.config[key];
+                    // Handle single assets
+                    for (const key in ASSET_KEYS) {
+                        const assetData = ASSET_KEYS[key](stateToSave);
                         if (assetData && assetData.startsWith('data:')) {
                             await db.set('assets', key, assetData);
-                            stateToSave.config[key] = 'indexed';
+                            setAssetValue(stateToSave, key, 'indexed');
                         } else if (!assetData) {
                             await db.delete('assets', key).catch(e => console.warn(`Could not delete ${key} from DB`, e));
+                        }
+                    }
+
+                    // Handle custom fonts collection
+                    for (const fontName in stateToSave.config.customFonts) {
+                        const fontData = stateToSave.config.customFonts[fontName];
+                        if (fontData && fontData.startsWith('data:')) {
+                            await db.set('assets', `font-${fontName}`, fontData);
+                            stateToSave.config.customFonts[fontName] = 'indexed';
                         }
                     }
                     
@@ -675,10 +727,11 @@
                     localStorage.removeItem('game_state_v5');
                 }
 
-                for (const key of ASSET_KEYS) {
-                    if (state.config[key] === 'indexed') {
+                // Load single assets
+                for (const key in ASSET_KEYS) {
+                    if (ASSET_KEYS[key](state) === 'indexed') {
                         const data = await db.get('assets', key);
-                        if (data) state.config[key] = data;
+                        if (data) setAssetValue(state, key, data);
                     }
                 }
                 
@@ -688,7 +741,8 @@
                 
                 signatureDisplay.textContent = state.config.signature;
                 applyColors(state.config.colors);
-                applyFont(state.config.fontFamily, state.config.customFont);
+                renderFontOptions();
+                await applyFont(state.config.fontFamily);
                 
                 initMusicPlayer();
                 renderChatHistory();
@@ -705,12 +759,17 @@
                 return new Promise((resolve) => {
                     dialogTitle.textContent = title; dialogMessage.textContent = message; dialogButtons.innerHTML = '';
                     dialogInputContainer.classList.toggle('hidden', !options.input);
-                    if (options.input) dialogInput.value = options.defaultValue || '';
+                    if (options.input) {
+                        dialogInput.value = options.defaultValue || '';
+                        dialogInput.placeholder = options.placeholder || '';
+                    }
 
                     const buttons = options.buttons || [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '确定', value: true, class: 'bg-blue-500' }];
                     buttons.forEach(btnInfo => {
                         const button = document.createElement('button');
-                        button.textContent = btnInfo.text; button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
+                        button.textContent = btnInfo.text;
+                        // Buttons inside dialog should have their own explicit text color for readability
+                        button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
                         button.onclick = () => {
                             dialog.classList.add('hidden'); dialog.style.display = 'none';
                             const result = options.input ? (btnInfo.value === false ? false : dialogInput.value) : btnInfo.value;
@@ -828,7 +887,12 @@
                 }
                 async function handleCoverSelect(e) {
                     const file = e.target.files[0]; if (!file || !file.type.match('image.*')) return; const reader = new FileReader();
-                    reader.onload = async e => { state.music.albumArt = e.target.result; albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`; await saveState(); };
+                    reader.onload = async event => {
+                        const dataUrl = event.target.result;
+                        state.music.albumArt = dataUrl;
+                        albumArtLabel.innerHTML = `<img src="${dataUrl}" alt="album art">`;
+                        await saveState();
+                    };
                     reader.readAsDataURL(file);
                 }
 
@@ -848,7 +912,7 @@
             memoryBtn.addEventListener('click', () => { renderMemoryList(); showView('memory'); });
             diaryBtn.addEventListener('click', () => { renderDiaryList(); showView('diary'); });
             roleBtn.addEventListener('click', () => { get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender; get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName; get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona; get('prompt-instructions').value = state.role.promptInstructions; showView('role'); });
-            settingsBtn.addEventListener('click', () => { get('signature-input').value = state.config.signature; apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model; themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor; themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble); themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble); themeAiText.value = state.config.colors.aiText; fontFamilySelect.value = (state.config.fontFamily === 'custom-font' && state.config.customFont) ? 'custom-font' : state.config.fontFamily; showView('settings'); });
+            settingsBtn.addEventListener('click', () => { get('signature-input').value = state.config.signature; apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model; themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor; themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble); themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble); themeAiText.value = state.config.colors.aiText; fontFamilySelect.value = state.config.fontFamily; showView('settings'); });
             backBtns.forEach(btn => btn.addEventListener('click', () => showView('home')));
             avatarContainer.addEventListener('click', () => avatarUpload.click());
 
@@ -857,7 +921,7 @@
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     const dataUrl = event.target.result;
-                    state.config[assetKey] = dataUrl;
+                    setAssetValue(state, assetKey, dataUrl);
                     if (isImageSrc) elementToUpdate.src = dataUrl;
                     else elementToUpdate.style.backgroundImage = `url(${dataUrl})`;
                     await saveState();
@@ -878,21 +942,33 @@
             fontUpload.addEventListener('change', async e => {
                 if (!e.target.files || e.target.files.length === 0) return;
                 const file = e.target.files[0];
+                const defaultName = file.name.replace(/\.[^/.]+$/, "");
+                const fontName = await showDialog('命名新字体', '请为你的新字体命名:', { input: true, defaultValue: defaultName, placeholder: '例如: 可爱的像素字体' });
+                
+                if (!fontName || state.config.customFonts[fontName]) {
+                    showToast(fontName ? '该字体名称已存在' : '已取消上传');
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = async (event) => {
-                    state.config.customFont = event.target.result; state.config.fontFamily = 'custom-font';
-                    applyFont('custom-font', state.config.customFont); fontFamilySelect.value = 'custom-font';
-                    await saveState(); showToast('自定义字体已上传并应用');
+                    const dataUrl = event.target.result;
+                    state.config.customFonts[fontName] = dataUrl; // Temporarily store data url
+                    await saveState(); // This will save to DB and change to 'indexed'
+                    renderFontOptions();
+                    fontFamilySelect.value = fontName;
+                    await applyFont(fontName);
+                    state.config.fontFamily = fontName;
+                    await saveState();
+                    showToast(`字体 '${fontName}' 已添加并应用`);
                 };
                 reader.readAsDataURL(file);
             });
             
             fontFamilySelect.addEventListener('change', async e => {
                 const selectedFont = e.target.value;
-                if (selectedFont === 'custom-font') {
-                    if (state.config.customFont) { state.config.fontFamily = 'custom-font'; applyFont('custom-font', state.config.customFont); } 
-                    else { showToast('请先上传自定义字体'); e.target.value = state.config.fontFamily; return; }
-                } else { state.config.fontFamily = selectedFont; applyFont(selectedFont); }
+                state.config.fontFamily = selectedFont;
+                await applyFont(selectedFont);
                 await saveState();
             });
 
@@ -1007,8 +1083,7 @@
                     }
 
                     const data = await response.json();
-                    console.log('API Response Data:', data); // Diagnostic log
-
+                    
                     if (data.error) {
                         throw new Error(`API返回错误: ${data.error.message}`);
                     }
@@ -1075,10 +1150,10 @@
             addMemoryBtn.addEventListener('click', async () => { const content = await showDialog('添加新记忆', '请输入记忆内容:', { input: true, defaultValue: '' }); if (content) { state.memories.push({ id: Date.now(), content, timestamp: new Date().toLocaleString() }); await saveState(); renderMemoryList(); showToast('记忆已添加'); } });
             const renderMemoryList = () => {
                 if (!state.memories) state.memories = [];
-                memoryListEl.innerHTML = state.memories.length === 0 ? '<p class="text-white/70 text-center">沒有记忆存档。</p>' : '';
+                memoryListEl.innerHTML = state.memories.length === 0 ? '<p class="opacity-70 text-center">沒有记忆存档。</p>' : '';
                 [...state.memories].reverse().forEach(mem => {
                     const item = document.createElement('div'); item.className = 'memory-item'; item.dataset.id = mem.id;
-                    let innerHTML = `<p class="text-white whitespace-pre-wrap">${mem.content}</p><p class="text-xs text-white/50 mt-1">${mem.timestamp}</p>`;
+                    let innerHTML = `<p class="whitespace-pre-wrap">${mem.content}</p><p class="text-xs opacity-50 mt-1">${mem.timestamp}</p>`;
                     if (isMemoryBatchDeleteMode) { item.classList.add('pl-12'); innerHTML = `<input type="checkbox" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">` + innerHTML; }
                     item.innerHTML = innerHTML;
                     if (!isMemoryBatchDeleteMode) { item.addEventListener('click', () => showMemoryDetails(mem.id)); }
@@ -1111,12 +1186,12 @@
             const renderMarkdown = (text) => text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/~~(.*?)~~/g, '<del>$1</del>');
             const renderDiaryList = () => {
                 if (!state.diaries) state.diaries = [];
-                diaryListContainer.innerHTML = state.diaries.length === 0 ? '<p class="text-white/70 text-center">还没有日记，试着生成一篇吧。</p>' : '';
+                diaryListContainer.innerHTML = state.diaries.length === 0 ? '<p class="opacity-70 text-center">还没有日记，试着生成一篇吧。</p>' : '';
                 [...state.diaries].reverse().forEach(diary => {
                     const item = document.createElement('div'); item.className = 'diary-entry'; item.dataset.id = diary.id; let innerHTML = '';
                     if (isDiaryBatchDeleteMode) { innerHTML += `<input type="checkbox" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">`; item.classList.add('pl-12'); } 
                     else { innerHTML += `<button class="diary-delete-btn" title="删除日记"><i class="fas fa-times"></i></button>`; item.classList.remove('pl-12'); }
-                    innerHTML += `<p class="text-xs text-white/50 mb-2">${diary.timestamp}</p><div class="diary-content">${renderMarkdown(diary.content)}</div>`;
+                    innerHTML += `<p class="text-xs opacity-50 mb-2">${diary.timestamp}</p><div class="diary-content">${renderMarkdown(diary.content)}</div>`;
                     item.innerHTML = innerHTML;
                     if (!isDiaryBatchDeleteMode) {
                         item.querySelector('.diary-delete-btn').addEventListener('click', (e) => {
@@ -1152,11 +1227,27 @@
 
             // --- Data Export/Import ---
             exportDataBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('导出数据', '这将导出一个包含您所有设置、聊天、记忆和日记的JSON文件。注意：背景、头像和字体等媒体文件不会被包含在内。导入后，您需要重新上传这些文件。是否继续？');
+                const confirmed = await showDialog('导出数据', '这将导出一个包含您所有设置、聊天、记忆、日记和媒体文件（头像、背景等）的JSON文件。文件可能会很大。是否继续？');
                 if (!confirmed) return;
                 try {
                     const stateToExport = JSON.parse(JSON.stringify(state));
-                    for (const key of ASSET_KEYS) { if (stateToExport.config[key]) stateToExport.config[key] = 'indexed'; }
+                    
+                    // Rehydrate single assets
+                    for (const key in ASSET_KEYS) {
+                        if (ASSET_KEYS[key](stateToExport) === 'indexed') {
+                            const data = await db.get('assets', key);
+                            if (data) setAssetValue(stateToExport, key, data);
+                        }
+                    }
+
+                    // Rehydrate custom fonts
+                    for (const fontName in stateToExport.config.customFonts) {
+                        if (stateToExport.config.customFonts[fontName] === 'indexed') {
+                            const fontData = await db.get('assets', `font-${fontName}`);
+                            if (fontData) stateToExport.config.customFonts[fontName] = fontData;
+                        }
+                    }
+
                     const dataStr = JSON.stringify(stateToExport, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
                     const a = document.createElement('a'); a.href = url; a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast('数据已成功导出');
@@ -1169,8 +1260,33 @@
                     try {
                         const importedState = JSON.parse(event.target.result);
                         if (!importedState.version || !importedState.config || !importedState.role) throw new Error('文件格式无效或不兼容。');
-                        const confirmed = await showDialog('导入数据', '这将使用文件中的数据覆盖所有当前数据。媒体文件（背景、头像等）需要您在导入后手动重新上传。确定要继续吗？');
-                        if (confirmed) { localStorage.setItem('game_state_v5', JSON.stringify(importedState)); showToast('数据导入成功，正在刷新...'); setTimeout(() => window.location.reload(), 1500); }
+                        
+                        const confirmed = await showDialog('导入数据', '这将使用文件中的数据覆盖所有当前数据。确定要继续吗？');
+                        if (confirmed) {
+                            // Before saving to localStorage, process assets and save them to IndexedDB
+                            // Handle single assets
+                            for (const key in ASSET_KEYS) {
+                                const assetData = ASSET_KEYS[key](importedState);
+                                if (assetData && assetData.startsWith('data:')) {
+                                    await db.set('assets', key, assetData);
+                                    setAssetValue(importedState, key, 'indexed');
+                                }
+                            }
+                            // Handle custom fonts
+                            if (importedState.config.customFonts) {
+                                for (const fontName in importedState.config.customFonts) {
+                                    const fontData = importedState.config.customFonts[fontName];
+                                    if (fontData && fontData.startsWith('data:')) {
+                                        await db.set('assets', `font-${fontName}`, fontData);
+                                        importedState.config.customFonts[fontName] = 'indexed';
+                                    }
+                                }
+                            }
+
+                            localStorage.setItem('game_state_v5', JSON.stringify(importedState)); 
+                            showToast('数据导入成功，正在刷新...'); 
+                            setTimeout(() => window.location.reload(), 1500); 
+                        }
                     } catch (err) { showDialog('导入失败', '无法解析文件或文件格式错误: ' + err.message); } finally { importFileInput.value = ''; }
                 };
                 reader.readAsText(file);
