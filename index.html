@@ -98,8 +98,8 @@
         }
         .message-bubble {
             display: inline-block;
-            font-size: 0.9rem;
-            padding: 0.6rem 0.9rem;
+            font-size: 0.9rem; /* 调整字体大小 */
+            padding: 0.6rem 0.9rem; /* 调整内边距 */
             max-width: 75%;
             word-wrap: break-word;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -502,7 +502,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.8.1"; // Version with API fix
+            const APP_VERSION = "1.8.2"; // Version with robust API error handling
 
             // --- IndexedDB Helper ---
             const db = {
@@ -969,7 +969,6 @@
             userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage('user', userInput.value); }});
             userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
             
-            // CORRECTED FUNCTION
             const createApiPrompt = () => {
                 let systemPrompt = `你是一个AI角色，正在与玩家互动。
 玩家信息: 名称=${state.role.playerName || '玩家'}, 性别=${state.role.playerGender}, 人设=${state.role.playerPersona}.
@@ -986,19 +985,68 @@
                 return messages;
             };
 
+            // --- AI REPLY LOGIC WITH ENHANCED ERROR HANDLING ---
             aiReplyBtn.addEventListener('click', async () => {
-                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-                showToast('角色正在思考中...'); aiReplyBtn.disabled = true;
+                if (!state.config.api.baseUrl || !state.config.api.key) {
+                    showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); });
+                    return;
+                }
+                showToast('角色正在思考中...');
+                aiReplyBtn.disabled = true;
                 try {
-                    const messages = createApiPrompt(); // This will now work
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false }) });
-                    if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
-                    const data = await response.json(); let aiResponse = data.choices?.[0]?.message?.content; if (!aiResponse) throw new Error("无法解析API响应格式");
-                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/; const match = aiResponse.match(affinityRegex);
-                    if (match && match[1]) { state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10))); aiResponse = aiResponse.replace(affinityRegex, '').trim(); }
+                    const messages = createApiPrompt();
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: { message: '无法解析错误响应' } }));
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || '未知网络错误'}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('API Response Data:', data); // Diagnostic log
+
+                    if (data.error) {
+                        throw new Error(`API返回错误: ${data.error.message}`);
+                    }
+
+                    const choice = data.choices?.[0];
+                    
+                    if (!choice) {
+                        throw new Error("无法解析API响应格式：响应中缺少 'choices' 数组或数组为空。");
+                    }
+
+                    if (choice.finish_reason === 'content_filter') {
+                        throw new Error("AI回复因内容安全策略被拦截。");
+                    }
+
+                    let aiResponse = choice.message?.content;
+
+                    if (!aiResponse) {
+                        if (choice.finish_reason === 'length') {
+                             throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。");
+                        }
+                        throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。");
+                    }
+
+                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/;
+                    const match = aiResponse.match(affinityRegex);
+                    if (match && match[1]) {
+                        state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10)));
+                        aiResponse = aiResponse.replace(affinityRegex, '').trim();
+                    }
                     const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
                     await sendAiMessages(replyMessages);
-                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
+
+                } catch (error) {
+                    console.error("API请求失败:", error);
+                    showDialog('API请求失败', `错误: ${error.message}`);
+                } finally {
+                    aiReplyBtn.disabled = false;
+                }
             });
 
             restartChatBtn.addEventListener('click', async () => { const ok = await showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。'); if (ok) { state.chat = { history: [], affinity: 0 }; await saveState(); renderChatHistory(); showToast('对话已清空'); } });
