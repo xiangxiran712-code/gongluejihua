@@ -46,7 +46,7 @@
             height: 100%;
             background: #111;
             border-radius: 40px;
-            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5); /* 内部阴影已移除 */
             padding: 10px;
             box-sizing: border-box;
         }
@@ -126,6 +126,12 @@
             padding-right: 1rem;
         }
         .chat-header { top: 0; padding-top: 1rem; padding-bottom: 0.5rem; }
+
+        .chat-header.no-blur {
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
         .chat-footer, .batch-actions-footer { bottom: 0; padding-bottom: 1rem; padding-top: 0.5rem; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 20px; }
@@ -324,7 +330,7 @@
 
                     <!-- 聊天界面 -->
                     <div id="chat-page" class="hidden w-full h-full flex flex-col transition-all duration-500">
-                        <div class="chat-header glass-container border-none rounded-b-2xl">
+                        <div class="chat-header glass-container border-none rounded-b-2xl no-blur">
                             <div class="flex items-center justify-between">
                                 <button id="chat-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                                 <span id="affinity-display" class="text-lg font-semibold">好感度：0/100</span>
@@ -413,6 +419,9 @@
                                 <div class="flex flex-col mb-2">
                                     <label for="font-upload" class="mb-2">上传自定义字体</label>
                                     <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="w-full p-3 rounded-md bg-white/20 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                </div>
+                                <div class="flex space-x-2 mb-2">
+                                    <button id="manage-fonts-btn" class="flex-grow p-2 rounded-md bg-gray-600 text-white text-sm font-bold hover:bg-gray-700 transition-colors">管理字体</button>
                                 </div>
                                 <div class="flex items-center justify-between mb-2">
                                     <label for="font-family-select">选择字体</label>
@@ -510,7 +519,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.9.1"; // Version with global text color control
+            const APP_VERSION = "1.9.3"; // Version with font management
 
             // --- IndexedDB Helper ---
             const db = {
@@ -563,7 +572,6 @@
             };
             await db.init('GameDataStore', 'assets');
 
-            let musicFileCache = new Map();
             let loadedFontFaces = new Set();
 
             // Page elements
@@ -602,7 +610,7 @@
             // Settings Elements
             const themeBgColor = get('theme-bg-color'), themeTextColor = get('theme-text-color'), themeGlassBg = get('theme-glass-bg'), themeUserBubble = get('theme-user-bubble');
             const themeAiBubble = get('theme-ai-bubble'), themeUserText = get('theme-user-text'), themeAiText = get('theme-ai-text');
-            const fontUpload = get('font-upload'), fontFamilySelect = get('font-family-select'), bgUploadBtn = get('bg-upload-btn'), bgUploadInput = get('bg-upload-input');
+            const fontUpload = get('font-upload'), fontFamilySelect = get('font-family-select'), manageFontsBtn = get('manage-fonts-btn'), bgUploadBtn = get('bg-upload-btn'), bgUploadInput = get('bg-upload-input');
             const avatarFrameUploadBtn = get('avatar-frame-upload-btn'), avatarFrameUploadInput = get('avatar-frame-upload-input'), restoreAppearanceBtn = get('restore-appearance-btn');
             const apiBaseUrl = get('api-baseurl'), apiKey = get('api-key'), apiModel = get('api-model');
 
@@ -695,6 +703,7 @@
                         }
                     }
                     
+                    // Strip audio data from playlist before saving to localStorage
                     if (stateToSave.music && stateToSave.music.playlist) {
                         stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
                     }
@@ -757,7 +766,14 @@
 
             const showDialog = (title, message, options = {}) => {
                 return new Promise((resolve) => {
-                    dialogTitle.textContent = title; dialogMessage.textContent = message; dialogButtons.innerHTML = '';
+                    dialogTitle.textContent = title; 
+                    if (typeof message === 'string') {
+                        dialogMessage.innerHTML = message;
+                    } else { // It's a node
+                        dialogMessage.innerHTML = '';
+                        dialogMessage.appendChild(message);
+                    }
+                    dialogButtons.innerHTML = '';
                     dialogInputContainer.classList.toggle('hidden', !options.input);
                     if (options.input) {
                         dialogInput.value = options.defaultValue || '';
@@ -799,6 +815,7 @@
             
             updateDateTime(); setInterval(updateDateTime, 1000);
             
+            // --- Music Player (Re-engineered for persistence) ---
             function initMusicPlayer() {
                 const audio = get('main-audio'), playPauseBtn = get('play-pause'), prevBtn = get('prev'), nextBtn = get('next'), volumeSlider = get('volume');
                 const progressContainer = document.querySelector('.progress-container'), progressBar = document.querySelector('.progress-bar');
@@ -825,31 +842,57 @@
                     });
                 }
 
-                function managePlaylistItem(index) {
+                async function managePlaylistItem(index) {
                     const song = state.music.playlist[index];
                     if (!song) return;
-                    showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？ (文件不会被删除)`, {
-                        buttons: [{text: '取消', value: 'cancel', class: 'bg-gray-500/50'}, {text: '移除', value: 'delete', class: 'bg-red-500/80'}]
-                    }).then(async action => {
-                        if (action === 'delete') {
-                            const wasPlaying = (index === state.music.currentSongIndex);
-                            const removedSongName = state.music.playlist[index].name;
-                            if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
-                            state.music.playlist.splice(index, 1);
-                            if (musicFileCache.has(removedSongName)) { URL.revokeObjectURL(musicFileCache.get(removedSongName)); musicFileCache.delete(removedSongName); }
-                            if (wasPlaying) { audio.pause(); audio.src = ''; state.music.currentSongIndex = -1; songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家'; currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00'; albumArtLabel.classList.remove('rotating'); playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; }
-                            await saveState(); renderPlaylist();
-                            if(state.music.currentSongIndex !== -1) { const activeSongEl = playlistEl.children[state.music.currentSongIndex]; if (activeSongEl) activeSongEl.classList.add('active'); }
-                            showToast('歌曲已从列表移除');
-                        }
+                    const confirmed = await showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？这会从数据库中删除该歌曲文件。`, {
+                        buttons: [{text: '取消', value: false, class: 'bg-gray-500/50'}, {text: '移除', value: true, class: 'bg-red-500/80'}]
                     });
+                    if (confirmed) {
+                        const wasPlaying = (index === state.music.currentSongIndex);
+                        const removedSongName = state.music.playlist[index].name;
+                        
+                        await db.delete('assets', `music-${removedSongName}`);
+                        
+                        if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
+                        state.music.playlist.splice(index, 1);
+                        
+                        if (wasPlaying) { 
+                            audio.pause(); 
+                            audio.src = ''; 
+                            state.music.currentSongIndex = -1; 
+                            songTitle.textContent = '选择一首歌曲'; 
+                            songArtist.textContent = '未知艺术家'; 
+                            currentTimeEl.textContent = '0:00'; 
+                            totalTimeEl.textContent = '0:00'; 
+                            albumArtLabel.classList.remove('rotating'); 
+                            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; 
+                        }
+                        await saveState(); 
+                        renderPlaylist();
+                        if(state.music.currentSongIndex !== -1) { 
+                            const activeSongEl = playlistEl.children[state.music.currentSongIndex]; 
+                            if (activeSongEl) activeSongEl.classList.add('active'); 
+                        }
+                        showToast('歌曲已移除');
+                    }
                 }
                 
-                function loadSong(index, play = false) {
+                async function loadSong(index, play = false) {
                     if (!state.music.playlist || index < 0 || index >= state.music.playlist.length) return;
-                    state.music.currentSongIndex = index; const song = state.music.playlist[index]; const songUrl = musicFileCache.get(song.name);
-                    if (!songUrl) { showToast(`请重新导入歌曲: ${song.name}`); songTitle.textContent = song.name; songArtist.textContent = '需重新导入'; setTimeout(() => fileInput.click(), 500); return; }
-                    songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; audio.src = songUrl;
+                    state.music.currentSongIndex = index; 
+                    const song = state.music.playlist[index];
+                    const songData = await db.get('assets', `music-${song.name}`);
+
+                    if (!songData) { 
+                        showToast(`歌曲数据丢失: ${song.name}`); 
+                        songTitle.textContent = song.name; 
+                        songArtist.textContent = '数据丢失'; 
+                        return; 
+                    }
+                    songTitle.textContent = song.name; 
+                    songArtist.textContent = '本地音乐'; 
+                    audio.src = songData;
                     playlistEl.querySelectorAll('.song-item').forEach((item, idx) => item.classList.toggle('active', idx === index));
                     if (play) audio.play();
                     saveState();
@@ -857,7 +900,13 @@
 
                 function togglePlay() {
                     if (state.music.playlist.length === 0) { showToast('请先导入音乐'); fileInput.click(); return; }
-                    if (audio.paused) { if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true); else if (!audio.src) loadSong(0, true); else audio.play(); } else audio.pause();
+                    if (audio.paused) { 
+                        if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true); 
+                        else if (!audio.src) loadSong(0, true); 
+                        else audio.play(); 
+                    } else { 
+                        audio.pause(); 
+                    }
                 }
 
                 audio.onplay = () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; albumArtLabel.classList.add('rotating'); };
@@ -871,18 +920,44 @@
                 const setVolume = async () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; await saveState(); };
 
                 async function handleFileSelect(e) {
-                    const files = Array.from(e.target.files); if (files.length === 0) return; showToast(`正在处理 ${files.length} 首歌曲...`);
+                    const files = Array.from(e.target.files); 
+                    if (files.length === 0) return; 
+                    showToast(`正在处理 ${files.length} 首歌曲...`);
+                    
                     let firstNewSongIndex = -1;
-                    files.forEach(file => {
+                    for (const file of files) {
                         const songName = file.name.replace(/\.[^/.]+$/, "");
-                        if (musicFileCache.has(songName)) { URL.revokeObjectURL(musicFileCache.get(songName)); }
-                        const objectURL = URL.createObjectURL(file); musicFileCache.set(songName, objectURL);
-                        const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName);
-                        if (existingSongIndex === -1) { state.music.playlist.push({ name: songName }); if (firstNewSongIndex === -1) { firstNewSongIndex = state.music.playlist.length - 1; } }
-                    });
-                    renderPlaylist(); showToast('歌曲处理完成！');
-                    if (!isPlaying && firstNewSongIndex !== -1) { loadSong(firstNewSongIndex, true); } 
-                    else if (state.music.currentSongIndex !== -1) { const currentSong = state.music.playlist[state.music.currentSongIndex]; if (currentSong && musicFileCache.has(currentSong.name) && !audio.src) { loadSong(state.music.currentSongIndex, isPlaying); } }
+                        const reader = new FileReader();
+                        
+                        const promise = new Promise((resolve, reject) => {
+                            reader.onload = async (event) => {
+                                try {
+                                    const dataUrl = event.target.result;
+                                    await db.set('assets', `music-${songName}`, dataUrl);
+                                    
+                                    const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName);
+                                    if (existingSongIndex === -1) {
+                                        state.music.playlist.push({ name: songName });
+                                        if (firstNewSongIndex === -1) {
+                                            firstNewSongIndex = state.music.playlist.length - 1;
+                                        }
+                                    }
+                                    resolve();
+                                } catch (err) {
+                                    reject(err);
+                                }
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        });
+                        await promise;
+                    }
+
+                    renderPlaylist(); 
+                    showToast('歌曲处理完成！');
+                    if (!isPlaying && firstNewSongIndex !== -1) { 
+                        loadSong(firstNewSongIndex, true); 
+                    }
                     await saveState();
                 }
                 async function handleCoverSelect(e) {
@@ -896,16 +971,27 @@
                     reader.readAsDataURL(file);
                 }
 
-                renderPlaylist(); if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
-                if (state.music.currentSongIndex > -1) { const song = state.music.playlist[state.music.currentSongIndex]; if(song) { songTitle.textContent = song.name; songArtist.textContent = '需重新导入'; } }
-                volumeSlider.value = state.music.volume; audio.volume = state.music.volume;
-                playPauseBtn.addEventListener('click', togglePlay); prevBtn.addEventListener('click', prevSong); nextBtn.addEventListener('click', nextSong);
-                audio.addEventListener('timeupdate', updateProgress); progressContainer.addEventListener('click', setProgress); volumeSlider.addEventListener('input', setVolume);
-                fileInput.addEventListener('change', handleFileSelect); coverInput.addEventListener('change', handleCoverSelect);
+                renderPlaylist(); 
+                if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
+                if (state.music.currentSongIndex > -1) { 
+                    const song = state.music.playlist[state.music.currentSongIndex]; 
+                    if(song) { 
+                        songTitle.textContent = song.name; 
+                        songArtist.textContent = '本地音乐'; 
+                    } 
+                }
+                volumeSlider.value = state.music.volume; 
+                audio.volume = state.music.volume;
+                playPauseBtn.addEventListener('click', togglePlay); 
+                prevBtn.addEventListener('click', prevSong); 
+                nextBtn.addEventListener('click', nextSong);
+                audio.addEventListener('timeupdate', updateProgress); 
+                progressContainer.addEventListener('click', setProgress); 
+                volumeSlider.addEventListener('input', setVolume);
+                fileInput.addEventListener('change', handleFileSelect); 
+                coverInput.addEventListener('change', handleCoverSelect);
                 togglePlaylistBtn.addEventListener('click', () => { playlistEl.style.display = (playlistEl.style.display === 'block') ? 'none' : 'block'; });
             }
-
-            window.addEventListener('beforeunload', () => { musicFileCache.forEach(url => URL.revokeObjectURL(url)); });
 
             // --- Navigation & Page Setup ---
             strategyBtn.addEventListener('click', () => { showView('chat'); setTimeout(() => { chatHistory.scrollTop = chatHistory.scrollHeight; }, 0); });
@@ -971,6 +1057,59 @@
                 await applyFont(selectedFont);
                 await saveState();
             });
+
+            // --- FONT MANAGEMENT ---
+            const showFontManager = () => {
+                const fontListContainer = document.createElement('div');
+                fontListContainer.className = 'space-y-2 max-h-60 overflow-y-auto';
+                const customFonts = Object.keys(state.config.customFonts);
+
+                if (customFonts.length === 0) {
+                    fontListContainer.innerHTML = `<p class="opacity-70 text-center">没有已导入的字体。</p>`;
+                } else {
+                    customFonts.forEach(fontName => {
+                        const item = document.createElement('div');
+                        item.className = 'flex items-center justify-between p-2 bg-white/10 rounded';
+                        
+                        const nameSpan = document.createElement('span');
+                        nameSpan.textContent = fontName;
+                        item.appendChild(nameSpan);
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`;
+                        deleteBtn.className = 'p-2 text-red-400 hover:text-red-500';
+                        deleteBtn.onclick = async () => {
+                            const confirmed = await showDialog('确认删除', `确定要永久删除字体 "${fontName}" 吗？此操作无法撤销。`);
+                            if (confirmed) {
+                                // If deleting the active font, revert to default
+                                if (state.config.fontFamily === fontName) {
+                                    state.config.fontFamily = "'Inter', sans-serif";
+                                    await applyFont(state.config.fontFamily);
+                                    fontFamilySelect.value = state.config.fontFamily;
+                                    showToast(`当前字体 "${fontName}" 已删除，已切换回默认字体。`);
+                                } else {
+                                    showToast(`字体 "${fontName}" 已删除。`);
+                                }
+                                
+                                delete state.config.customFonts[fontName];
+                                await db.delete('assets', `font-${fontName}`);
+                                await saveState();
+                                renderFontOptions();
+                                
+                                // Refresh the manager dialog
+                                showFontManager();
+                            }
+                        };
+                        item.appendChild(deleteBtn);
+                        fontListContainer.appendChild(item);
+                    });
+                }
+                
+                showDialog('管理字体', fontListContainer, {
+                    buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }]
+                });
+            };
+            manageFontsBtn.addEventListener('click', showFontManager);
 
             saveSettingsBtn.addEventListener('click', async () => {
                 state.config.signature = get('signature-input').value; state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
@@ -1225,11 +1364,12 @@
                 if (confirmed) { state.diaries = state.diaries.filter(d => !selectedIds.includes(d.id)); await saveState(); isDiaryBatchDeleteMode = false; renderDiaryList(); showToast('日记已删除'); }
             });
 
-            // --- Data Export/Import ---
+            // --- Data Export/Import (Robust version) ---
             exportDataBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('导出数据', '这将导出一个包含您所有设置、聊天、记忆、日记和媒体文件（头像、背景等）的JSON文件。文件可能会很大。是否继续？');
+                const confirmed = await showDialog('导出数据', '这将导出一个包含所有设置、聊天、记忆、日记和全部媒体文件（包括音频）的JSON文件。文件可能会非常大。是否继续？');
                 if (!confirmed) return;
                 try {
+                    showToast('正在准备导出数据...');
                     const stateToExport = JSON.parse(JSON.stringify(state));
                     
                     // Rehydrate single assets
@@ -1248,11 +1388,28 @@
                         }
                     }
 
-                    const dataStr = JSON.stringify(stateToExport, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+                    // Rehydrate audio files
+                    if (stateToExport.music && stateToExport.music.playlist) {
+                        for (const song of stateToExport.music.playlist) {
+                            const audioData = await db.get('assets', `music-${song.name}`);
+                            if (audioData) {
+                                song.data = audioData; // Embed audio data
+                            }
+                        }
+                    }
+
+                    const dataStr = JSON.stringify(stateToExport); // No pretty print for large files
+                    const blob = new Blob([dataStr], { type: 'application/json' }); 
+                    const url = URL.createObjectURL(blob);
                     const a = document.createElement('a'); a.href = url; a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast('数据已成功导出');
-                } catch(e) { showDialog('错误', '导出数据失败: ' + e.message); }
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); 
+                    showToast('数据已成功导出');
+                } catch(e) { 
+                    showDialog('错误', '导出数据失败: ' + e.message); 
+                    console.error(e);
+                }
             });
+
             importDataBtn.addEventListener('click', () => { importFileInput.click(); });
             importFileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
@@ -1263,13 +1420,14 @@
                         
                         const confirmed = await showDialog('导入数据', '这将使用文件中的数据覆盖所有当前数据。确定要继续吗？');
                         if (confirmed) {
-                            // Before saving to localStorage, process assets and save them to IndexedDB
+                            showToast('正在导入数据，请稍候...');
+                            
+                            // Save all assets from imported file to IndexedDB
                             // Handle single assets
                             for (const key in ASSET_KEYS) {
                                 const assetData = ASSET_KEYS[key](importedState);
                                 if (assetData && assetData.startsWith('data:')) {
                                     await db.set('assets', key, assetData);
-                                    setAssetValue(importedState, key, 'indexed');
                                 }
                             }
                             // Handle custom fonts
@@ -1278,19 +1436,52 @@
                                     const fontData = importedState.config.customFonts[fontName];
                                     if (fontData && fontData.startsWith('data:')) {
                                         await db.set('assets', `font-${fontName}`, fontData);
-                                        importedState.config.customFonts[fontName] = 'indexed';
+                                    }
+                                }
+                            }
+                            // Handle audio files
+                            if (importedState.music && importedState.music.playlist) {
+                                for (const song of importedState.music.playlist) {
+                                    if (song.data) {
+                                        await db.set('assets', `music-${song.name}`, song.data);
+                                        delete song.data; // Clean up for localStorage
                                     }
                                 }
                             }
 
-                            localStorage.setItem('game_state_v5', JSON.stringify(importedState)); 
+                            // Now, save the cleaned state to localStorage
+                            await saveStateFromImport(importedState);
+                            
                             showToast('数据导入成功，正在刷新...'); 
                             setTimeout(() => window.location.reload(), 1500); 
                         }
-                    } catch (err) { showDialog('导入失败', '无法解析文件或文件格式错误: ' + err.message); } finally { importFileInput.value = ''; }
+                    } catch (err) { showDialog('导入失败', '无法解析文件或文件格式错误: ' + err.message); console.error(err); } finally { importFileInput.value = ''; }
                 };
                 reader.readAsText(file);
             });
+            
+            async function saveStateFromImport(importedState) {
+                // This function is similar to saveState, but works on an external object
+                // and prepares it for localStorage.
+                const stateToSave = JSON.parse(JSON.stringify(importedState));
+
+                for (const key in ASSET_KEYS) {
+                    if (ASSET_KEYS[key](stateToSave)?.startsWith('data:')) {
+                        setAssetValue(stateToSave, key, 'indexed');
+                    }
+                }
+                if (stateToSave.config.customFonts) {
+                    for (const fontName in stateToSave.config.customFonts) {
+                        if (stateToSave.config.customFonts[fontName]?.startsWith('data:')) {
+                            stateToSave.config.customFonts[fontName] = 'indexed';
+                        }
+                    }
+                }
+                if (stateToSave.music && stateToSave.music.playlist) {
+                    stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
+                }
+                localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
+            }
 
             await loadState();
             showView('home');
