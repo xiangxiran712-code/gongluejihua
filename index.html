@@ -33,12 +33,14 @@
             box-sizing: border-box;
             font-family: var(--custom-font);
             color: var(--text-color); /* 全局文字颜色 */
+            transition: padding 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .phone-wrapper {
             width: 95vw;
             max-width: 420px;
             aspect-ratio: 390 / 844;
             margin: auto;
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         #phone-frame {
             position: relative;
@@ -49,6 +51,7 @@
             box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5); /* 内部阴影已移除 */
             padding: 10px;
             box-sizing: border-box;
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         #phone-screen {
             width: 100%;
@@ -57,13 +60,65 @@
             border-radius: 30px;
             overflow: hidden;
             position: relative;
-            transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out;
+            transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out, border-radius 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             /* Prevents browser-level pull-to-refresh/navigation gestures */
             touch-action: none;
         }
+        /* --- Fullscreen Mode --- */
+        body.fullscreen-mode {
+            padding: 0;
+        }
+        body.fullscreen-mode .phone-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            aspect-ratio: auto;
+            z-index: 10000;
+        }
+        body.fullscreen-mode #phone-frame {
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0;
+        }
+        body.fullscreen-mode #phone-screen {
+            border-radius: 0;
+        }
+        
+        /* --- Fullscreen Home Page Layout Adjustments --- */
+        body.fullscreen-mode #home-content-wrapper {
+            /* This makes the wrapper disappear, promoting its children to be positioned relative to #home-page */
+            display: contents;
+        }
+        body.fullscreen-mode #home-avatar-section,
+        body.fullscreen-mode #home-buttons-section {
+            position: absolute;
+            width: auto;
+            padding: 0;
+        }
+        body.fullscreen-mode #home-avatar-section {
+            top: 50%; /* <<<<< MODIFIED: Moved down to be vertically centered on the left side */
+            left: 25%;
+            transform: translate(-50%, -50%);
+            align-items: center;
+        }
+        body.fullscreen-mode #home-buttons-section {
+            top: 50%;
+            right: 25%;
+            transform: translate(50%, -50%);
+        }
+        body.fullscreen-mode .mini-player-container {
+            top: 80%;
+            left: 50%;
+            bottom: auto;
+            transform: translate(-50%, -50%);
+        }
+        
         #app.container {
             height: 100%;
             width: 100%;
@@ -189,12 +244,16 @@
         .mini-player-container {
             position: absolute;
             bottom: 1rem;
-            left: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 20;
+            width: calc(100% - 2rem); /* 确保容器不会超出屏幕 */
+            display: flex;
+            justify-content: center;
         }
         .mini-player {
             width: 300px;
-            max-width: 90vw;
+            max-width: 100%; /* 确保播放器本身不会超出容器 */
             background: var(--glass-container-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -299,8 +358,8 @@
                             </button>
                         </div>
                         
-                        <div class="w-full flex-1 flex items-center mt-12">
-                            <div class="w-1/2 flex flex-col items-start">
+                        <div id="home-content-wrapper" class="w-full flex-1 flex items-center mt-12">
+                            <div id="home-avatar-section" class="w-1/2 flex flex-col items-start">
                                 <div id="avatar-container" class="relative rounded-full p-1 cursor-pointer w-32 h-32 flex items-center justify-center mb-4">
                                     <img id="avatar-frame" src="" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-10">
                                     <img id="avatar-img" src="https://placehold.co/120x120/334155/FFFFFF?text=头像" alt="Avatar" class="w-28 h-28 object-cover rounded-full">
@@ -308,7 +367,7 @@
                                 <input type="file" id="avatar-upload" accept="image/*" class="hidden">
                                 <h2 id="signature" class="text-xs font-semibold tracking-wide">个性签名</h2>
                             </div>
-                            <div class="w-1/2 flex flex-col items-end space-y-4">
+                            <div id="home-buttons-section" class="w-1/2 flex flex-col items-end space-y-4">
                                 <button id="strategy-btn" class="menu-btn">攻略</button>
                                 <button id="memory-btn" class="menu-btn">记忆</button>
                                 <button id="role-btn" class="menu-btn">角色</button>
@@ -448,6 +507,12 @@
                                         <i class="fas fa-undo"></i>
                                     </button>
                                  </div>
+                                 <div class="mt-4">
+                                    <button id="fullscreen-btn" class="w-full p-3 rounded-md bg-teal-600 text-white font-bold hover:bg-teal-700 transition-colors duration-300 flex items-center justify-center gap-2">
+                                        <i class="fas fa-expand"></i>
+                                        <span>全屏</span>
+                                    </button>
+                                </div>
                              </div>
                              <div class="mt-6 pt-6 border-t border-white/20">
                                 <h2 class="text-xl font-bold mb-4">字体设置</h2>
@@ -554,7 +619,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.9.8"; // Version with global trail effect
+            const APP_VERSION = "1.9.9"; // Version with fullscreen feature
 
             // --- IndexedDB Helper ---
             const db = {
@@ -617,6 +682,7 @@
             const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
             const backBtns = document.querySelectorAll('#chat-back-btn, #role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn');
             const exportDataBtn = get('export-data-btn'), importDataBtn = get('import-data-btn'), importFileInput = get('import-file-input'), diaryBtn = get('diary-btn');
+            const fullscreenBtn = get('fullscreen-btn');
 
             // Home page elements
             const avatarContainer = get('avatar-container'), avatarImg = get('avatar-img'), avatarFrame = get('avatar-frame'), avatarUpload = get('avatar-upload');
@@ -850,7 +916,7 @@
             
             updateDateTime(); setInterval(updateDateTime, 1000);
 
-            // --- Touch Effect Initialization (Final Version) ---
+            // --- Touch Effect Initialization ---
             const initTouchEffects = () => {
                 let isDragging = false;
                 let letterIndex = 0;
@@ -894,36 +960,26 @@
                 };
 
                 const handlePointerMove = (e) => {
-                    // The effect is now allowed everywhere, but `touch-action` CSS
-                    // will prioritize scrolling on designated elements.
-                    if (!isDragging) {
-                        return;
-                    }
-                    
-                    // Throttle particle creation
+                    if (!isDragging) return;
                     const now = Date.now();
                     if (now - lastParticleTime < particleInterval) return;
                     lastParticleTime = now;
-
                     const { x, y } = getCoords(e);
                     createParticle(x, y, 'trail');
                 };
 
-                const handlePointerUp = () => {
-                    isDragging = false;
-                };
+                const handlePointerUp = () => { isDragging = false; };
 
                 phoneScreen.addEventListener('mousedown', handlePointerDown);
                 phoneScreen.addEventListener('mousemove', handlePointerMove);
-                window.addEventListener('mouseup', handlePointerUp); // Listen on window to catch mouseup outside the screen
-
+                window.addEventListener('mouseup', handlePointerUp);
                 phoneScreen.addEventListener('touchstart', handlePointerDown);
                 phoneScreen.addEventListener('touchmove', handlePointerMove);
                 phoneScreen.addEventListener('touchend', handlePointerUp);
                 phoneScreen.addEventListener('touchcancel', handlePointerUp);
             };
             
-            // --- Music Player (Re-engineered for persistence) ---
+            // --- Music Player ---
             function initMusicPlayer() {
                 const audio = get('main-audio'), playPauseBtn = get('play-pause'), prevBtn = get('prev'), nextBtn = get('next'), volumeSlider = get('volume');
                 const progressContainer = document.querySelector('.progress-container'), progressBar = document.querySelector('.progress-bar');
@@ -932,18 +988,13 @@
                 let isPlaying = false;
                 
                 function renderPlaylist() {
-                    playlistEl.innerHTML = '';
-                    if (!state.music.playlist || state.music.playlist.length === 0) return;
-
+                    playlistEl.innerHTML = ''; if (!state.music.playlist || state.music.playlist.length === 0) return;
                     state.music.playlist.forEach((song, index) => {
-                        const songItem = document.createElement('div');
-                        songItem.className = 'song-item';
-                        songItem.textContent = song.name;
+                        const songItem = document.createElement('div'); songItem.className = 'song-item'; songItem.textContent = song.name;
                         songItem.addEventListener('click', () => { loadSong(index, true); });
                         let pressTimer;
                         songItem.addEventListener('mousedown', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); });
-                        songItem.addEventListener('mouseup', () => clearTimeout(pressTimer));
-                        songItem.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                        songItem.addEventListener('mouseup', () => clearTimeout(pressTimer)); songItem.addEventListener('mouseleave', () => clearTimeout(pressTimer));
                         songItem.addEventListener('touchstart', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); }, { passive: true });
                         songItem.addEventListener('touchend', () => clearTimeout(pressTimer));
                         playlistEl.appendChild(songItem);
@@ -951,56 +1002,25 @@
                 }
 
                 async function managePlaylistItem(index) {
-                    const song = state.music.playlist[index];
-                    if (!song) return;
-                    const confirmed = await showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？这会从数据库中删除该歌曲文件。`, {
-                        buttons: [{text: '取消', value: false, class: 'bg-gray-500/50'}, {text: '移除', value: true, class: 'bg-red-500/80'}]
-                    });
+                    const song = state.music.playlist[index]; if (!song) return;
+                    const confirmed = await showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？这会从数据库中删除该歌曲文件。`, { buttons: [{text: '取消', value: false, class: 'bg-gray-500/50'}, {text: '移除', value: true, class: 'bg-red-500/80'}] });
                     if (confirmed) {
-                        const wasPlaying = (index === state.music.currentSongIndex);
-                        const removedSongName = state.music.playlist[index].name;
-                        
+                        const wasPlaying = (index === state.music.currentSongIndex); const removedSongName = state.music.playlist[index].name;
                         await db.delete('assets', `music-${removedSongName}`);
-                        
                         if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
                         state.music.playlist.splice(index, 1);
-                        
-                        if (wasPlaying) { 
-                            audio.pause(); 
-                            audio.src = ''; 
-                            state.music.currentSongIndex = -1; 
-                            songTitle.textContent = '选择一首歌曲'; 
-                            songArtist.textContent = '未知艺术家'; 
-                            currentTimeEl.textContent = '0:00'; 
-                            totalTimeEl.textContent = '0:00'; 
-                            albumArtLabel.classList.remove('rotating'); 
-                            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; 
-                        }
-                        await saveState(); 
-                        renderPlaylist();
-                        if(state.music.currentSongIndex !== -1) { 
-                            const activeSongEl = playlistEl.children[state.music.currentSongIndex]; 
-                            if (activeSongEl) activeSongEl.classList.add('active'); 
-                        }
+                        if (wasPlaying) { audio.pause(); audio.src = ''; state.music.currentSongIndex = -1; songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家'; currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00'; albumArtLabel.classList.remove('rotating'); playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; }
+                        await saveState(); renderPlaylist();
+                        if(state.music.currentSongIndex !== -1) { const activeSongEl = playlistEl.children[state.music.currentSongIndex]; if (activeSongEl) activeSongEl.classList.add('active'); }
                         showToast('歌曲已移除');
                     }
                 }
                 
                 async function loadSong(index, play = false) {
                     if (!state.music.playlist || index < 0 || index >= state.music.playlist.length) return;
-                    state.music.currentSongIndex = index; 
-                    const song = state.music.playlist[index];
-                    const songData = await db.get('assets', `music-${song.name}`);
-
-                    if (!songData) { 
-                        showToast(`歌曲数据丢失: ${song.name}`); 
-                        songTitle.textContent = song.name; 
-                        songArtist.textContent = '数据丢失'; 
-                        return; 
-                    }
-                    songTitle.textContent = song.name; 
-                    songArtist.textContent = '本地音乐'; 
-                    audio.src = songData;
+                    state.music.currentSongIndex = index; const song = state.music.playlist[index]; const songData = await db.get('assets', `music-${song.name}`);
+                    if (!songData) { showToast(`歌曲数据丢失: ${song.name}`); songTitle.textContent = song.name; songArtist.textContent = '数据丢失'; return; }
+                    songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; audio.src = songData;
                     playlistEl.querySelectorAll('.song-item').forEach((item, idx) => item.classList.toggle('active', idx === index));
                     if (play) audio.play();
                     saveState();
@@ -1008,13 +1028,7 @@
 
                 function togglePlay() {
                     if (state.music.playlist.length === 0) { showToast('请先导入音乐'); fileInput.click(); return; }
-                    if (audio.paused) { 
-                        if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true); 
-                        else if (!audio.src) loadSong(0, true); 
-                        else audio.play(); 
-                    } else { 
-                        audio.pause(); 
-                    }
+                    if (audio.paused) { if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true); else if (!audio.src) loadSong(0, true); else audio.play(); } else { audio.pause(); }
                 }
 
                 audio.onplay = () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; albumArtLabel.classList.add('rotating'); };
@@ -1028,76 +1042,35 @@
                 const setVolume = async () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; await saveState(); };
 
                 async function handleFileSelect(e) {
-                    const files = Array.from(e.target.files); 
-                    if (files.length === 0) return; 
-                    showToast(`正在处理 ${files.length} 首歌曲...`);
-                    
+                    const files = Array.from(e.target.files); if (files.length === 0) return; showToast(`正在处理 ${files.length} 首歌曲...`);
                     let firstNewSongIndex = -1;
                     for (const file of files) {
-                        const songName = file.name.replace(/\.[^/.]+$/, "");
-                        const reader = new FileReader();
-                        
+                        const songName = file.name.replace(/\.[^/.]+$/, ""); const reader = new FileReader();
                         const promise = new Promise((resolve, reject) => {
                             reader.onload = async (event) => {
-                                try {
-                                    const dataUrl = event.target.result;
-                                    await db.set('assets', `music-${songName}`, dataUrl);
-                                    
-                                    const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName);
-                                    if (existingSongIndex === -1) {
-                                        state.music.playlist.push({ name: songName });
-                                        if (firstNewSongIndex === -1) {
-                                            firstNewSongIndex = state.music.playlist.length - 1;
-                                        }
-                                    }
-                                    resolve();
-                                } catch (err) {
-                                    reject(err);
-                                }
+                                try { const dataUrl = event.target.result; await db.set('assets', `music-${songName}`, dataUrl); const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName); if (existingSongIndex === -1) { state.music.playlist.push({ name: songName }); if (firstNewSongIndex === -1) { firstNewSongIndex = state.music.playlist.length - 1; } } resolve(); } catch (err) { reject(err); }
                             };
-                            reader.onerror = reject;
-                            reader.readAsDataURL(file);
+                            reader.onerror = reject; reader.readAsDataURL(file);
                         });
                         await promise;
                     }
-
-                    renderPlaylist(); 
-                    showToast('歌曲处理完成！');
-                    if (!isPlaying && firstNewSongIndex !== -1) { 
-                        loadSong(firstNewSongIndex, true); 
-                    }
+                    renderPlaylist(); showToast('歌曲处理完成！');
+                    if (!isPlaying && firstNewSongIndex !== -1) { loadSong(firstNewSongIndex, true); }
                     await saveState();
                 }
                 async function handleCoverSelect(e) {
                     const file = e.target.files[0]; if (!file || !file.type.match('image.*')) return; const reader = new FileReader();
-                    reader.onload = async event => {
-                        const dataUrl = event.target.result;
-                        state.music.albumArt = dataUrl;
-                        albumArtLabel.innerHTML = `<img src="${dataUrl}" alt="album art">`;
-                        await saveState();
-                    };
+                    reader.onload = async event => { const dataUrl = event.target.result; state.music.albumArt = dataUrl; albumArtLabel.innerHTML = `<img src="${dataUrl}" alt="album art">`; await saveState(); };
                     reader.readAsDataURL(file);
                 }
 
                 renderPlaylist(); 
                 if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
-                if (state.music.currentSongIndex > -1) { 
-                    const song = state.music.playlist[state.music.currentSongIndex]; 
-                    if(song) { 
-                        songTitle.textContent = song.name; 
-                        songArtist.textContent = '本地音乐'; 
-                    } 
-                }
-                volumeSlider.value = state.music.volume; 
-                audio.volume = state.music.volume;
-                playPauseBtn.addEventListener('click', togglePlay); 
-                prevBtn.addEventListener('click', prevSong); 
-                nextBtn.addEventListener('click', nextSong);
-                audio.addEventListener('timeupdate', updateProgress); 
-                progressContainer.addEventListener('click', setProgress); 
-                volumeSlider.addEventListener('input', setVolume);
-                fileInput.addEventListener('change', handleFileSelect); 
-                coverInput.addEventListener('change', handleCoverSelect);
+                if (state.music.currentSongIndex > -1) { const song = state.music.playlist[state.music.currentSongIndex]; if(song) { songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; } }
+                volumeSlider.value = state.music.volume; audio.volume = state.music.volume;
+                playPauseBtn.addEventListener('click', togglePlay); prevBtn.addEventListener('click', prevSong); nextBtn.addEventListener('click', nextSong);
+                audio.addEventListener('timeupdate', updateProgress); progressContainer.addEventListener('click', setProgress); volumeSlider.addEventListener('input', setVolume);
+                fileInput.addEventListener('change', handleFileSelect); coverInput.addEventListener('change', handleCoverSelect);
                 togglePlaylistBtn.addEventListener('click', () => { playlistEl.style.display = (playlistEl.style.display === 'block') ? 'none' : 'block'; });
             }
 
@@ -1138,84 +1111,44 @@
                 const file = e.target.files[0];
                 const defaultName = file.name.replace(/\.[^/.]+$/, "");
                 const fontName = await showDialog('命名新字体', '请为你的新字体命名:', { input: true, defaultValue: defaultName, placeholder: '例如: 可爱的像素字体' });
-                
-                if (!fontName || state.config.customFonts[fontName]) {
-                    showToast(fontName ? '该字体名称已存在' : '已取消上传');
-                    return;
-                }
-
+                if (!fontName || state.config.customFonts[fontName]) { showToast(fontName ? '该字体名称已存在' : '已取消上传'); return; }
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     const dataUrl = event.target.result;
-                    state.config.customFonts[fontName] = dataUrl; // Temporarily store data url
-                    await saveState(); // This will save to DB and change to 'indexed'
-                    renderFontOptions();
-                    fontFamilySelect.value = fontName;
-                    await applyFont(fontName);
-                    state.config.fontFamily = fontName;
-                    await saveState();
-                    showToast(`字体 '${fontName}' 已添加并应用`);
+                    state.config.customFonts[fontName] = dataUrl; await saveState(); renderFontOptions();
+                    fontFamilySelect.value = fontName; await applyFont(fontName); state.config.fontFamily = fontName;
+                    await saveState(); showToast(`字体 '${fontName}' 已添加并应用`);
                 };
                 reader.readAsDataURL(file);
             });
             
             fontFamilySelect.addEventListener('change', async e => {
-                const selectedFont = e.target.value;
-                state.config.fontFamily = selectedFont;
-                await applyFont(selectedFont);
-                await saveState();
+                const selectedFont = e.target.value; state.config.fontFamily = selectedFont;
+                await applyFont(selectedFont); await saveState();
             });
 
-            // --- FONT MANAGEMENT ---
             const showFontManager = () => {
-                const fontListContainer = document.createElement('div');
-                fontListContainer.className = 'space-y-2 max-h-60 overflow-y-auto';
+                const fontListContainer = document.createElement('div'); fontListContainer.className = 'space-y-2 max-h-60 overflow-y-auto';
                 const customFonts = Object.keys(state.config.customFonts);
-
-                if (customFonts.length === 0) {
-                    fontListContainer.innerHTML = `<p class="opacity-70 text-center">没有已导入的字体。</p>`;
-                } else {
+                if (customFonts.length === 0) { fontListContainer.innerHTML = `<p class="opacity-70 text-center">没有已导入的字体。</p>`; } 
+                else {
                     customFonts.forEach(fontName => {
-                        const item = document.createElement('div');
-                        item.className = 'flex items-center justify-between p-2 bg-white/10 rounded';
-                        
-                        const nameSpan = document.createElement('span');
-                        nameSpan.textContent = fontName;
-                        item.appendChild(nameSpan);
-
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`;
-                        deleteBtn.className = 'p-2 text-red-400 hover:text-red-500';
+                        const item = document.createElement('div'); item.className = 'flex items-center justify-between p-2 bg-white/10 rounded';
+                        const nameSpan = document.createElement('span'); nameSpan.textContent = fontName; item.appendChild(nameSpan);
+                        const deleteBtn = document.createElement('button'); deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`; deleteBtn.className = 'p-2 text-red-400 hover:text-red-500';
                         deleteBtn.onclick = async () => {
                             const confirmed = await showDialog('确认删除', `确定要永久删除字体 "${fontName}" 吗？此操作无法撤销。`);
                             if (confirmed) {
-                                // If deleting the active font, revert to default
-                                if (state.config.fontFamily === fontName) {
-                                    state.config.fontFamily = "'Inter', sans-serif";
-                                    await applyFont(state.config.fontFamily);
-                                    fontFamilySelect.value = state.config.fontFamily;
-                                    showToast(`当前字体 "${fontName}" 已删除，已切换回默认字体。`);
-                                } else {
-                                    showToast(`字体 "${fontName}" 已删除。`);
-                                }
-                                
-                                delete state.config.customFonts[fontName];
-                                await db.delete('assets', `font-${fontName}`);
-                                await saveState();
-                                renderFontOptions();
-                                
-                                // Refresh the manager dialog
-                                showFontManager();
+                                if (state.config.fontFamily === fontName) { state.config.fontFamily = "'Inter', sans-serif"; await applyFont(state.config.fontFamily); fontFamilySelect.value = state.config.fontFamily; showToast(`当前字体 "${fontName}" 已删除，已切换回默认字体。`); } 
+                                else { showToast(`字体 "${fontName}" 已删除。`); }
+                                delete state.config.customFonts[fontName]; await db.delete('assets', `font-${fontName}`);
+                                await saveState(); renderFontOptions(); showFontManager();
                             }
                         };
-                        item.appendChild(deleteBtn);
-                        fontListContainer.appendChild(item);
+                        item.appendChild(deleteBtn); fontListContainer.appendChild(item);
                     });
                 }
-                
-                showDialog('管理字体', fontListContainer, {
-                    buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }]
-                });
+                showDialog('管理字体', fontListContainer, { buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }] });
             };
             manageFontsBtn.addEventListener('click', showFontManager);
 
@@ -1229,11 +1162,7 @@
 
             restoreAppearanceBtn.addEventListener('click', async () => {
                 const confirmed = await showDialog('还原外观', '确定要移除背景图和头像框吗？');
-                if (confirmed) {
-                    state.config.bgImage = null; state.config.avatarFrameImage = null;
-                    phoneScreen.style.backgroundImage = ''; avatarFrame.src = '';
-                    await saveState(); showToast('已还原默认外观');
-                }
+                if (confirmed) { state.config.bgImage = null; state.config.avatarFrameImage = null; phoneScreen.style.backgroundImage = ''; avatarFrame.src = ''; await saveState(); showToast('已还原默认外观'); }
             });
 
             saveRoleBtn.addEventListener('click', async () => {
@@ -1241,16 +1170,37 @@
                 await saveState(); showToast('角色设置已保存');
             });
 
-            // --- Chat Functionality (with Batch Delete) ---
+            // --- Fullscreen Functionality ---
+            function toggleFullscreen() {
+                document.body.classList.toggle('fullscreen-mode');
+                const isFullscreen = document.body.classList.contains('fullscreen-mode');
+                const icon = fullscreenBtn.querySelector('i');
+                const text = fullscreenBtn.querySelector('span');
+
+                if (isFullscreen) {
+                    icon.className = 'fas fa-compress';
+                    text.textContent = '退出全屏';
+                    showToast('按 Esc 键可退出全屏');
+                } else {
+                    icon.className = 'fas fa-expand';
+                    text.textContent = '全屏';
+                }
+            }
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && document.body.classList.contains('fullscreen-mode')) {
+                    toggleFullscreen();
+                }
+            });
+
+            // --- Chat Functionality ---
             const renderChatHistory = () => {
                 chatHistory.innerHTML = ''; if (!state.chat.history) state.chat.history = [];
                 state.chat.history.forEach((msg, index) => {
-                    const bubble = document.createElement('div');
-                    bubble.className = `message-bubble ${msg.sender}`; bubble.textContent = msg.text; bubble.dataset.index = index;
+                    const bubble = document.createElement('div'); bubble.className = `message-bubble ${msg.sender}`; bubble.textContent = msg.text; bubble.dataset.index = index;
                     if(isChatBatchDeleteMode) {
                         bubble.classList.add('pl-12');
-                        const checkbox = document.createElement('input'); checkbox.type = 'checkbox';
-                        checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
                         bubble.prepend(checkbox);
                     } else {
                         let pressTimer;
@@ -1268,21 +1218,11 @@
 
             const manageChatMessage = (index) => {
                 const msg = state.chat.history[index]; if (!msg) return;
-                showDialog('管理消息', `"${msg.text}"`, { buttons: [
-                    {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
-                    {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'},
-                    {text: '删除', value: 'delete', class: 'bg-red-500/80'},
-                    {text: '编辑', value: 'edit', class: 'bg-blue-500'}
-                ]}).then(async action => {
-                    if (action === 'edit') {
-                        const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
-                        if (newText) { state.chat.history[index].text = newText; await saveState(); renderChatHistory(); showToast('消息已更新'); }
-                    } else if (action === 'delete') {
-                        const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
-                        if (confirmed) { state.chat.history.splice(index, 1); await saveState(); renderChatHistory(); showToast('消息已删除'); }
-                    } else if (action === 'batch-delete') {
-                        isChatBatchDeleteMode = true; renderChatHistory();
-                    }
+                showDialog('管理消息', `"${msg.text}"`, { buttons: [ {text: '取消', value: 'cancel', class: 'bg-gray-500/50'}, {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'}, {text: '删除', value: 'delete', class: 'bg-red-500/80'}, {text: '编辑', value: 'edit', class: 'bg-blue-500'}]
+                }).then(async action => {
+                    if (action === 'edit') { const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text }); if (newText) { state.chat.history[index].text = newText; await saveState(); renderChatHistory(); showToast('消息已更新'); } } 
+                    else if (action === 'delete') { const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？'); if (confirmed) { state.chat.history.splice(index, 1); await saveState(); renderChatHistory(); showToast('消息已删除'); } } 
+                    else if (action === 'batch-delete') { isChatBatchDeleteMode = true; renderChatHistory(); }
                 });
             };
 
@@ -1301,74 +1241,28 @@
 2. 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
                 if(state.memories && state.memories.length > 0) systemPrompt += `\n你们共同的记忆: ${state.memories.map(m => m.content).join('; ')}.`;
                 if(state.role.promptInstructions) systemPrompt += `\n请遵循以下额外指令: ${state.role.promptInstructions}.`;
-                
                 const messages = [{ role: 'system', content: systemPrompt }];
                 state.chat.history.forEach(msg => messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: msg.text }));
-                
                 return messages;
             };
 
-            // --- AI REPLY LOGIC WITH ENHANCED ERROR HANDLING ---
             aiReplyBtn.addEventListener('click', async () => {
-                if (!state.config.api.baseUrl || !state.config.api.key) {
-                    showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); });
-                    return;
-                }
-                showToast('角色正在思考中...');
-                aiReplyBtn.disabled = true;
+                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+                showToast('角色正在思考中...'); aiReplyBtn.disabled = true;
                 try {
                     const messages = createApiPrompt();
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false })
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({ error: { message: '无法解析错误响应' } }));
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || '未知网络错误'}`);
-                    }
-
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(`API返回错误: ${data.error.message}`);
-                    }
-
-                    const choice = data.choices?.[0];
-                    
-                    if (!choice) {
-                        throw new Error("无法解析API响应格式：响应中缺少 'choices' 数组或数组为空。");
-                    }
-
-                    if (choice.finish_reason === 'content_filter') {
-                        throw new Error("AI回复因内容安全策略被拦截。");
-                    }
-
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false }) });
+                    if (!response.ok) { const errorData = await response.json().catch(() => ({ error: { message: '无法解析错误响应' } })); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || '未知网络错误'}`); }
+                    const data = await response.json(); if (data.error) { throw new Error(`API返回错误: ${data.error.message}`); }
+                    const choice = data.choices?.[0]; if (!choice) { throw new Error("无法解析API响应格式：响应中缺少 'choices' 数组或数组为空。"); }
+                    if (choice.finish_reason === 'content_filter') { throw new Error("AI回复因内容安全策略被拦截。"); }
                     let aiResponse = choice.message?.content;
-
-                    if (!aiResponse) {
-                        if (choice.finish_reason === 'length') {
-                             throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。");
-                        }
-                        throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。");
-                    }
-
-                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/;
-                    const match = aiResponse.match(affinityRegex);
-                    if (match && match[1]) {
-                        state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10)));
-                        aiResponse = aiResponse.replace(affinityRegex, '').trim();
-                    }
+                    if (!aiResponse) { if (choice.finish_reason === 'length') { throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。"); } throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。"); }
+                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/; const match = aiResponse.match(affinityRegex);
+                    if (match && match[1]) { state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10))); aiResponse = aiResponse.replace(affinityRegex, '').trim(); }
                     const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
                     await sendAiMessages(replyMessages);
-
-                } catch (error) {
-                    console.error("API请求失败:", error);
-                    showDialog('API请求失败', `错误: ${error.message}`);
-                } finally {
-                    aiReplyBtn.disabled = false;
-                }
+                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
             });
 
             restartChatBtn.addEventListener('click', async () => { const ok = await showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。'); if (ok) { state.chat = { history: [], affinity: 0 }; await saveState(); renderChatHistory(); showToast('对话已清空'); } });
@@ -1412,13 +1306,8 @@
                 const memIndex = state.memories.findIndex(m => m.id === memId); if (memIndex === -1) return; const mem = state.memories[memIndex];
                 showDialog('管理记忆', '请选择操作', { buttons: [{text: '取消', value: 'cancel', class: 'bg-gray-500/50'}, {text: '删除', value: 'delete', class: 'bg-red-500/80'}, {text: '编辑', value: 'edit', class: 'bg-blue-500'}]
                 }).then(async action => {
-                    if (action === 'edit') {
-                        const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: mem.content });
-                        if (newContent) { state.memories[memIndex].content = newContent; state.memories[memIndex].timestamp = new Date().toLocaleString(); await saveState(); renderMemoryList(); showToast('记忆已更新'); }
-                    } else if (action === 'delete') {
-                        const confirmed = await showDialog('确认删除', '确定要删除这条记忆吗？');
-                        if (confirmed) { state.memories.splice(memIndex, 1); await saveState(); renderMemoryList(); showToast('记忆已删除'); }
-                    }
+                    if (action === 'edit') { const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: mem.content }); if (newContent) { state.memories[memIndex].content = newContent; state.memories[memIndex].timestamp = new Date().toLocaleString(); await saveState(); renderMemoryList(); showToast('记忆已更新'); } } 
+                    else if (action === 'delete') { const confirmed = await showDialog('确认删除', '确定要删除这条记忆吗？'); if (confirmed) { state.memories.splice(memIndex, 1); await saveState(); renderMemoryList(); showToast('记忆已删除'); } }
                 });
             };
             batchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = true; renderMemoryList(); }); cancelBatchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = false; renderMemoryList(); });
@@ -1440,14 +1329,7 @@
                     else { innerHTML += `<button class="diary-delete-btn" title="删除日记"><i class="fas fa-times"></i></button>`; item.classList.remove('pl-12'); }
                     innerHTML += `<p class="text-xs opacity-50 mb-2">${diary.timestamp}</p><div class="diary-content">${renderMarkdown(diary.content)}</div>`;
                     item.innerHTML = innerHTML;
-                    if (!isDiaryBatchDeleteMode) {
-                        item.querySelector('.diary-delete-btn').addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            showDialog('删除日记', '确定要删除这篇日记吗？').then(async confirmed => {
-                                if (confirmed) { state.diaries = state.diaries.filter(d => d.id !== diary.id); await saveState(); renderDiaryList(); showToast('日记已删除'); }
-                            });
-                        });
-                    }
+                    if (!isDiaryBatchDeleteMode) { item.querySelector('.diary-delete-btn').addEventListener('click', (e) => { e.stopPropagation(); showDialog('删除日记', '确定要删除这篇日记吗？').then(async confirmed => { if (confirmed) { state.diaries = state.diaries.filter(d => d.id !== diary.id); await saveState(); renderDiaryList(); showToast('日记已删除'); } }); }); }
                     diaryListContainer.appendChild(item);
                 });
                 diaryBatchActions.style.display = isDiaryBatchDeleteMode ? 'flex' : 'none';
@@ -1472,52 +1354,19 @@
                 if (confirmed) { state.diaries = state.diaries.filter(d => !selectedIds.includes(d.id)); await saveState(); isDiaryBatchDeleteMode = false; renderDiaryList(); showToast('日记已删除'); }
             });
 
-            // --- Data Export/Import (Robust version) ---
+            // --- Data Export/Import ---
             exportDataBtn.addEventListener('click', async () => {
                 const confirmed = await showDialog('导出数据', '这将导出一个包含所有设置、聊天、记忆、日记和全部媒体文件（包括音频）的JSON文件。文件可能会非常大。是否继续？');
                 if (!confirmed) return;
                 try {
-                    showToast('正在准备导出数据...');
-                    const stateToExport = JSON.parse(JSON.stringify(state));
-                    
-                    // Rehydrate single assets
-                    for (const key in ASSET_KEYS) {
-                        if (ASSET_KEYS[key](stateToExport) === 'indexed') {
-                            const data = await db.get('assets', key);
-                            if (data) setAssetValue(stateToExport, key, data);
-                        }
-                    }
-
-                    // Rehydrate custom fonts
-                    if (stateToExport.config.customFonts) {
-                        for (const fontName in stateToExport.config.customFonts) {
-                            if (stateToExport.config.customFonts[fontName] === 'indexed') {
-                                const fontData = await db.get('assets', `font-${fontName}`);
-                                if (fontData) stateToExport.config.customFonts[fontName] = fontData;
-                            }
-                        }
-                    }
-
-                    // Rehydrate audio files
-                    if (stateToExport.music && stateToExport.music.playlist) {
-                        for (const song of stateToExport.music.playlist) {
-                            const audioData = await db.get('assets', `music-${song.name}`);
-                            if (audioData) {
-                                song.data = audioData; // Embed audio data
-                            }
-                        }
-                    }
-
-                    const dataStr = JSON.stringify(stateToExport); // No pretty print for large files
-                    const blob = new Blob([dataStr], { type: 'application/json' }); 
-                    const url = URL.createObjectURL(blob);
+                    showToast('正在准备导出数据...'); const stateToExport = JSON.parse(JSON.stringify(state));
+                    for (const key in ASSET_KEYS) { if (ASSET_KEYS[key](stateToExport) === 'indexed') { const data = await db.get('assets', key); if (data) setAssetValue(stateToExport, key, data); } }
+                    if (stateToExport.config.customFonts) { for (const fontName in stateToExport.config.customFonts) { if (stateToExport.config.customFonts[fontName] === 'indexed') { const fontData = await db.get('assets', `font-${fontName}`); if (fontData) stateToExport.config.customFonts[fontName] = fontData; } } }
+                    if (stateToExport.music && stateToExport.music.playlist) { for (const song of stateToExport.music.playlist) { const audioData = await db.get('assets', `music-${song.name}`); if (audioData) { song.data = audioData; } } }
+                    const dataStr = JSON.stringify(stateToExport); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
                     const a = document.createElement('a'); a.href = url; a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); 
-                    showToast('数据已成功导出');
-                } catch(e) { 
-                    showDialog('错误', '导出数据失败: ' + e.message); 
-                    console.error(e);
-                }
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast('数据已成功导出');
+                } catch(e) { showDialog('错误', '导出数据失败: ' + e.message); console.error(e); }
             });
 
             importDataBtn.addEventListener('click', () => { importFileInput.click(); });
@@ -1525,45 +1374,15 @@
                 const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
                 reader.onload = async (event) => {
                     try {
-                        const importedState = JSON.parse(event.target.result);
-                        if (!importedState.version || !importedState.config || !importedState.role) throw new Error('文件格式无效或不兼容。');
-                        
+                        const importedState = JSON.parse(event.target.result); if (!importedState.version || !importedState.config || !importedState.role) throw new Error('文件格式无效或不兼容。');
                         const confirmed = await showDialog('导入数据', '这将使用文件中的数据覆盖所有当前数据。确定要继续吗？');
                         if (confirmed) {
                             showToast('正在导入数据，请稍候...');
-                            
-                            // Save all assets from imported file to IndexedDB
-                            // Handle single assets
-                            for (const key in ASSET_KEYS) {
-                                const assetData = ASSET_KEYS[key](importedState);
-                                if (assetData && assetData.startsWith('data:')) {
-                                    await db.set('assets', key, assetData);
-                                }
-                            }
-                            // Handle custom fonts
-                            if (importedState.config.customFonts) {
-                                for (const fontName in importedState.config.customFonts) {
-                                    const fontData = importedState.config.customFonts[fontName];
-                                    if (fontData && fontData.startsWith('data:')) {
-                                        await db.set('assets', `font-${fontName}`, fontData);
-                                    }
-                                }
-                            }
-                            // Handle audio files
-                            if (importedState.music && importedState.music.playlist) {
-                                for (const song of importedState.music.playlist) {
-                                    if (song.data) {
-                                        await db.set('assets', `music-${song.name}`, song.data);
-                                        delete song.data; // Clean up for localStorage
-                                    }
-                                }
-                            }
-
-                            // Now, save the cleaned state to localStorage
+                            for (const key in ASSET_KEYS) { const assetData = ASSET_KEYS[key](importedState); if (assetData && assetData.startsWith('data:')) { await db.set('assets', key, assetData); } }
+                            if (importedState.config.customFonts) { for (const fontName in importedState.config.customFonts) { const fontData = importedState.config.customFonts[fontName]; if (fontData && fontData.startsWith('data:')) { await db.set('assets', `font-${fontName}`, fontData); } } }
+                            if (importedState.music && importedState.music.playlist) { for (const song of importedState.music.playlist) { if (song.data) { await db.set('assets', `music-${song.name}`, song.data); delete song.data; } } }
                             await saveStateFromImport(importedState);
-                            
-                            showToast('数据导入成功，正在刷新...'); 
-                            setTimeout(() => window.location.reload(), 1500); 
+                            showToast('数据导入成功，正在刷新...'); setTimeout(() => window.location.reload(), 1500); 
                         }
                     } catch (err) { showDialog('导入失败', '无法解析文件或文件格式错误: ' + err.message); console.error(err); } finally { importFileInput.value = ''; }
                 };
@@ -1571,30 +1390,15 @@
             });
             
             async function saveStateFromImport(importedState) {
-                // This function is similar to saveState, but works on an external object
-                // and prepares it for localStorage.
                 const stateToSave = JSON.parse(JSON.stringify(importedState));
-
-                for (const key in ASSET_KEYS) {
-                    if (ASSET_KEYS[key](stateToSave)?.startsWith('data:')) {
-                        setAssetValue(stateToSave, key, 'indexed');
-                    }
-                }
-                if (stateToSave.config.customFonts) {
-                    for (const fontName in stateToSave.config.customFonts) {
-                        if (stateToSave.config.customFonts[fontName]?.startsWith('data:')) {
-                            stateToSave.config.customFonts[fontName] = 'indexed';
-                        }
-                    }
-                }
-                if (stateToSave.music && stateToSave.music.playlist) {
-                    stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
-                }
+                for (const key in ASSET_KEYS) { if (ASSET_KEYS[key](stateToSave)?.startsWith('data:')) { setAssetValue(stateToSave, key, 'indexed'); } }
+                if (stateToSave.config.customFonts) { for (const fontName in stateToSave.config.customFonts) { if (stateToSave.config.customFonts[fontName]?.startsWith('data:')) { stateToSave.config.customFonts[fontName] = 'indexed'; } } }
+                if (stateToSave.music && stateToSave.music.playlist) { stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name })); }
                 localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
             }
 
             await loadState();
-            initTouchEffects(); // Initialize the corrected feature
+            initTouchEffects();
             showView('home');
         })();
     </script>
