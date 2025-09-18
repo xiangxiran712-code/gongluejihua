@@ -61,6 +61,8 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            /* Prevents browser-level pull-to-refresh/navigation gestures */
+            touch-action: none;
         }
         #app.container {
             height: 100%;
@@ -69,6 +71,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+        /* This class allows elements to be scrolled normally */
+        .scrollable-content {
+            touch-action: pan-y; /* Allow vertical scrolling */
+            -webkit-overflow-scrolling: touch; /* For smoother scrolling on iOS */
         }
         .glass-container {
             background: var(--glass-container-bg);
@@ -245,6 +252,34 @@
         .diary-delete-btn:hover { opacity: 1; }
         .batch-delete-checkbox { position: absolute; top: 0.75rem; left: 0.75rem; }
         .form-checkbox { background-color: #4a5568; border-color: #718096; }
+
+        /* --- Touch Effect --- */
+        .touch-particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 9999;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 16px rgba(255, 255, 255, 0.7);
+            will-change: transform, opacity;
+            transform: translate(-50%, -50%);
+        }
+        .love-particle {
+            font-size: 18px; /* Adjusted size for the full word */
+            animation: fade-out-love 0.8s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .trail-particle {
+            font-size: 14px; /* Smaller size for the trail */
+            animation: fade-out-trail 0.6s forwards ease-out;
+        }
+        @keyframes fade-out-love {
+            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            to { opacity: 0; transform: translate(-50%, -80%) scale(1.5); }
+        }
+        @keyframes fade-out-trail {
+            from { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+            to { opacity: 0; transform: translate(-50%, -150%) scale(0.8); }
+        }
     </style>
 </head>
 <body>
@@ -323,7 +358,7 @@
                                     </label>
                                     <input type="file" id="cover-input" class="cover-input" accept="image/*">
                                 </div>
-                                <div class="song-list" id="playlist"></div>
+                                <div class="song-list scrollable-content" id="playlist"></div>
                             </div>
                         </div>
                     </div>
@@ -340,7 +375,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col"></div>
+                        <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col scrollable-content"></div>
                         <div id="chat-footer" class="chat-footer">
                             <div class="flex items-center space-x-2">
                                 <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
@@ -361,7 +396,7 @@
                     </div>
                     
                     <!-- 角色设置页面 -->
-                    <div id="role-page" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto">
+                    <div id="role-page" class="hidden w-full h-full flex flex-col p-4 overflow-y-auto scrollable-content">
                         <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
                              <button id="role-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                             <h1 class="text-2xl font-bold">角色设置</h1>
@@ -389,7 +424,7 @@
                     </div>
 
                     <!-- 设置页面 -->
-                    <div id="settings-page" class="hidden w-full h-full flex-col p-4 overflow-y-auto">
+                    <div id="settings-page" class="hidden w-full h-full flex-col p-4 overflow-y-auto scrollable-content">
                          <div class="flex items-center justify-between w-full max-w-lg mx-auto mb-4">
                              <button id="settings-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                             <h1 class="text-2xl font-bold">设置</h1>
@@ -474,7 +509,7 @@
                                 <button id="add-memory-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v4H5a1 1 0 100 2h4v4a1 1 0 102 0v-4h4a1 1 0 100-2h-4V4a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
                             </div>
                         </div>
-                        <div id="memory-list" class="glass-container p-4 w-full max-w-lg mx-auto flex-1 overflow-y-auto space-y-2"></div>
+                        <div id="memory-list" class="glass-container p-4 w-full max-w-lg mx-auto flex-1 overflow-y-auto space-y-2 scrollable-content"></div>
                         <div id="memory-batch-actions" class="hidden w-full max-w-lg mx-auto mt-4 flex space-x-2">
                             <button id="confirm-batch-delete-memories-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
                             <button id="cancel-batch-delete-memories-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
@@ -491,7 +526,7 @@
                                 <button id="batch-delete-diaries-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300" title="批量删除"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
-                        <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4"></div>
+                        <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4 scrollable-content"></div>
                         <div id="diary-batch-actions" class="hidden w-full max-w-2xl mx-auto mt-4 flex space-x-2">
                             <button id="confirm-batch-delete-diaries-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
                             <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
@@ -519,7 +554,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "1.9.3"; // Version with font management
+            const APP_VERSION = "1.9.8"; // Version with global trail effect
 
             // --- IndexedDB Helper ---
             const db = {
@@ -814,6 +849,79 @@
             };
             
             updateDateTime(); setInterval(updateDateTime, 1000);
+
+            // --- Touch Effect Initialization (Final Version) ---
+            const initTouchEffects = () => {
+                let isDragging = false;
+                let letterIndex = 0;
+                const letters = ['L', 'O', 'V', 'E'];
+                let lastParticleTime = 0;
+                const particleInterval = 30; // ms
+
+                const createParticle = (x, y, type) => {
+                    const particle = document.createElement('div');
+                    if (type === 'love') {
+                        particle.className = 'touch-particle love-particle';
+                        particle.textContent = 'LOVE';
+                    } else {
+                        particle.className = 'touch-particle trail-particle';
+                        particle.textContent = letters[letterIndex];
+                        letterIndex = (letterIndex + 1) % letters.length;
+                    }
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    phoneScreen.appendChild(particle);
+                    particle.addEventListener('animationend', () => particle.remove());
+                };
+
+                const getCoords = (e) => {
+                    const rect = phoneScreen.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    return { x: clientX - rect.left, y: clientY - rect.top };
+                };
+                
+                const isInteractive = (target) => {
+                    return target.closest('button, a, input, select, textarea, .message-bubble, .progress-container, .album-art, .song-item, [role="button"], [onclick]');
+                };
+
+                const handlePointerDown = (e) => {
+                    if (isInteractive(e.target)) return;
+                    isDragging = true;
+                    // Create the initial "LOVE" particle on click
+                    const { x, y } = getCoords(e);
+                    createParticle(x, y, 'love');
+                };
+
+                const handlePointerMove = (e) => {
+                    // The effect is now allowed everywhere, but `touch-action` CSS
+                    // will prioritize scrolling on designated elements.
+                    if (!isDragging) {
+                        return;
+                    }
+                    
+                    // Throttle particle creation
+                    const now = Date.now();
+                    if (now - lastParticleTime < particleInterval) return;
+                    lastParticleTime = now;
+
+                    const { x, y } = getCoords(e);
+                    createParticle(x, y, 'trail');
+                };
+
+                const handlePointerUp = () => {
+                    isDragging = false;
+                };
+
+                phoneScreen.addEventListener('mousedown', handlePointerDown);
+                phoneScreen.addEventListener('mousemove', handlePointerMove);
+                window.addEventListener('mouseup', handlePointerUp); // Listen on window to catch mouseup outside the screen
+
+                phoneScreen.addEventListener('touchstart', handlePointerDown);
+                phoneScreen.addEventListener('touchmove', handlePointerMove);
+                phoneScreen.addEventListener('touchend', handlePointerUp);
+                phoneScreen.addEventListener('touchcancel', handlePointerUp);
+            };
             
             // --- Music Player (Re-engineered for persistence) ---
             function initMusicPlayer() {
@@ -1381,10 +1489,12 @@
                     }
 
                     // Rehydrate custom fonts
-                    for (const fontName in stateToExport.config.customFonts) {
-                        if (stateToExport.config.customFonts[fontName] === 'indexed') {
-                            const fontData = await db.get('assets', `font-${fontName}`);
-                            if (fontData) stateToExport.config.customFonts[fontName] = fontData;
+                    if (stateToExport.config.customFonts) {
+                        for (const fontName in stateToExport.config.customFonts) {
+                            if (stateToExport.config.customFonts[fontName] === 'indexed') {
+                                const fontData = await db.get('assets', `font-${fontName}`);
+                                if (fontData) stateToExport.config.customFonts[fontName] = fontData;
+                            }
                         }
                     }
 
@@ -1484,6 +1594,7 @@
             }
 
             await loadState();
+            initTouchEffects(); // Initialize the corrected feature
             showView('home');
         })();
     </script>
