@@ -784,7 +784,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "2.6.0"; // Version with concurrent SUI and time awareness
+            const APP_VERSION = "2.6.2"; // Version with balanced SUI transaction logic
 
             // --- IndexedDB Helper ---
             const db = {
@@ -1032,10 +1032,6 @@
                 renderFontOptions();
                 await applyFont(state.config.fontFamily);
                 
-                if (state.role.rolePersona && !state.sui.isInitialized) {
-                    await initializeSuiBalance();
-                }
-
                 initMusicPlayer();
                 renderChatHistory();
                 renderMemoryList();
@@ -1537,17 +1533,16 @@
 - 最近对话: ${recentHistory}
 
 # 任务：决策与生成
-1.  **决策优先级 1 (情境关联)**: 首先，分析“最近对话”。对话中是否明确提到了任何与花钱或赚钱相关的行为（如购物、付款、投资、收到报酬）？如果存在**强关联**，请生成一笔与对话内容直接相关的交易，并设置 "is_meaningful": true。
-2.  **决策优先级 2 (独立生活)**: 如果对话中**没有**强关联的触发点，请**忽略对话内容**。转而根据角色的“人设”和“当前时间”来构思一笔完全独立的、符合其生活逻辑的交易（如领薪水、付账单、日常消费、个人投资等），并设置 "is_meaningful": false。
-3.  **收入倾向**: 无论哪种情况，**请有更高的概率生成一笔收入（正数金额）**，除非逻辑上明确指向一笔支出。
-4.  **输出格式**: 必须返回JSON。如果决定生成交易，格式为 \`{"description": "交易描述", "amount": 数字, "is_meaningful": 布尔值}\`。如果两种情况都不适合生成交易，返回空JSON: \`{}\`。`;
+1.  **决策优先级 1 (情境关联)**: 首先，分析“最近对话”。对话中是否明确提到了任何与花钱或赚钱相关的行为（如购物、付款、投资、收到报酬）？如果存在**强关联**，请生成一笔与对话内容直接相关的交易。
+2.  **决策优先级 2 (独立生活)**: 如果对话中**没有**强关联的触发点，请**忽略对话内容**。转而根据角色的“人设”和“当前时间”来构思一笔完全独立的、符合其生活逻辑的交易。
+3.  **财务平衡原则**: 你的目标是模拟一个真实、动态的财务状况。**不要只生成收入或支出**。根据角色的生活方式和当前情境，合理地创造支出（如日常消费、账单、娱乐）和收入（如薪水、奖金、投资回报）。账户应该有进有出，而不是单向增长或减少。
+4.  **输出格式**: 必须返回JSON。如果决定生成交易，格式为 \`{"description": "交易描述", "amount": 数字}\`。如果两种情况都不适合生成交易，返回空JSON: \`{}\`。`;
 
                 const transactionData = await callSuiApi(systemPrompt);
                 if (transactionData && transactionData.description && typeof transactionData.amount === 'number') {
                     const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), description: transactionData.description, amount: transactionData.amount };
                     state.sui.transactions.unshift(newItem);
                     state.sui.balance += newItem.amount;
-                    // 无论是否与对话相关，都进行提示，让后台生活可见
                     showToast(`【SUI：账户变动 ${newItem.amount > 0 ? '+' : ''}${newItem.amount.toFixed(2)}】`);
                     if (pages.sui.offsetParent !== null) { renderSuiPage(); }
                     await saveState();
@@ -1620,16 +1615,17 @@
 
             // --- SUI Trigger (Called after AI reply) ---
             async function triggerSuiGeneration() {
-                if (!state.sui.isInitialized || !state.config.api.key) return;
+                if (!state.config.api.key) return; // Only check for API key
+                
+                await initializeSuiBalance(); 
 
                 const generationTasks = [];
 
-                // 概率已提升，您可以根据需要调整这里的数值
-                const transactionChance = 0.65; // 65% 的概率生成账户交易
-                const otherChatChance = 0.55;   // 55% 的概率生成外部通讯
-                const browsingChance = 0.55;  // 55% 的概率生成浏览记录
+                // Probabilities for SUI events
+                const transactionChance = 0.65; 
+                const otherChatChance = 0.55;   
+                const browsingChance = 0.55;  
 
-                // Independent probability check for each SUI event type
                 if (Math.random() < transactionChance) {
                     generationTasks.push(generateContextualTransaction());
                 }
@@ -1658,14 +1654,11 @@
                     let aiResponse = choice.message?.content;
                     if (!aiResponse) { if (choice.finish_reason === 'length') { throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。"); } throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。"); }
                     
-                    await initializeSuiBalance(); // Initialize balance on first successful reply
-
                     const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/; const match = aiResponse.match(affinityRegex);
                     if (match && match[1]) { state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10))); aiResponse = aiResponse.replace(affinityRegex, '').trim(); }
                     const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
                     await sendAiMessages(replyMessages);
 
-                    // Trigger SUI event generation after a successful reply
                     await triggerSuiGeneration();
 
                 } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
