@@ -784,7 +784,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "2.6.2"; // Version with balanced SUI transaction logic
+            const APP_VERSION = "2.6.3"; // Version with multi-transaction generation
 
             // --- IndexedDB Helper ---
             const db = {
@@ -1430,7 +1430,8 @@
             
             const createApiPrompt = () => {
                 let systemPrompt = `# 核心情境
-- 当前手机系统时间: ${new Date().toLocaleString('zh-CN', { hour12: false })}. 你必须感知并利用这个时间信息，让你的回复符合当前的时间段（例如，早上说“早安”，深夜提醒对方休息）。
+- 当前手机系统时间: ${new Date().toLocaleString('zh-CN', { hour12: false })}. 
+- **时间意识指南**: 你需要将这个时间作为背景信息记在心里，让你的行为和对话自然地与之匹配（例如，在早上问好，在深夜表达困意）。**请不要在每次回复中都刻意播报时间**，只在对话自然地涉及到时间话题时才提及。最重要的是，**严禁说出与此参考时间相矛盾的时间信息**。
 
 # 你的角色信息
 - 名称: ${state.role.roleName || 'AI'}
@@ -1444,7 +1445,8 @@
 
 # 重要规则
 1. 你的回复必须模仿短信聊天，一次性发送多条短消息。请将你的回复分成至少3到15个独立的句子，并用句号、问号或感叹号结尾。
-2. 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
+2:你必须以当前手机系统时间作为唯一参考，禁止出现回复错误时间的消息。
+3. 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
                 if(state.memories && state.memories.length > 0) systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
                 if(state.role.promptInstructions) systemPrompt += `\n\n# 请遵循以下额外指令:\n${state.role.promptInstructions}`;
                 const messages = [{ role: 'system', content: systemPrompt }];
@@ -1469,10 +1471,13 @@
                 await saveState(); // Save state after initialization
             }
 
-            // --- SUI Helper: API Call Abstraction (DIAGNOSTIC VERSION) ---
+            // --- SUI Helper: API Call Abstraction (REPLACED) ---
             async function callSuiApi(systemPrompt) {
                 if (!state.config.api.baseUrl || !state.config.api.key) return null;
-                console.log('%c[SUI DIAGNOSTIC] Attempting to call SUI API...', 'color: #03a9f4; font-weight: bold;');
+                
+                // 使用更明确的诊断信息
+                console.log('%c[SUI] 正在调用SUI API...', 'color: #03a9f4; font-weight: bold;', { prompt: systemPrompt });
+
                 try {
                     const messages = [{ role: 'system', content: systemPrompt }];
                     const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
@@ -1483,39 +1488,44 @@
 
                     if (!response.ok) {
                         const errorText = await response.text();
-                        console.error(`%c[SUI DIAGNOSTIC] API request FAILED with status ${response.status}.`, 'color: #f44336; font-weight: bold;', 'Response:', errorText);
+                        console.error(`%c[SUI] API 请求失败，状态码: ${response.status}.`, 'color: #f44336; font-weight: bold;', '响应:', errorText);
                         return null;
                     }
 
                     const data = await response.json();
                     const content = data.choices?.[0]?.message?.content;
 
-                    console.log('%c[SUI DIAGNOSTIC] Received raw content from API:', 'color: #4caf50; font-weight: bold;', content);
-
-                    if (content) {
-                        const firstBrace = content.indexOf('{');
-                        const lastBrace = content.lastIndexOf('}');
-                        if (firstBrace !== -1 && lastBrace > firstBrace) {
-                            const jsonString = content.substring(firstBrace, lastBrace + 1);
-                            console.log('%c[SUI DIAGNOSTIC] Extracted potential JSON string:', 'color: #ff9800;', jsonString);
-                            try {
-                                const parsedJson = JSON.parse(jsonString);
-                                console.log('%c[SUI DIAGNOSTIC] JSON parsed successfully!', 'color: #8bc34a; font-weight: bold;', parsedJson);
-                                return parsedJson;
-                            } catch (e) {
-                                console.error('%c[SUI DIAGNOSTIC] JSON parse FAILED even after slicing.', 'color: #f44336; font-weight: bold;', e);
-                                console.error('[SUI DIAGNOSTIC] The string that failed to parse was:', jsonString);
-                                return null;
-                            }
-                        } else {
-                            console.warn('%c[SUI DIAGNOSTIC] Could not find valid JSON braces {} in the response content.', 'color: #ffc107;');
-                        }
-                    } else {
-                         console.warn('%c[SUI DIAGNOSTIC] API response did not contain any content.', 'color: #ffc107;');
+                    if (!content) {
+                        console.warn('%c[SUI] API 响应中不包含任何内容。', 'color: #ffc107;');
+                        return null;
                     }
-                    return null;
+
+                    console.log('%c[SUI] 从API收到原始文本:', 'color: #4caf50;', content);
+
+                    // --- 核心优化：使用正则表达式提取JSON ---
+                    // 这个正则表达式会寻找第一个出现的 '{...}' 或 '[...]' 结构，包括跨行的情况。
+                    const jsonRegex = /({[\s\S]*})|(\[[\s\S]*\])/;
+                    const match = content.match(jsonRegex);
+
+                    if (!match) {
+                        console.error('%c[SUI] 解析失败：在响应中未找到有效的JSON结构。', 'color: #f44336; font-weight: bold;');
+                        return null;
+                    }
+
+                    const jsonString = match[0]; // match[0] 包含整个匹配到的字符串
+                    console.log('%c[SUI] 正则表达式提取出的JSON字符串:', 'color: #ff9800;', jsonString);
+
+                    try {
+                        const parsedJson = JSON.parse(jsonString);
+                        console.log('%c[SUI] JSON解析成功！', 'color: #8bc34a; font-weight: bold;', parsedJson);
+                        return parsedJson;
+                    } catch (e) {
+                        console.error('%c[SUI] JSON解析失败，即使已经提取出字符串。', 'color: #f44336; font-weight: bold;', e, '问题字符串:', jsonString);
+                        return null;
+                    }
+
                 } catch (error) {
-                    console.error("%c[SUI DIAGNOSTIC] A critical error occurred in callSuiApi function:", 'color: #f44336; font-weight: bold;', error);
+                    console.error("%c[SUI] callSuiApi 函数发生严重错误:", 'color: #f44336; font-weight: bold;', error);
                     return null;
                 }
             }
@@ -1525,6 +1535,7 @@
                 const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
                 const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
 
+                // MODIFIED: The prompt now asks for an array of 1-3 transactions.
                 const systemPrompt = `你是一个智能生活模拟器，为AI角色生成金融交易。你需要决定这笔交易是与玩家对话相关，还是角色自己的独立行为。
 # 核心信息
 - 角色人设: ${state.role.rolePersona || '未设定'}
@@ -1533,19 +1544,46 @@
 - 最近对话: ${recentHistory}
 
 # 任务：决策与生成
-1.  **决策优先级 1 (情境关联)**: 首先，分析“最近对话”。对话中是否明确提到了任何与花钱或赚钱相关的行为（如购物、付款、投资、收到报酬）？如果存在**强关联**，请生成一笔与对话内容直接相关的交易。
-2.  **决策优先级 2 (独立生活)**: 如果对话中**没有**强关联的触发点，请**忽略对话内容**。转而根据角色的“人设”和“当前时间”来构思一笔完全独立的、符合其生活逻辑的交易。
-3.  **财务平衡原则**: 你的目标是模拟一个真实、动态的财务状况。**不要只生成收入或支出**。根据角色的生活方式和当前情境，合理地创造支出（如日常消费、账单、娱乐）和收入（如薪水、奖金、投资回报）。账户应该有进有出，而不是单向增长或减少。
-4.  **输出格式**: 必须返回JSON。如果决定生成交易，格式为 \`{"description": "交易描述", "amount": 数字}\`。如果两种情况都不适合生成交易，返回空JSON: \`{}\`。`;
+1.  **决策优先级 1 (情境关联)**: 首先，分析“最近对话”。对话中是否明确提到了任何与花钱或赚钱相关的行为？如果存在**强关联**，请生成与对话内容直接相关的交易。
+2.  **决策优先级 2 (独立生活)**: 如果对话中**没有**强关联的触发点，请**忽略对话内容**。转而根据角色的“人设”和“当前时间”来构思一笔或多笔完全独立的、符合其生活逻辑的交易。
+3.  **财务平衡原则**: 你的目标是模拟一个真实、动态的财务状况。**不要只生成收入或支出**。根据角色的生活方式和当前情境，合理地创造支出和收入（如日常消费、账单、娱乐）和收入（如薪水、奖金、投资回报）。账户应该有进有出，而不是单向增长或减少。
+4.  **数量要求**: 你必须生成 **1 到 3 笔** 交易记录。
+5.  **输出格式**: 必须返回一个JSON**数组**，其中包含1到3个交易对象。每个对象格式为 \`{"description": "交易描述", "amount": 数字}\`。如果经过判断，当前不适合生成任何交易，则返回一个空数组: \`[]\`。
 
-                const transactionData = await callSuiApi(systemPrompt);
-                if (transactionData && transactionData.description && typeof transactionData.amount === 'number') {
-                    const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), description: transactionData.description, amount: transactionData.amount };
-                    state.sui.transactions.unshift(newItem);
-                    state.sui.balance += newItem.amount;
-                    showToast(`【SUI：账户变动 ${newItem.amount > 0 ? '+' : ''}${newItem.amount.toFixed(2)}】`);
-                    if (pages.sui.offsetParent !== null) { renderSuiPage(); }
-                    await saveState();
+# 示例输出
+[
+  {"description": "支付上月信用卡账单", "amount": -8540.50},
+  {"description": "收到项目奖金", "amount": 15000}
+]`;
+
+                const transactionsData = await callSuiApi(systemPrompt);
+
+                // MODIFIED: The logic now handles an array of transactions.
+                if (Array.isArray(transactionsData) && transactionsData.length > 0) {
+                    let totalChange = 0;
+                    // Iterate over the array of transactions returned by the AI
+                    for (const transaction of transactionsData) {
+                        if (transaction.description && typeof transaction.amount === 'number') {
+                            const newItem = {
+                                id: Date.now() + Math.random(), // Add random to avoid collision in fast loops
+                                timestamp: new Date().toLocaleString('zh-CN', { hour12: false }),
+                                description: transaction.description,
+                                amount: transaction.amount
+                            };
+                            state.sui.transactions.unshift(newItem);
+                            totalChange += newItem.amount;
+                        }
+                    }
+
+                    if (transactionsData.length > 0) {
+                        state.sui.balance += totalChange;
+                        // Show a single toast summarizing the changes.
+                        showToast(`【SUI：新增 ${transactionsData.length} 笔账户变动】`);
+                        if (pages.sui.offsetParent !== null) {
+                            renderSuiPage();
+                        }
+                        await saveState();
+                    }
                 }
             }
             
