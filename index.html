@@ -400,6 +400,55 @@
             opacity: 0.7;
             font-size: 0.7rem;
         }
+        /* NEW: SUI item action buttons */
+        .sui-item-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .sui-list-item:hover .sui-item-actions {
+            opacity: 1;
+        }
+        .sui-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+        .sui-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        /* NEW: Section-specific clear button */
+        .sui-section-clear-btn {
+            background: rgba(255, 82, 82, 0.2);
+            border: 1px solid rgba(255, 82, 82, 0.4);
+            color: #ffcdd2;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sui-section-clear-btn:hover {
+            background: rgba(255, 82, 82, 0.4);
+            color: white;
+            box-shadow: 0 0 8px rgba(255, 82, 82, 0.5);
+        }
 
 
         /* --- Touch Effect --- */
@@ -695,7 +744,7 @@
                         <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-4">
                             <button id="sui-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                             <h1 class="text-2xl font-bold">核心监控</h1>
-                            <button id="sui-clear-btn" title="清空记录" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><i class="fas fa-broom"></i></button>
+                            <div class="w-8"></div> <!-- Placeholder for alignment -->
                         </div>
                         
                         <!-- SUI Navigation Tabs -->
@@ -706,11 +755,14 @@
                         </div>
 
                         <!-- SUI Content Sections -->
-                        <div class="w-full max-w-2xl mx-auto flex-1 overflow-y-auto scrollable-content">
+                        <div id="sui-content-container" class="w-full max-w-2xl mx-auto flex-1 overflow-y-auto scrollable-content">
                             <!-- Account Section -->
                             <div id="sui-account-section" class="sui-content-section">
                                 <div class="sui-section">
-                                    <h2 class="text-xl font-bold mb-3">账户详情</h2>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h2 class="text-xl font-bold">账户详情</h2>
+                                        <button id="sui-clear-account-btn" class="sui-section-clear-btn"><i class="fas fa-eraser"></i> 清空</button>
+                                    </div>
                                     <p class="mb-2">当前余额: <span id="sui-balance" class="font-mono text-lg text-amber-300">0.00</span></p>
                                     <h3 class="text-md font-semibold mb-2 border-t border-white/10 pt-2">交易记录</h3>
                                     <div id="sui-transactions-list" class="sui-list">
@@ -722,7 +774,10 @@
                             <!-- Comms Section -->
                             <div id="sui-comms-section" class="sui-content-section hidden">
                                 <div class="sui-section">
-                                    <!-- MODIFIED: h2 removed -->
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h2 class="text-xl font-bold">外部通讯</h2>
+                                        <button id="sui-clear-comms-btn" class="sui-section-clear-btn"><i class="fas fa-eraser"></i> 清空</button>
+                                    </div>
                                     <div id="sui-other-chats-list" class="sui-list">
                                         <p class="opacity-70 text-center">暂无记录</p>
                                     </div>
@@ -732,7 +787,10 @@
                             <!-- Browsing Section -->
                             <div id="sui-browsing-section" class="sui-content-section hidden">
                                 <div class="sui-section">
-                                    <!-- MODIFIED: h2 removed -->
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h2 class="text-xl font-bold">浏览记录</h2>
+                                        <button id="sui-clear-browsing-btn" class="sui-section-clear-btn"><i class="fas fa-eraser"></i> 清空</button>
+                                    </div>
                                     <div id="sui-browsing-history-list" class="sui-list">
                                         <p class="opacity-70 text-center">暂无记录</p>
                                     </div>
@@ -763,7 +821,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "2.9.0"; // Version with full SUI memory implantation
+            const APP_VERSION = "2.9.5"; // Version with new clear icon
 
             // --- IndexedDB Helper ---
             const db = {
@@ -849,9 +907,10 @@
             let isDiaryBatchDeleteMode = false;
 
             // SUI elements
+            const suiContentContainer = get('sui-content-container');
             let suiBalanceEl = get('sui-balance'), suiTransactionsListEl = get('sui-transactions-list'), suiOtherChatsListEl = get('sui-other-chats-list'), suiBrowsingHistoryListEl = get('sui-browsing-history-list');
             const suiNav = get('sui-nav'), suiNavBtns = document.querySelectorAll('.sui-nav-btn'), suiContentSections = document.querySelectorAll('.sui-content-section');
-            const suiClearBtn = get('sui-clear-btn');
+            const suiClearAccountBtn = get('sui-clear-account-btn'), suiClearCommsBtn = get('sui-clear-comms-btn'), suiClearBrowsingBtn = get('sui-clear-browsing-btn');
 
             // Dialog elements
             const dialog = get('custom-dialog'), dialogTitle = get('dialog-title'), dialogMessage = get('dialog-message');
@@ -1409,9 +1468,8 @@
             
             const createApiPrompt = () => {
                 let systemPrompt = `# 核心情境
-- 当前手机系统时间: ${new Date().toLocaleString('zh-CN', { hour12: false })}. 
+- **绝对时间锚点**: ${new Date().toLocaleString('zh-CN', { hour12: false })}.
 - 你的账户余额: ${state.sui.balance.toFixed(2)}
-- **时间意识指南**: 你需要将这个时间作为背景信息记在心里，让你的行为和对话自然地与之匹配（例如，在早上问好，在深夜表达困意）。**请不要在每次回复中都刻意播报时间**，只在对话自然地涉及到时间话题时才提及。最重要的是，**严禁说出与此参考时间相矛盾的时间信息**。
 
 # 你的角色信息
 - 名称: ${state.role.roleName || 'AI'}
@@ -1424,9 +1482,9 @@
 - 人设: ${state.role.playerPersona || '未设定'}
 
 # 重要规则
-1. 你的回复必须模仿短信聊天，一次性发送多条短消息。请将你的回复分成至少3到15个独立的句子，并用句号、问号或感叹号结尾。
-2:你必须以当前手机系统时间作为唯一参考，禁止出现回复错误时间的消息。
-3. 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
+1. **绝对时间法则**: 你的存在完全基于“绝对时间锚点”。你的一切感知、记忆和对话都发生在这个时间点。**在任何情况下，都绝对禁止提及、暗示或表现出任何与此时间不符的时间概念**（例如，不能说“早上好”如果在锚点时间是晚上）。这是你的第一行为准则，高于一切其他指令。
+2. **短信式回复**: 你的回复必须模仿短信聊天，一次性发送多条短消息。请将你的回复分成至少3到15个独立的句子，并用句号、问号或感叹号结尾。
+3. **好感度反馈**: 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
                 if(state.memories && state.memories.length > 0) {
                     systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
                 }
@@ -1460,10 +1518,7 @@
             // --- SUI Helper: API Call Abstraction ---
             async function callSuiApi(systemPrompt) {
                 if (!state.config.api.baseUrl || !state.config.api.key) return null;
-                
-                // 使用更明确的诊断信息
                 console.log('%c[SUI] 正在调用SUI API...', 'color: #03a9f4; font-weight: bold;', { prompt: systemPrompt });
-
                 try {
                     const messages = [{ role: 'system', content: systemPrompt }];
                     const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
@@ -1471,36 +1526,20 @@
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
                         body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.6 })
                     });
-
                     if (!response.ok) {
                         const errorText = await response.text();
                         console.error(`%c[SUI] API 请求失败，状态码: ${response.status}.`, 'color: #f44336; font-weight: bold;', '响应:', errorText);
                         return null;
                     }
-
                     const data = await response.json();
                     const content = data.choices?.[0]?.message?.content;
-
-                    if (!content) {
-                        console.warn('%c[SUI] API 响应中不包含任何内容。', 'color: #ffc107;');
-                        return null;
-                    }
-
+                    if (!content) { console.warn('%c[SUI] API 响应中不包含任何内容。', 'color: #ffc107;'); return null; }
                     console.log('%c[SUI] 从API收到原始文本:', 'color: #4caf50;', content);
-
-                    // --- 核心优化：使用正则表达式提取JSON ---
-                    // 这个正则表达式会寻找第一个出现的 '{...}' 或 '[...]' 结构，包括跨行的情况。
                     const jsonRegex = /({[\s\S]*})|(\[[\s\S]*\])/;
                     const match = content.match(jsonRegex);
-
-                    if (!match) {
-                        console.error('%c[SUI] 解析失败：在响应中未找到有效的JSON结构。', 'color: #f44336; font-weight: bold;');
-                        return null;
-                    }
-
-                    const jsonString = match[0]; // match[0] 包含整个匹配到的字符串
+                    if (!match) { console.error('%c[SUI] 解析失败：在响应中未找到有效的JSON结构。', 'color: #f44336; font-weight: bold;'); return null; }
+                    const jsonString = match[0];
                     console.log('%c[SUI] 正则表达式提取出的JSON字符串:', 'color: #ff9800;', jsonString);
-
                     try {
                         const parsedJson = JSON.parse(jsonString);
                         console.log('%c[SUI] JSON解析成功！', 'color: #8bc34a; font-weight: bold;', parsedJson);
@@ -1509,7 +1548,6 @@
                         console.error('%c[SUI] JSON解析失败，即使已经提取出字符串。', 'color: #f44336; font-weight: bold;', e, '问题字符串:', jsonString);
                         return null;
                     }
-
                 } catch (error) {
                     console.error("%c[SUI] callSuiApi 函数发生严重错误:", 'color: #f44336; font-weight: bold;', error);
                     return null;
@@ -1520,8 +1558,6 @@
             async function generateContextualTransaction() {
                 const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
                 const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
-
-                // MODIFIED: The prompt now asks for an array of 1-3 transactions.
                 const systemPrompt = `你是一个智能生活模拟器，为AI角色生成金融交易。你需要决定这笔交易是与玩家对话相关，还是角色自己的独立行为。
 # 核心信息
 - 角色人设: ${state.role.rolePersona || '未设定'}
@@ -1541,17 +1577,13 @@
   {"description": "支付上月信用卡账单", "amount": -8540.50},
   {"description": "收到项目奖金", "amount": 15000}
 ]`;
-
                 const transactionsData = await callSuiApi(systemPrompt);
-
-                // MODIFIED: The logic now handles an array of transactions.
                 if (Array.isArray(transactionsData) && transactionsData.length > 0) {
                     let totalChange = 0;
-                    // Iterate over the array of transactions returned by the AI
                     for (const transaction of transactionsData) {
                         if (transaction.description && typeof transaction.amount === 'number') {
                             const newItem = {
-                                id: Date.now() + Math.random(), // Add random to avoid collision in fast loops
+                                id: Date.now() + Math.random(),
                                 timestamp: new Date().toLocaleString('zh-CN', { hour12: false }),
                                 description: transaction.description,
                                 amount: transaction.amount
@@ -1560,14 +1592,10 @@
                             totalChange += newItem.amount;
                         }
                     }
-
                     if (transactionsData.length > 0) {
                         state.sui.balance += totalChange;
-                        // Show a single toast summarizing the changes.
                         showToast(`【SUI：新增 ${transactionsData.length} 笔账户变动】`);
-                        if (pages.sui.offsetParent !== null) {
-                            renderSuiPage();
-                        }
+                        if (pages.sui.offsetParent !== null) { renderSuiPage(); }
                         await saveState();
                     }
                 }
@@ -1578,7 +1606,6 @@
                 const roleName = state.role.roleName || '角色';
                 const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
                 const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-
                 const systemPrompt = `你是一个智能生活模拟器，为AI角色“${roleName}”生成外部通讯。你需要决定这次通讯是与玩家对话相关，还是角色自己的独立行为。
 # 核心信息
 - 角色人设: ${state.role.rolePersona || '未设定'}
@@ -1610,7 +1637,6 @@
             async function generateSuiBrowsingSession() {
                 const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
                 const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-
                 const systemPrompt = `你是一个智能生活模拟器，为AI角色生成网页浏览记录。你需要决定这次浏览是与玩家对话相关，还是角色自己的独立行为。
 # 核心信息
 - 角色人设: ${state.role.rolePersona || '未设定'}
@@ -1639,30 +1665,14 @@
 
             // --- SUI Trigger (Called after AI reply) ---
             async function triggerSuiGeneration() {
-                if (!state.config.api.key) return; // Only check for API key
-                
+                if (!state.config.api.key) return; 
                 await initializeSuiBalance(); 
-
                 const generationTasks = [];
-
-                // Probabilities for SUI events
-                const transactionChance = 0.65; 
-                const otherChatChance = 0.55;   
-                const browsingChance = 0.55;  
-
-                if (Math.random() < transactionChance) {
-                    generationTasks.push(generateContextualTransaction());
-                }
-                if (Math.random() < otherChatChance) {
-                    generationTasks.push(generateSuiOtherChat());
-                }
-                if (Math.random() < browsingChance) {
-                    generationTasks.push(generateSuiBrowsingSession());
-                }
-
-                if (generationTasks.length > 0) {
-                    await Promise.all(generationTasks);
-                }
+                const transactionChance = 0.65, otherChatChance = 0.55, browsingChance = 0.55;  
+                if (Math.random() < transactionChance) { generationTasks.push(generateContextualTransaction()); }
+                if (Math.random() < otherChatChance) { generationTasks.push(generateSuiOtherChat()); }
+                if (Math.random() < browsingChance) { generationTasks.push(generateSuiBrowsingSession()); }
+                if (generationTasks.length > 0) { await Promise.all(generationTasks); }
             }
 
             aiReplyBtn.addEventListener('click', async () => {
@@ -1682,9 +1692,7 @@
                     if (match && match[1]) { state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10))); aiResponse = aiResponse.replace(affinityRegex, '').trim(); }
                     const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
                     await sendAiMessages(replyMessages);
-
                     await triggerSuiGeneration();
-
                 } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
             });
 
@@ -1703,7 +1711,7 @@
                 try {
                     const chatContent = state.chat.history.map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}：${msg.text}`).join('\n');
                     const systemPrompt = "你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁的记忆存档。"; const messages = [ { role: 'system', content: systemPrompt }, { role: 'user', content: `对话内容:\n${chatContent}\n\n请简洁地总结以上对话内容，例如：'玩家与[角色]在[地点]讨论了[主题]。'` } ];
-                    const response = await fetch(`${state.config.api.baseUrl}/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 }) });
+                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 }) });
                     if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
                     const data = await response.json(); let summaryText = data.choices?.[0]?.message?.content;
                     if (summaryText) { state.memories.push({ id: Date.now(), content: summaryText, timestamp: new Date().toLocaleString() }); await saveState(); renderMemoryList(); showToast('记忆已成功存档！'); } else { throw new Error("API response is empty or malformed."); }
@@ -1766,229 +1774,181 @@
                     const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 }) });
                     if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
                     const data = await response.json(); const diaryContent = data.choices?.[0]?.message?.content;
-                    if (diaryContent) { state.diaries.push({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString() }); await saveState(); renderDiaryList(); showToast('日记已生成！'); } else { throw new Error("API did not return diary content."); }
-                } catch (error) { console.error("Diary generation failed:", error); showDialog('生成失败', `生成日记时发生错误: ${error.message}`); } finally { generateDiaryBtn.disabled = false; }
+                    if (diaryContent) { state.diaries.push({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString() }); await saveState(); renderDiaryList(); showToast('日记已生成');
+                    } else { throw new Error("API response is empty or malformed."); }
+                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `生成日记时发生错误: ${error.message}`); } finally { generateDiaryBtn.disabled = false; }
             });
-            batchDeleteDiariesBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = true; renderDiaryList(); }); cancelBatchDeleteBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = false; renderDiaryList(); });
+            batchDeleteDiariesBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = true; renderDiaryList(); });
+            cancelBatchDeleteBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = false; renderDiaryList(); });
             confirmBatchDeleteBtn.addEventListener('click', async () => {
-                const selectedIds = []; diaryListContainer.querySelectorAll('.diary-entry').forEach(entry => { const checkbox = entry.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { selectedIds.push(parseInt(entry.dataset.id)); } });
+                const selectedIds = []; diaryListContainer.querySelectorAll('.diary-entry').forEach(item => { const checkbox = item.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { selectedIds.push(parseInt(item.dataset.id)); } });
                 if (selectedIds.length === 0) { showToast('没有选中任何日记'); return; }
                 const confirmed = await showDialog('批量删除', `确定要删除选中的 ${selectedIds.length} 篇日记吗？`);
                 if (confirmed) { state.diaries = state.diaries.filter(d => !selectedIds.includes(d.id)); await saveState(); isDiaryBatchDeleteMode = false; renderDiaryList(); showToast('日记已删除'); }
             });
 
-            // --- SUI Page Functionality ---
-            suiNav.addEventListener('click', (e) => {
-                const targetBtn = e.target.closest('.sui-nav-btn');
-                if (!targetBtn) return;
-                suiNavBtns.forEach(btn => btn.classList.remove('active'));
-                targetBtn.classList.add('active');
-                const targetSectionId = targetBtn.dataset.target;
-                suiContentSections.forEach(section => {
-                    section.classList.toggle('hidden', section.id !== targetSectionId);
-                });
-            });
-
+            // --- SUI Page ---
             const renderSuiPage = () => {
-                suiBalanceEl.textContent = (state.sui.balance || 0).toFixed(2);
-                
-                const renderList = (element, data, renderItem) => {
-                    element.innerHTML = '';
-                    if (!data || data.length === 0) {
-                        element.innerHTML = '<p class="opacity-70 text-center">暂无记录</p>';
-                        return;
-                    }
-                    [...data].forEach(itemData => {
-                        const itemEl = document.createElement('div');
-                        itemEl.className = 'sui-list-item';
-                        itemEl.innerHTML = renderItem(itemData);
-                        element.appendChild(itemEl);
-                    });
-                };
+                suiBalanceEl.textContent = state.sui.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const createSuiItem = (itemData, type) => {
+                    const item = document.createElement('div');
+                    item.className = 'sui-list-item';
+                    item.dataset.id = itemData.id;
+                    item.dataset.type = type;
 
-                // --- REPLACED FUNCTION ---
-                const formatMemoryFromSui = (item, type) => {
-                    const roleName = state.role.roleName || '角色';
+                    let contentHtml = '';
                     switch (type) {
                         case 'transactions':
-                            // 完整记录交易描述和精确金额
-                            return `【账户变动记录】描述: ${item.description}, 金额: ${item.amount.toFixed(2)}`;
-                        
+                            contentHtml = `
+                                <span class="timestamp">${itemData.timestamp}</span>
+                                <div class="flex justify-between items-center">
+                                    <span>${itemData.description}</span>
+                                    <span class="font-mono ${itemData.amount >= 0 ? 'amount-positive' : 'amount-negative'}">${itemData.amount.toFixed(2)}</span>
+                                </div>`;
+                            break;
                         case 'otherChats':
-                            // 完整记录与谁的、全部的对话内容
-                            const chatLogString = (item.log || [])
-                                .map(logItem => `${logItem.sender || '未知'}: ${logItem.text || ''}`)
-                                .join('\n');
-                            return `【外部通讯记录】与 ${item.with || '未知联系人'} 的对话:\n${chatLogString}`;
-
+                            const chatLogHtml = itemData.log.map(msg => `<p><strong>${msg.sender}:</strong> ${msg.text}</p>`).join('');
+                            contentHtml = `
+                                <span class="timestamp">${itemData.timestamp}</span>
+                                <p>与 <span class="chat-with">${itemData.with}</span> 的通讯记录</p>
+                                <div class="sui-chat-log">${chatLogHtml}</div>`;
+                            break;
                         case 'browsingHistory':
-                            // 完整记录一次浏览会话中的所有页面
-                            const sessionString = (item.session || [])
-                                .map(page => `- 标题: ${page.title || '无标题'}, 网址: ${page.url || '未知URL'}`)
-                                .join('\n');
-                            return `【网页浏览记录】\n${sessionString}`;
-                            
-                        default:
-                            return '';
+                            const sessionHtml = itemData.session.map(page => `<p>${page.title}<br><span class="url">${page.url}</span></p>`).join('');
+                            contentHtml = `
+                                <span class="timestamp">${itemData.timestamp}</span>
+                                <p>网页浏览会话</p>
+                                <div class="sui-browsing-session">${sessionHtml}</div>`;
+                            break;
                     }
+                    
+                    const actionsHtml = `
+                        <div class="sui-item-actions">
+                            <button class="sui-action-btn" data-action="save" title="存档至记忆"><i class="fas fa-bookmark"></i></button>
+                            <button class="sui-action-btn" data-action="delete" title="删除"><i class="fas fa-trash-alt"></i></button>
+                        </div>`;
+
+                    item.innerHTML = actionsHtml + contentHtml;
+                    return item;
                 };
 
-                const createActionButtons = (item, type) => `
-                    <div class="absolute top-0 right-0 flex items-center">
-                        <button class="sui-item-action-btn" title="植入记忆" data-id="${item.id}" data-type="${type}" data-action="memorize"> <i class="fas fa-brain"></i> </button>
-                        <button class="sui-item-action-btn" title="删除" data-id="${item.id}" data-type="${type}" data-action="delete"> &times; </button>
-                    </div>
-                `;
+                suiTransactionsListEl.innerHTML = !state.sui.transactions || state.sui.transactions.length === 0 ? '<p class="opacity-70 text-center">暂无记录</p>' : '';
+                state.sui.transactions.forEach(tx => suiTransactionsListEl.appendChild(createSuiItem(tx, 'transactions')));
                 
-                const style = document.createElement('style');
-                style.innerHTML = `
-                    .sui-list-item:hover .sui-item-action-btn { opacity: 1; }
-                    .sui-item-action-btn { background: none; border: none; color: var(--text-color); opacity: 0; cursor: pointer; transition: all 0.2s; font-size: 1.1rem; line-height: 1; padding: 0.5rem; border-radius: 50%; }
-                    .sui-item-action-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
-                    .sui-item-action-btn[data-action="delete"] { font-size: 1.5rem; }
-                `;
-                if (!document.head.querySelector('#sui-action-btn-style')) { style.id = 'sui-action-btn-style'; document.head.appendChild(style); }
-
-                renderList(suiTransactionsListEl, state.sui.transactions, item => {
-                    const amount = item.amount || 0; const amountClass = amount > 0 ? 'amount-positive' : 'amount-negative'; const amountSign = amount > 0 ? '+' : '';
-                    return `${createActionButtons(item, 'transactions')} <span class="timestamp">${item.timestamp || '未知时间'}</span> <div class="flex justify-between"> <span>${item.description || '无描述'}</span> <span class="font-mono ${amountClass}">${amountSign}${amount.toFixed(2)}</span> </div>`;
-                });
+                suiOtherChatsListEl.innerHTML = !state.sui.otherChats || state.sui.otherChats.length === 0 ? '<p class="opacity-70 text-center">暂无记录</p>' : '';
+                state.sui.otherChats.forEach(chat => suiOtherChatsListEl.appendChild(createSuiItem(chat, 'otherChats')));
                 
-                renderList(suiOtherChatsListEl, state.sui.otherChats, item => {
-                    const logHtml = (item.log || []).map(logItem => `<p><strong>${logItem.sender || '未知'}:</strong> ${logItem.text || ''}</p>`).join('');
-                    return `${createActionButtons(item, 'otherChats')} <span class="timestamp">${item.timestamp || '未知时间'}</span> <div> <span>与 <span class="chat-with">${item.with || '未知联系人'}</span> 的通讯:</span> <div class="sui-chat-log">${logHtml || '无对话记录'}</div> </div>`;
-                });
-
-                renderList(suiBrowsingHistoryListEl, state.sui.browsingHistory, item => {
-                    const sessionHtml = (item.session || []).map(page => `<p class="truncate" title="${page.title || ''}\n${page.url || ''}"> ${page.title || '无标题'} <span class="block url truncate">${page.url || '未知URL'}</span> </p>`).join('');
-                    return `${createActionButtons(item, 'browsingHistory')} <span class="timestamp">${item.timestamp || '未知时间'}</span> <div class="sui-browsing-session">${sessionHtml || '无浏览记录'}</div>`;
-                });
-
-                const handleSuiAction = async (e) => {
-                    const actionBtn = e.target.closest('.sui-item-action-btn'); if (!actionBtn) return;
-                    const id = parseFloat(actionBtn.dataset.id); const type = actionBtn.dataset.type; const action = actionBtn.dataset.action; const item = state.sui[type]?.find(i => i.id === id); if (!item) return;
-                    if (action === 'delete') {
-                        const confirmed = await showDialog('确认删除', '确定要删除这条记录吗？');
-                        if (confirmed) { state.sui[type] = state.sui[type].filter(i => i.id !== id); await saveState(); renderSuiPage(); showToast('记录已删除'); }
-                    } else if (action === 'memorize') {
-                        const memoryContent = formatMemoryFromSui(item, type);
-                        if (memoryContent) {
-                            const confirmed = await showDialog('植入记忆', `确定要让角色记住以下信息吗？<br><br><p class="p-2 bg-black/20 rounded-md text-sm whitespace-pre-wrap">${memoryContent}</p>`);
-                            if (confirmed) { state.memories.push({ id: Date.now(), content: memoryContent, timestamp: new Date().toLocaleString() }); await saveState(); showToast('记忆已成功植入！'); }
-                        }
-                    }
-                };
-
-                [suiTransactionsListEl, suiOtherChatsListEl, suiBrowsingHistoryListEl].forEach(listEl => {
-                    const newListEl = listEl.cloneNode(true); listEl.parentNode.replaceChild(newListEl, listEl); newListEl.addEventListener('click', handleSuiAction);
-                });
-
-                suiTransactionsListEl = get('sui-transactions-list'); suiOtherChatsListEl = get('sui-other-chats-list'); suiBrowsingHistoryListEl = get('sui-browsing-history-list');
+                suiBrowsingHistoryListEl.innerHTML = !state.sui.browsingHistory || state.sui.browsingHistory.length === 0 ? '<p class="opacity-70 text-center">暂无记录</p>' : '';
+                state.sui.browsingHistory.forEach(session => suiBrowsingHistoryListEl.appendChild(createSuiItem(session, 'browsingHistory')));
             };
-
-            suiClearBtn.addEventListener('click', async () => {
-                const dialogContent = document.createElement('div');
-                dialogContent.innerHTML = `
-                    <div class="space-y-2">
-                        <label class="flex items-center"><input type="checkbox" id="clear-sui-account" class="form-checkbox mr-2">清空账户信息（余额和交易记录）</label>
-                        <label class="flex items-center"><input type="checkbox" id="clear-sui-comms" class="form-checkbox mr-2">清空外部通讯记录</label>
-                        <label class="flex items-center"><input type="checkbox" id="clear-sui-browsing" class="form-checkbox mr-2">清空浏览记录</label>
-                    </div>
-                `;
-                const choices = await showDialog('清空SUI记录', dialogContent, {
-                    buttons: [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '确认清空', value: true, class: 'bg-red-600' }],
-                    getValues: () => ({
-                        account: dialogContent.querySelector('#clear-sui-account').checked,
-                        comms: dialogContent.querySelector('#clear-sui-comms').checked,
-                        browsing: dialogContent.querySelector('#clear-sui-browsing').checked,
-                    })
-                });
-
-                if (choices) {
-                    let cleared = false;
-                    if (choices.account) { state.sui.balance = 0; state.sui.transactions = []; state.sui.isInitialized = false; cleared = true; }
-                    if (choices.comms) { state.sui.otherChats = []; cleared = true; }
-                    if (choices.browsing) { state.sui.browsingHistory = []; cleared = true; }
-                    if (cleared) { await saveState(); renderSuiPage(); showToast('所选记录已清空'); }
-                }
-            });
-
-            // --- Data Export/Import ---
-            exportDataBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('导出数据', '这将导出一个包含所有设置、聊天、记忆、日记和全部媒体文件（包括音频）的JSON文件。文件可能会非常大。是否继续？');
-                if (!confirmed) return;
-                try {
-                    showToast('正在准备导出数据...'); const stateToExport = JSON.parse(JSON.stringify(state));
-                    for (const key in ASSET_KEYS) { if (ASSET_KEYS[key](stateToExport) === 'indexed') { const data = await db.get('assets', key); if (data) setAssetValue(stateToExport, key, data); } }
-                    if (stateToExport.config.customFonts) { for (const fontName in stateToExport.config.customFonts) { if (stateToExport.config.customFonts[fontName] === 'indexed') { const fontData = await db.get('assets', `font-${fontName}`); if (fontData) stateToExport.config.customFonts[fontName] = fontData; } } }
-                    // Handle music files
-                    if (stateToExport.music && stateToExport.music.playlist) {
-                        const playlistWithData = [];
-                        for (const song of stateToExport.music.playlist) {
-                            const songData = await db.get('assets', `music-${song.name}`);
-                            if (songData) { playlistWithData.push({ name: song.name, data: songData }); }
-                        }
-                        stateToExport.music.playlist = playlistWithData;
-                    }
-                    const dataStr = JSON.stringify(stateToExport);
-                    const blob = new Blob([dataStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.href = url; a.download = `攻略计划_数据备份_${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    showToast('数据导出成功！');
-                } catch (e) {
-                    console.error("Export failed:", e);
-                    showDialog('导出失败', '导出数据时发生错误，请检查控制台获取详细信息。');
-                }
-            });
             
+            suiNav.addEventListener('click', (e) => {
+                const targetButton = e.target.closest('.sui-nav-btn'); if (!targetButton) return;
+                suiNavBtns.forEach(btn => btn.classList.remove('active')); targetButton.classList.add('active');
+                const targetSectionId = targetButton.dataset.target;
+                suiContentSections.forEach(section => { section.classList.toggle('hidden', section.id !== targetSectionId); });
+            });
+
+            suiContentContainer.addEventListener('click', async (e) => {
+                const button = e.target.closest('.sui-action-btn');
+                if (!button) return;
+
+                const itemEl = button.closest('.sui-list-item');
+                const id = parseFloat(itemEl.dataset.id);
+                const type = itemEl.dataset.type;
+                const action = button.dataset.action;
+                const dataArray = state.sui[type];
+                const itemIndex = dataArray.findIndex(item => item.id === id);
+                if (itemIndex === -1) return;
+                const itemData = dataArray[itemIndex];
+
+                if (action === 'delete') {
+                    const confirmed = await showDialog('确认删除', '确定要删除这条记录吗？');
+                    if (confirmed) {
+                        dataArray.splice(itemIndex, 1);
+                        await saveState();
+                        renderSuiPage();
+                        showToast('记录已删除');
+                    }
+                } else if (action === 'save') {
+                    let memoryContent = '';
+                    switch (type) {
+                        case 'transactions':
+                            memoryContent = `[SUI记录] 交易: ${itemData.description}, 金额: ${itemData.amount.toFixed(2)}`;
+                            break;
+                        case 'otherChats':
+                            const chatSummary = itemData.log.map(m => `${m.sender}: ${m.text}`).join('; ');
+                            memoryContent = `[SUI记录] 与 ${itemData.with} 的通讯: ${chatSummary}`;
+                            break;
+                        case 'browsingHistory':
+                            const pageTitles = itemData.session.map(p => p.title).join(', ');
+                            memoryContent = `[SUI记录] 浏览网页: ${pageTitles}`;
+                            break;
+                    }
+                    state.memories.push({ id: Date.now(), content: memoryContent, timestamp: new Date().toLocaleString() });
+                    await saveState();
+                    showToast('已存入记忆');
+                }
+            });
+
+            suiClearAccountBtn.addEventListener('click', async () => {
+                const confirmed = await showDialog('重置账户', '确定要清空所有交易记录并重置账户吗？<br><br>这会导致下次对话时，系统根据角色人设重新生成初始资金。');
+                if (confirmed) {
+                    state.sui.transactions = [];
+                    state.sui.balance = 0;
+                    state.sui.isInitialized = false;
+                    await saveState();
+                    renderSuiPage();
+                    showToast('账户记录已清空并重置');
+                }
+            });
+
+            suiClearCommsBtn.addEventListener('click', async () => {
+                const confirmed = await showDialog('清空通讯记录', '确定要清空所有外部通讯记录吗？');
+                if (confirmed) {
+                    state.sui.otherChats = [];
+                    await saveState();
+                    renderSuiPage();
+                    showToast('外部通讯记录已清空');
+                }
+            });
+
+            suiClearBrowsingBtn.addEventListener('click', async () => {
+                const confirmed = await showDialog('清空浏览记录', '确定要清空所有网页浏览记录吗？');
+                if (confirmed) {
+                    state.sui.browsingHistory = [];
+                    await saveState();
+                    renderSuiPage();
+                    showToast('浏览记录已清空');
+                }
+            });
+
+            // --- Data Management ---
+            exportDataBtn.addEventListener('click', async () => {
+                await saveState(); const rawState = localStorage.getItem('game_state_v5');
+                if (!rawState) { showDialog('导出失败', '无法读取本地数据。'); return; }
+                const blob = new Blob([rawState], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast('数据已导出');
+            });
             importDataBtn.addEventListener('click', () => importFileInput.click());
-            importFileInput.addEventListener('change', async (e) => {
+            importFileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0]; if (!file) return;
-                const confirmed = await showDialog('导入数据', '警告：这将覆盖所有当前数据，包括设置、聊天记录和媒体文件。此操作无法撤销。是否继续？', { buttons: [{text: '取消', value: false, class: 'bg-gray-500/50'}, {text: '确认导入', value: true, class: 'bg-red-600'}] });
-                if (!confirmed) { importFileInput.value = null; return; }
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     try {
-                        const importedData = JSON.parse(event.target.result);
-                        if (!importedData.version || !importedData.config) { throw new Error('无效的数据文件格式。'); }
-                        
-                        // Clear existing music assets before import to avoid orphans
-                        if (state.music && state.music.playlist) {
-                            for (const song of state.music.playlist) {
-                                await db.delete('assets', `music-${song.name}`).catch(e => console.warn(`Could not delete old music asset: ${song.name}`, e));
-                            }
-                        }
-
-                        // Handle music data from imported file
-                        if (importedData.music && importedData.music.playlist) {
-                            const playlistForState = [];
-                            for (const song of importedData.music.playlist) {
-                                if (song.name && song.data) {
-                                    await db.set('assets', `music-${song.name}`, song.data);
-                                    playlistForState.push({ name: song.name });
-                                }
-                            }
-                            importedData.music.playlist = playlistForState;
-                        }
-
-                        Object.assign(state, importedData);
-                        await saveState(); // This will save assets to IndexedDB and metadata to localStorage
-                        showDialog('导入成功', '数据已成功导入。页面即将刷新以应用更改。').then(() => { location.reload(); });
-                    } catch (e) {
-                        console.error('Import failed:', e);
-                        showDialog('导入失败', `无法处理文件: ${e.message}`);
-                    }
+                        const importedState = JSON.parse(event.target.result);
+                        const confirmed = await showDialog('导入数据', '这将覆盖当前所有数据，确定要导入吗？应用将会刷新。');
+                        if (confirmed) { localStorage.setItem('game_state_v5', JSON.stringify(importedState)); showToast('数据导入成功，正在刷新...'); setTimeout(() => location.reload(), 1500); }
+                    } catch (error) { showDialog('导入失败', '文件格式错误或已损坏。'); console.error('Import failed:', error); } finally { importFileInput.value = ''; }
                 };
-                reader.onerror = () => showDialog('读取文件失败', '无法读取所选文件。');
                 reader.readAsText(file);
-                importFileInput.value = null;
             });
 
-            // Initial load
+            // --- Initial Load ---
             await loadState();
             initTouchEffects();
+
         })();
     </script>
 </body>
