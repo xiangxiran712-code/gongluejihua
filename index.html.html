@@ -761,7 +761,7 @@
                                 <div class="sui-section">
                                     <div class="flex justify-between items-center mb-3">
                                         <h2 class="text-xl font-bold">账户详情</h2>
-                                        <button id="sui-clear-account-btn" class="sui-section-clear-btn"><i class="fas fa-broom"></i> 清空</button>
+                                        <button id="sui-clear-account-btn" class="sui-section-clear-btn"><i class="fas fa-eraser"></i> 清空</button>
                                     </div>
                                     <p class="mb-2">当前余额: <span id="sui-balance" class="font-mono text-lg text-amber-300">0.00</span></p>
                                     <h3 class="text-md font-semibold mb-2 border-t border-white/10 pt-2">交易记录</h3>
@@ -776,7 +776,7 @@
                                 <div class="sui-section">
                                     <div class="flex justify-between items-center mb-3">
                                         <h2 class="text-xl font-bold">外部通讯</h2>
-                                        <button id="sui-clear-comms-btn" class="sui-section-clear-btn"><i class="fas fa-broom"></i> 清空</button>
+                                        <button id="sui-clear-comms-btn" class="sui-section-clear-btn"><i class="fas fa-eraser"></i> 清空</button>
                                     </div>
                                     <div id="sui-other-chats-list" class="sui-list">
                                         <p class="opacity-70 text-center">暂无记录</p>
@@ -789,7 +789,7 @@
                                 <div class="sui-section">
                                     <div class="flex justify-between items-center mb-3">
                                         <h2 class="text-xl font-bold">浏览记录</h2>
-                                        <button id="sui-clear-browsing-btn" class="sui-section-clear-btn"><i class="fas fa-broom"></i> 清空</button>
+                                        <button id="sui-clear-browsing-btn" class="sui-section-clear-btn"><i class="fas fa-eraser"></i> 清空</button>
                                     </div>
                                     <div id="sui-browsing-history-list" class="sui-list">
                                         <p class="opacity-70 text-center">暂无记录</p>
@@ -821,7 +821,7 @@
     <script>
         (async () => { // Wrap in an async IIFE to use top-level await
             const get = id => document.getElementById(id);
-            const APP_VERSION = "2.9.4"; // Version with granular SUI clearing
+            const APP_VERSION = "2.9.5"; // Version with new clear icon
 
             // --- IndexedDB Helper ---
             const db = {
