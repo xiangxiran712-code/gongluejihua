@@ -2657,15 +2657,7 @@
             showToast('正在生成新日记...'); generateDiaryBtn.disabled = true;
             try {
                 const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-                const systemPrompt = `你现在是角色“${state.role.roleName}”，请根据你的角色设定和最近发生的事件，写一篇日记。日记应该反映你的心境、思考或对最近事件的感受。请直接返回日记正文，不要包含任何额外说明或标题。
-# 角色设定:
-${state.role.rolePersona}
-# 最近事件参考:
-${recentHistory || '无'}
-# 写作要求:
-- 使用第一人称。
-- 风格符合角色设定。
-- 可以使用 Markdown 语法来强调重点 (\`**加粗**\`)、表达内心想法 (\`*斜体*\`) 或划掉不想承认的内容 (\`~~删除线~~\`)。`;
+                const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`
                 const messages = [{ role: 'system', content: systemPrompt }];
                 const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 }) });
                 if (!response.ok) { throw new Error('API request failed'); }
