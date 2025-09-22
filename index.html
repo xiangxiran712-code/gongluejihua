@@ -409,6 +409,7 @@
             gap: 0.5rem;
             opacity: 0;
             transition: opacity 0.2s ease-in-out;
+            z-index: 5; /* Ensure buttons are on top */
         }
         .sui-list-item:hover .sui-item-actions {
             opacity: 1;
@@ -449,7 +450,12 @@
             color: white;
             box-shadow: 0 0 8px rgba(255, 82, 82, 0.5);
         }
-
+        /* [修正] Transaction Item Layout */
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
 
         /* --- Touch Effect --- */
         .touch-particle {
@@ -477,6 +483,137 @@
         @keyframes fade-out-trail {
             from { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
             to { opacity: 0; transform: translate(-50%, -150%) scale(0.8); }
+        }
+
+        /* --- NEW: Chat Feature Styles --- */
+        #multifunction-menu {
+            transition: all 0.3s ease-in-out;
+            transform-origin: bottom;
+        }
+        .multifunction-btn {
+            background: var(--glass-container-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+        .multifunction-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .transfer-bubble {
+            width: 240px;
+            padding: 0;
+            background: linear-gradient(135deg, #f9a825, #f57c00);
+            color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .transfer-bubble.ai { border-radius: 12px 12px 12px 0; }
+        .transfer-bubble.user { border-radius: 12px 12px 0 12px; }
+        .transfer-content { padding: 12px; display: flex; align-items: center; gap: 12px; }
+        .transfer-content .fa-money-bill-transfer { font-size: 24px; }
+        .transfer-info h4 { font-weight: bold; font-size: 1rem; }
+        .transfer-info p { font-size: 0.8rem; opacity: 0.9; }
+        .transfer-footer { font-size: 0.75rem; padding: 4px 12px; background: rgba(0,0,0,0.1); }
+        .transfer-bubble.received, .transfer-bubble.returned {
+            background: linear-gradient(135deg, #78909c, #546e7a);
+        }
+
+        .voice-bubble {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.6rem 0.9rem;
+        }
+        .voice-bubble .fa-play-circle { font-size: 1.2rem; }
+        .voice-bubble .voice-duration { font-weight: 500; }
+        .voice-transcript {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            color: var(--ai-bubble-text);
+            opacity: 0.8;
+        }
+        .message-bubble.user .voice-transcript {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            color: var(--user-bubble-text);
+        }
+
+        .sticker-bubble {
+            background: transparent;
+            padding: 0;
+            box-shadow: none;
+            max-width: 120px;
+        }
+        .sticker-bubble img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        #sticker-drawer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            z-index: 20;
+            padding: 1rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        #sticker-drawer.open {
+            transform: translateY(0);
+        }
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .sticker-item {
+            position: relative;
+            cursor: pointer;
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        .sticker-item img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .sticker-item-delete {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            border: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .sticker-item:hover .sticker-item-delete {
+            opacity: 1;
         }
     </style>
 </head>
@@ -564,7 +701,7 @@
                     </div>
 
                     <!-- 聊天界面 -->
-                    <div id="chat-page" class="hidden w-full h-full flex flex-col transition-all duration-500">
+                    <div id="chat-page" class="hidden w-full h-full flex flex-col transition-all duration-500 relative">
                         <div class="chat-header glass-container border-none rounded-b-2xl no-blur">
                             <div class="flex items-center justify-between">
                                 <button id="chat-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
@@ -575,14 +712,27 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col scrollable-content"></div>
+                        <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col scrollable-content"></div>
+                        
+                        <!-- NEW: Multifunction Menu -->
+                        <div id="multifunction-menu" class="px-4 pb-2 hidden">
+                            <div class="glass-container p-2 rounded-xl">
+                                <div class="flex justify-around items-center">
+                                    <button id="transfer-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="转账"><i class="fas fa-money-bill-wave"></i></button>
+                                    <button id="voice-mode-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="语音模式"><i class="fas fa-microphone"></i></button>
+                                    <button id="sticker-panel-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="表情包"><i class="fas fa-grin-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="chat-footer" class="chat-footer">
                             <div class="flex items-center space-x-2">
                                 <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
+                                <button id="multifunction-toggle-btn" class="p-3 rounded-full glass-container hover:bg-white/20 transition-colors"><i class="fas fa-plus"></i></button>
                                 <div class="flex-1 relative">
                                     <input type="text" id="user-input" class="w-full p-4 pr-14 rounded-full glass-container border-none outline-none placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-shadow duration-300" placeholder="请输入消息...">
                                      <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 text-pink-300 hover:text-pink-400 transition-colors duration-300">
-                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                                         <i class="fas fa-heart"></i>
                                     </button>
                                 </div>
                             </div>
@@ -592,6 +742,21 @@
                                 <button id="confirm-batch-delete-chat-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
                                 <button id="cancel-batch-delete-chat-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
                             </div>
+                        </div>
+
+                        <!-- NEW: Sticker Drawer -->
+                        <div id="sticker-drawer" class="scrollable-content">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="font-bold">表情包</h3>
+                                <div>
+                                    <button id="add-sticker-btn" class="px-3 py-1 text-sm bg-blue-500 rounded-full mr-2">添加</button>
+                                    <button id="close-sticker-drawer-btn" class="px-3 py-1 text-sm bg-gray-600 rounded-full">关闭</button>
+                                </div>
+                            </div>
+                            <div id="sticker-grid" class="sticker-grid scrollable-content">
+                                <!-- Stickers will be populated here -->
+                            </div>
+                            <input type="file" id="sticker-upload-input" class="hidden" accept="image/*">
                         </div>
                     </div>
                     
@@ -808,6 +973,8 @@
                             <div id="dialog-input-container" class="mb-4 hidden">
                                 <textarea id="dialog-input" class="w-full p-2 border-none rounded-md bg-white/20 h-24"></textarea>
                             </div>
+                            <!-- NEW: Container for complex dialog inputs -->
+                            <div id="dialog-complex-input-container" class="mb-4 hidden"></div>
                             <div id="dialog-buttons" class="flex justify-end space-x-2"></div>
                         </div>
                     </div>
@@ -818,656 +985,962 @@
         </div>
     </div>
 
-    <script>
-        (async () => { // Wrap in an async IIFE to use top-level await
-            const get = id => document.getElementById(id);
-            const APP_VERSION = "2.9.4"; // Version with granular SUI clearing
+        <script>
+         (async () => { // Wrap in an async IIFE to use top-level await
+        const get = id => document.getElementById(id);
+        
+        const UILock = {
+            _locked: false,
+            _timeout: null,
+            lock: function(duration = 500) {
+                this._locked = true;
+                clearTimeout(this._timeout);
+                this._timeout = setTimeout(() => {
+                    this._locked = false;
+                }, duration);
+            },
+            isLocked: function() {
+                return this._locked;
+            }
+        };
 
-            // --- IndexedDB Helper ---
-            const db = {
-                _db: null,
-                init: function(dbName, storeName) {
-                    return new Promise((resolve, reject) => {
-                        const request = indexedDB.open(dbName, 1);
-                        request.onerror = () => reject("IndexedDB error: " + request.error);
-                        request.onsuccess = (event) => { this._db = event.target.result; resolve(this); };
-                        request.onupgradeneeded = (event) => {
-                            const db = event.target.result;
+        const APP_VERSION = "3.2.2"; // Version with sticker drawer fix
+
+        // --- IndexedDB Helper ---
+        const db = {
+            _db: null,
+            init: function(dbName, storeNames) {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(dbName, 2); // DB version increased for new store
+                    request.onerror = () => reject("IndexedDB error: " + request.error);
+                    request.onsuccess = (event) => { this._db = event.target.result; resolve(this); };
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        storeNames.forEach(storeName => {
                             if (!db.objectStoreNames.contains(storeName)) {
                                 db.createObjectStore(storeName);
                             }
-                        };
-                    });
-                },
-                set: function(storeName, key, value) {
-                    return new Promise((resolve, reject) => {
-                        if (!this._db) return reject("DB not initialized");
-                        try {
-                            const transaction = this._db.transaction([storeName], 'readwrite');
-                            const store = transaction.objectStore(storeName);
-                            const request = store.put(value, key);
-                            request.onsuccess = () => resolve();
-                            request.onerror = () => reject("Failed to save to DB: " + request.error);
-                        } catch (e) { reject(e); }
-                    });
-                },
-                get: function(storeName, key) {
-                    return new Promise((resolve, reject) => {
-                        if (!this._db) return reject("DB not initialized");
-                        const transaction = this._db.transaction([storeName]);
-                        const store = transaction.objectStore(storeName);
-                        const request = store.get(key);
-                        request.onsuccess = () => resolve(request.result);
-                        request.onerror = () => reject("Failed to get from DB: " + request.error);
-                    });
-                },
-                delete: function(storeName, key) {
-                    return new Promise((resolve, reject) => {
-                        if (!this._db) return reject("DB not initialized");
+                        });
+                    };
+                });
+            },
+            set: function(storeName, key, value) {
+                return new Promise((resolve, reject) => {
+                    if (!this._db) return reject("DB not initialized");
+                    try {
                         const transaction = this._db.transaction([storeName], 'readwrite');
                         const store = transaction.objectStore(storeName);
-                        const request = store.delete(key);
+                        const request = store.put(value, key);
                         request.onsuccess = () => resolve();
-                        request.onerror = () => reject("Failed to delete from DB: " + request.error);
-                    });
+                        request.onerror = () => reject("Failed to save to DB: " + request.error);
+                    } catch (e) { reject(e); }
+                });
+            },
+            get: function(storeName, key) {
+                return new Promise((resolve, reject) => {
+                    if (!this._db) return reject("DB not initialized");
+                    const transaction = this._db.transaction([storeName]);
+                    const store = transaction.objectStore(storeName);
+                    const request = store.get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject("Failed to get from DB: " + request.error);
+                });
+            },
+            delete: function(storeName, key) {
+                return new Promise((resolve, reject) => {
+                    if (!this._db) return reject("DB not initialized");
+                    const transaction = this._db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.delete(key);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject("Failed to delete from DB: " + request.error);
+                });
+            },
+            getAll: function(storeName) {
+                return new Promise((resolve, reject) => {
+                    if (!this._db) return reject("DB not initialized");
+                    const transaction = this._db.transaction([storeName]);
+                    const store = transaction.objectStore(storeName);
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject("Failed to get all from DB: " + request.error);
+                });
+            }
+        };
+        await db.init('GameDataStore', ['assets', 'stickers']);
+
+        let loadedFontFaces = new Set();
+
+        // Page elements
+        const phoneScreen = get('phone-screen');
+        const pages = { home: get('home-page'), chat: get('chat-page'), role: get('role-page'), settings: get('settings-page'), memory: get('memory-page'), diary: get('diary-page'), sui: get('sui-page') };
+
+        // Buttons
+        const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
+        const backBtns = document.querySelectorAll('#chat-back-btn, #role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn, #sui-back-btn');
+        const exportDataBtn = get('export-data-btn'), importDataBtn = get('import-data-btn'), importFileInput = get('import-file-input'), diaryBtn = get('diary-btn'), suiBtn = get('sui-btn');
+        const fullscreenBtn = get('fullscreen-btn');
+
+        // Home page elements
+        const avatarContainer = get('avatar-container'), avatarImg = get('avatar-img'), avatarFrame = get('avatar-frame'), avatarUpload = get('avatar-upload');
+        const signatureDisplay = get('signature'), timeDisplay = get('time-display'), dateDisplay = get('date-display');
+
+        // Chat elements
+        const chatHistory = get('chat-history'), userInput = get('user-input'), sendBtn = get('send-btn'), aiReplyBtn = get('ai-reply-btn');
+        const restartChatBtn = get('restart-chat-btn'), summarizeMemoryBtn = get('summarize-memory-btn'), affinityDisplay = get('affinity-display'), chatFooter = get('chat-footer');
+        const chatBatchActions = get('chat-batch-actions'), confirmBatchDeleteChatBtn = get('confirm-batch-delete-chat-btn'), cancelBatchDeleteChatBtn = get('cancel-batch-delete-chat-btn');
+        let isChatBatchDeleteMode = false;
+        const multifunctionToggleBtn = get('multifunction-toggle-btn'), multifunctionMenu = get('multifunction-menu');
+        const transferBtn = get('transfer-btn'), voiceModeBtn = get('voice-mode-btn'), stickerPanelBtn = get('sticker-panel-btn');
+        const stickerDrawer = get('sticker-drawer'), stickerGrid = get('sticker-grid'), addStickerBtn = get('add-sticker-btn');
+        const stickerUploadInput = get('sticker-upload-input'), closeStickerDrawerBtn = get('close-sticker-drawer-btn');
+
+        // Memory elements
+        const memoryListEl = get('memory-list'), addMemoryBtn = get('add-memory-btn'), batchDeleteMemoriesBtn = get('batch-delete-memories-btn');
+        const memoryBatchActions = get('memory-batch-actions'), confirmBatchDeleteMemoriesBtn = get('confirm-batch-delete-memories-btn'), cancelBatchDeleteMemoriesBtn = get('cancel-batch-delete-memories-btn');
+        let isMemoryBatchDeleteMode = false;
+        
+        // Diary elements
+        const diaryListContainer = get('diary-list-container'), generateDiaryBtn = get('generate-diary-btn'), batchDeleteDiariesBtn = get('batch-delete-diaries-btn');
+        const diaryBatchActions = get('diary-batch-actions'), confirmBatchDeleteBtn = get('confirm-batch-delete-diaries-btn'), cancelBatchDeleteBtn = get('cancel-batch-delete-btn');
+        let isDiaryBatchDeleteMode = false;
+
+        // SUI elements
+        const suiContentContainer = get('sui-content-container');
+        let suiBalanceEl = get('sui-balance'), suiTransactionsListEl = get('sui-transactions-list'), suiOtherChatsListEl = get('sui-other-chats-list'), suiBrowsingHistoryListEl = get('sui-browsing-history-list');
+        const suiNav = get('sui-nav'), suiNavBtns = document.querySelectorAll('.sui-nav-btn'), suiContentSections = document.querySelectorAll('.sui-content-section');
+        const suiClearAccountBtn = get('sui-clear-account-btn'), suiClearCommsBtn = get('sui-clear-comms-btn'), suiClearBrowsingBtn = get('sui-clear-browsing-btn');
+
+        // Dialog elements
+        const dialog = get('custom-dialog'), dialogTitle = get('dialog-title'), dialogMessage = get('dialog-message');
+        const dialogInputContainer = get('dialog-input-container'), dialogInput = get('dialog-input'), dialogButtons = get('dialog-buttons');
+        const dialogComplexInputContainer = get('dialog-complex-input-container');
+        
+        // Settings Elements
+        const themeBgColor = get('theme-bg-color'), themeTextColor = get('theme-text-color'), themeGlassBg = get('theme-glass-bg'), themeUserBubble = get('theme-user-bubble');
+        const themeAiBubble = get('theme-ai-bubble'), themeUserText = get('theme-user-text'), themeAiText = get('theme-ai-text');
+        const fontUpload = get('font-upload'), fontFamilySelect = get('font-family-select'), manageFontsBtn = get('manage-fonts-btn'), bgUploadBtn = get('bg-upload-btn'), bgUploadInput = get('bg-upload-input');
+        const avatarFrameUploadBtn = get('avatar-frame-upload-btn'), avatarFrameUploadInput = get('avatar-frame-upload-input'), restoreAppearanceBtn = get('restore-appearance-btn');
+        const apiBaseUrl = get('api-baseurl'), apiKey = get('api-key'), apiModel = get('api-model');
+
+        const state = {
+            version: APP_VERSION,
+            config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFonts: {} },
+            role: { playerName: '', playerGender: '', playerPersona: '', roleName: '', roleGender: '', rolePersona: '', promptInstructions: '' },
+            chat: { history: [], affinity: 0, sendMode: 'text' },
+            memories: [],
+            diaries: [],
+            sui: { isInitialized: false, balance: 0, transactions: [], otherChats: [], browsingHistory: [] },
+            music: { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 },
+            stickers: []
+        };
+        
+        const applyColors = (colors) => {
+            document.documentElement.style.setProperty('--bg-color', colors.bgColor); document.documentElement.style.setProperty('--text-color', colors.textColor);
+            document.documentElement.style.setProperty('--glass-container-bg', colors.glassBg); document.documentElement.style.setProperty('--user-bubble-bg', colors.userBubble);
+            document.documentElement.style.setProperty('--user-bubble-text', colors.userText); document.documentElement.style.setProperty('--ai-bubble-bg', colors.aiBubble);
+            document.documentElement.style.setProperty('--ai-bubble-text', colors.aiText); phoneScreen.style.backgroundColor = colors.bgColor;
+        };
+        
+        const applyFont = async (fontName) => {
+            if (state.config.customFonts[fontName]) {
+                if (loadedFontFaces.has(fontName)) {
+                    document.documentElement.style.setProperty('--custom-font', `'${fontName}', sans-serif`);
+                    return;
                 }
-            };
-            await db.init('GameDataStore', 'assets');
-
-            let loadedFontFaces = new Set();
-
-            // Page elements
-            const phoneScreen = get('phone-screen');
-            const pages = { home: get('home-page'), chat: get('chat-page'), role: get('role-page'), settings: get('settings-page'), memory: get('memory-page'), diary: get('diary-page'), sui: get('sui-page') };
-
-            // Buttons
-            const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
-            const backBtns = document.querySelectorAll('#chat-back-btn, #role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn, #sui-back-btn');
-            const exportDataBtn = get('export-data-btn'), importDataBtn = get('import-data-btn'), importFileInput = get('import-file-input'), diaryBtn = get('diary-btn'), suiBtn = get('sui-btn');
-            const fullscreenBtn = get('fullscreen-btn');
-
-            // Home page elements
-            const avatarContainer = get('avatar-container'), avatarImg = get('avatar-img'), avatarFrame = get('avatar-frame'), avatarUpload = get('avatar-upload');
-            const signatureDisplay = get('signature'), timeDisplay = get('time-display'), dateDisplay = get('date-display');
-
-            // Chat elements
-            const chatHistory = get('chat-history'), userInput = get('user-input'), sendBtn = get('send-btn'), aiReplyBtn = get('ai-reply-btn');
-            const restartChatBtn = get('restart-chat-btn'), summarizeMemoryBtn = get('summarize-memory-btn'), affinityDisplay = get('affinity-display'), chatFooter = get('chat-footer');
-            const chatBatchActions = get('chat-batch-actions'), confirmBatchDeleteChatBtn = get('confirm-batch-delete-chat-btn'), cancelBatchDeleteChatBtn = get('cancel-batch-delete-chat-btn');
-            let isChatBatchDeleteMode = false;
-
-            // Memory elements
-            const memoryListEl = get('memory-list'), addMemoryBtn = get('add-memory-btn'), batchDeleteMemoriesBtn = get('batch-delete-memories-btn');
-            const memoryBatchActions = get('memory-batch-actions'), confirmBatchDeleteMemoriesBtn = get('confirm-batch-delete-memories-btn'), cancelBatchDeleteMemoriesBtn = get('cancel-batch-delete-memories-btn');
-            let isMemoryBatchDeleteMode = false;
-            
-            // Diary elements
-            const diaryListContainer = get('diary-list-container'), generateDiaryBtn = get('generate-diary-btn'), batchDeleteDiariesBtn = get('batch-delete-diaries-btn');
-            const diaryBatchActions = get('diary-batch-actions'), confirmBatchDeleteBtn = get('confirm-batch-delete-diaries-btn'), cancelBatchDeleteBtn = get('cancel-batch-delete-btn');
-            let isDiaryBatchDeleteMode = false;
-
-            // SUI elements
-            const suiContentContainer = get('sui-content-container');
-            let suiBalanceEl = get('sui-balance'), suiTransactionsListEl = get('sui-transactions-list'), suiOtherChatsListEl = get('sui-other-chats-list'), suiBrowsingHistoryListEl = get('sui-browsing-history-list');
-            const suiNav = get('sui-nav'), suiNavBtns = document.querySelectorAll('.sui-nav-btn'), suiContentSections = document.querySelectorAll('.sui-content-section');
-            const suiClearAccountBtn = get('sui-clear-account-btn'), suiClearCommsBtn = get('sui-clear-comms-btn'), suiClearBrowsingBtn = get('sui-clear-browsing-btn');
-
-            // Dialog elements
-            const dialog = get('custom-dialog'), dialogTitle = get('dialog-title'), dialogMessage = get('dialog-message');
-            const dialogInputContainer = get('dialog-input-container'), dialogInput = get('dialog-input'), dialogButtons = get('dialog-buttons');
-            
-            // Settings Elements
-            const themeBgColor = get('theme-bg-color'), themeTextColor = get('theme-text-color'), themeGlassBg = get('theme-glass-bg'), themeUserBubble = get('theme-user-bubble');
-            const themeAiBubble = get('theme-ai-bubble'), themeUserText = get('theme-user-text'), themeAiText = get('theme-ai-text');
-            const fontUpload = get('font-upload'), fontFamilySelect = get('font-family-select'), manageFontsBtn = get('manage-fonts-btn'), bgUploadBtn = get('bg-upload-btn'), bgUploadInput = get('bg-upload-input');
-            const avatarFrameUploadBtn = get('avatar-frame-upload-btn'), avatarFrameUploadInput = get('avatar-frame-upload-input'), restoreAppearanceBtn = get('restore-appearance-btn');
-            const apiBaseUrl = get('api-baseurl'), apiKey = get('api-key'), apiModel = get('api-model');
-
-            const state = {
-                version: APP_VERSION,
-                config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFonts: {} },
-                role: { playerName: '', playerGender: '', playerPersona: '', roleName: '', roleGender: '', rolePersona: '', promptInstructions: '' },
-                chat: { history: [], affinity: 0 },
-                memories: [],
-                diaries: [],
-                sui: { isInitialized: false, balance: 0, transactions: [], otherChats: [], browsingHistory: [] },
-                music: { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 }
-            };
-            
-            const applyColors = (colors) => {
-                document.documentElement.style.setProperty('--bg-color', colors.bgColor); document.documentElement.style.setProperty('--text-color', colors.textColor);
-                document.documentElement.style.setProperty('--glass-container-bg', colors.glassBg); document.documentElement.style.setProperty('--user-bubble-bg', colors.userBubble);
-                document.documentElement.style.setProperty('--user-bubble-text', colors.userText); document.documentElement.style.setProperty('--ai-bubble-bg', colors.aiBubble);
-                document.documentElement.style.setProperty('--ai-bubble-text', colors.aiText); phoneScreen.style.backgroundColor = colors.bgColor;
-            };
-            
-            const applyFont = async (fontName) => {
-                if (state.config.customFonts[fontName]) {
-                    if (loadedFontFaces.has(fontName)) {
-                        document.documentElement.style.setProperty('--custom-font', `'${fontName}', sans-serif`);
-                        return;
-                    }
-                    try {
-                        const fontData = await db.get('assets', `font-${fontName}`);
-                        if (!fontData) throw new Error(`Font data for '${fontName}' not found in DB.`);
-                        const fontFace = new FontFace(fontName, `url(${fontData})`);
-                        await fontFace.load();
-                        document.fonts.add(fontFace);
-                        loadedFontFaces.add(fontName);
-                        document.documentElement.style.setProperty('--custom-font', `'${fontName}', sans-serif`);
-                    } catch (error) {
-                        console.error('Custom font failed to load:', error);
-                        document.documentElement.style.setProperty('--custom-font', "'Inter', sans-serif"); // Fallback
-                    }
-                } else {
-                    document.documentElement.style.setProperty('--custom-font', fontName);
-                }
-            };
-            
-            const renderFontOptions = () => {
-                const customFontOptions = fontFamilySelect.querySelectorAll('option.custom-font-option');
-                customFontOptions.forEach(opt => opt.remove());
-
-                for (const fontName in state.config.customFonts) {
-                    const option = document.createElement('option');
-                    option.value = fontName;
-                    option.textContent = fontName;
-                    option.className = 'custom-font-option';
-                    fontFamilySelect.appendChild(option);
-                }
-            };
-
-            const ASSET_KEYS = {
-                'bgImage': (s) => s.config.bgImage,
-                'avatarImage': (s) => s.config.avatarImage,
-                'avatarFrameImage': (s) => s.config.avatarFrameImage,
-                'albumArt': (s) => s.music.albumArt
-            };
-            const setAssetValue = (obj, key, value) => {
-                if (key === 'albumArt') obj.music.albumArt = value;
-                else obj.config[key] = value;
-            };
-
-            async function saveState() {
                 try {
-                    state.version = APP_VERSION;
-                    const stateToSave = JSON.parse(JSON.stringify(state));
+                    const fontData = await db.get('assets', `font-${fontName}`);
+                    if (!fontData) throw new Error(`Font data for '${fontName}' not found in DB.`);
+                    const fontFace = new FontFace(fontName, `url(${fontData})`);
+                    await fontFace.load();
+                    document.fonts.add(fontFace);
+                    loadedFontFaces.add(fontName);
+                    document.documentElement.style.setProperty('--custom-font', `'${fontName}', sans-serif`);
+                } catch (error) {
+                    console.error('Custom font failed to load:', error);
+                    document.documentElement.style.setProperty('--custom-font', "'Inter', sans-serif"); // Fallback
+                }
+            } else {
+                document.documentElement.style.setProperty('--custom-font', fontName);
+            }
+        };
+        
+        const renderFontOptions = () => {
+            const customFontOptions = fontFamilySelect.querySelectorAll('option.custom-font-option');
+            customFontOptions.forEach(opt => opt.remove());
 
-                    // Handle single assets
-                    for (const key in ASSET_KEYS) {
-                        const assetData = ASSET_KEYS[key](stateToSave);
-                        if (assetData && assetData.startsWith('data:')) {
-                            await db.set('assets', key, assetData);
-                            setAssetValue(stateToSave, key, 'indexed');
-                        } else if (!assetData) {
-                            await db.delete('assets', key).catch(e => console.warn(`Could not delete ${key} from DB`, e));
-                        }
+            for (const fontName in state.config.customFonts) {
+                const option = document.createElement('option');
+                option.value = fontName;
+                option.textContent = fontName;
+                option.className = 'custom-font-option';
+                fontFamilySelect.appendChild(option);
+            }
+        };
+
+        const ASSET_KEYS = {
+            'bgImage': (s) => s.config.bgImage,
+            'avatarImage': (s) => s.config.avatarImage,
+            'avatarFrameImage': (s) => s.config.avatarFrameImage,
+            'albumArt': (s) => s.music.albumArt
+        };
+        const setAssetValue = (obj, key, value) => {
+            if (key === 'albumArt') obj.music.albumArt = value;
+            else obj.config[key] = value;
+        };
+
+        async function saveState() {
+            try {
+                state.version = APP_VERSION;
+                const stateToSave = JSON.parse(JSON.stringify(state));
+
+                for (const key in ASSET_KEYS) {
+                    const assetData = ASSET_KEYS[key](stateToSave);
+                    if (assetData && assetData.startsWith('data:')) {
+                        await db.set('assets', key, assetData);
+                        setAssetValue(stateToSave, key, 'indexed');
+                    } else if (!assetData) {
+                        await db.delete('assets', key).catch(e => console.warn(`Could not delete ${key} from DB`, e));
                     }
+                }
 
-                    // Handle custom fonts collection
-                    for (const fontName in stateToSave.config.customFonts) {
-                        const fontData = stateToSave.config.customFonts[fontName];
-                        if (fontData && fontData.startsWith('data:')) {
-                            await db.set('assets', `font-${fontName}`, fontData);
-                            stateToSave.config.customFonts[fontName] = 'indexed';
+                for (const fontName in stateToSave.config.customFonts) {
+                    const fontData = stateToSave.config.customFonts[fontName];
+                    if (fontData && fontData.startsWith('data:')) {
+                        await db.set('assets', `font-${fontName}`, fontData);
+                        stateToSave.config.customFonts[fontName] = 'indexed';
+                    }
+                }
+                
+                for (const sticker of state.stickers) {
+                    await db.set('stickers', sticker.id, sticker);
+                }
+                delete stateToSave.stickers;
+
+                if (stateToSave.music && stateToSave.music.playlist) {
+                    stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
+                }
+                localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
+            } catch (e) {
+                console.error("Failed to save state.", e);
+                showDialog("保存失败", "数据无法保存，可能是浏览器存储空间已满。");
+            }
+        };
+
+        async function loadState() {
+            let savedState = null;
+            try {
+                const rawState = localStorage.getItem('game_state_v5');
+                if(rawState) savedState = JSON.parse(rawState);
+            } catch (e) { 
+                console.error("Failed to parse state from localStorage, possibly corrupt data.", e);
+                localStorage.removeItem('game_state_v5');
+            }
+
+            if (savedState) {
+                const defaultState = JSON.parse(JSON.stringify(state));
+                const mergedState = { ...defaultState, ...savedState };
+                mergedState.config = { ...defaultState.config, ...(savedState.config || {}) };
+                mergedState.config.colors = { ...defaultState.config.colors, ...(savedState.config?.colors || {}) };
+                mergedState.role = { ...defaultState.role, ...(savedState.role || {}) };
+                mergedState.sui = { ...defaultState.sui, ...(savedState.sui || {}) };
+                mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
+                mergedState.chat = { ...defaultState.chat, ...(savedState.chat || {}) };
+
+                Object.assign(state, mergedState);
+            }
+            
+            for (const key in ASSET_KEYS) {
+                if (ASSET_KEYS[key](state) === 'indexed') {
+                    const data = await db.get('assets', key);
+                    if (data) setAssetValue(state, key, data);
+                }
+            }
+            
+            state.stickers = await db.getAll('stickers');
+
+            if (state.config.bgImage) phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
+            if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
+            if (state.config.avatarFrameImage) avatarFrame.src = state.config.avatarFrameImage;
+            
+            signatureDisplay.textContent = state.config.signature;
+            applyColors(state.config.colors);
+            renderFontOptions();
+            await applyFont(state.config.fontFamily);
+            
+            await initMusicPlayer();
+            renderChatHistory({ autoScroll: true });
+            renderMemoryList();
+            renderDiaryList();
+            renderSuiPage();
+            renderStickerDrawer();
+        };
+
+        const showView = (view) => {
+            Object.values(pages).forEach(p => p.classList.add('hidden'));
+            if(pages[view]) pages[view].classList.remove('hidden');
+        };
+
+        const showDialog = (title, message, options = {}) => {
+            return new Promise((resolve) => {
+                dialogTitle.textContent = title; 
+                if (typeof message === 'string') {
+                    dialogMessage.innerHTML = message;
+                } else {
+                    dialogMessage.innerHTML = '';
+                    dialogMessage.appendChild(message);
+                }
+                dialogButtons.innerHTML = '';
+                dialogInputContainer.classList.toggle('hidden', !options.input);
+                dialogComplexInputContainer.classList.add('hidden');
+                dialogComplexInputContainer.innerHTML = '';
+
+                if (options.input) {
+                    dialogInput.value = options.defaultValue || '';
+                    dialogInput.placeholder = options.placeholder || '';
+                }
+                if (options.complexInput) {
+                    dialogComplexInputContainer.classList.remove('hidden');
+                    dialogComplexInputContainer.innerHTML = options.complexInput;
+                }
+
+                const buttons = options.buttons || [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '确定', value: true, class: 'bg-blue-500' }];
+                buttons.forEach(btnInfo => {
+                    const button = document.createElement('button');
+                    button.textContent = btnInfo.text;
+                    button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
+                    button.onclick = () => {
+                        dialog.classList.add('hidden'); dialog.style.display = 'none';
+                        let result;
+                        if (options.getValues) {
+                            result = btnInfo.value === false ? false : options.getValues();
+                        } else {
+                            result = options.input ? (btnInfo.value === false ? false : dialogInput.value) : btnInfo.value;
                         }
+                        resolve(result);
+                    };
+                    dialogButtons.appendChild(button);
+                });
+                dialog.classList.remove('hidden'); dialog.style.display = 'flex';
+                if (options.input) dialogInput.focus();
+                if (options.complexInput) dialogComplexInputContainer.querySelector('input, textarea')?.focus();
+            });
+        };
+
+        const showToast = (message) => {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 z-50 opacity-0';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.remove('opacity-0'), 10);
+            setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 2000);
+        };
+        
+        const updateDateTime = () => {
+            const now = new Date();
+            timeDisplay.textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            dateDisplay.textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+        };
+        
+        updateDateTime(); setInterval(updateDateTime, 1000);
+
+        const initTouchEffects = () => {
+            let isDragging = false;
+            let letterIndex = 0;
+            const letters = ['L', 'O', 'V', 'E'];
+            let lastParticleTime = 0;
+            const particleInterval = 30;
+
+            const createParticle = (x, y, type) => {
+                const particle = document.createElement('div');
+                if (type === 'love') {
+                    particle.className = 'touch-particle love-particle';
+                    particle.textContent = 'LOVE';
+                } else {
+                    particle.className = 'touch-particle trail-particle';
+                    particle.textContent = letters[letterIndex];
+                    letterIndex = (letterIndex + 1) % letters.length;
+                }
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                phoneScreen.appendChild(particle);
+                particle.addEventListener('animationend', () => particle.remove());
+            };
+
+            const getCoords = (e) => {
+                const rect = phoneScreen.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            };
+            
+            const isInteractive = (target) => {
+                return target.closest('button, a, input, select, textarea, .message-bubble, .progress-container, .album-art, .song-item, [role="button"], [onclick]');
+            };
+
+            const handlePointerDown = (e) => {
+                if (isInteractive(e.target)) return;
+                isDragging = true;
+                const { x, y } = getCoords(e);
+                createParticle(x, y, 'love');
+            };
+
+            const handlePointerMove = (e) => {
+                if (!isDragging) return;
+                const now = Date.now();
+                if (now - lastParticleTime < particleInterval) return;
+                lastParticleTime = now;
+                const { x, y } = getCoords(e);
+                createParticle(x, y, 'trail');
+            };
+
+            const handlePointerUp = () => { isDragging = false; };
+
+            phoneScreen.addEventListener('mousedown', handlePointerDown);
+            phoneScreen.addEventListener('mousemove', handlePointerMove);
+            window.addEventListener('mouseup', handlePointerUp);
+            phoneScreen.addEventListener('touchstart', handlePointerDown);
+            phoneScreen.addEventListener('touchmove', handlePointerMove);
+            phoneScreen.addEventListener('touchend', handlePointerUp);
+            phoneScreen.addEventListener('touchcancel', handlePointerUp);
+        };
+        
+        async function initMusicPlayer() {
+            const audio = get('main-audio'), playPauseBtn = get('play-pause'), prevBtn = get('prev'), nextBtn = get('next'), volumeSlider = get('volume');
+            const progressContainer = document.querySelector('.progress-container'), progressBar = document.querySelector('.progress-bar');
+            const currentTimeEl = get('current-time'), totalTimeEl = get('total-time'), songTitle = get('song-title'), songArtist = get('song-artist');
+            const albumArtLabel = get('album-art-label'), fileInput = get('file-input'), coverInput = get('cover-input'), playlistEl = get('playlist'), togglePlaylistBtn = get('toggle-playlist');
+            let isPlaying = false;
+            let currentBlobUrl = null;
+
+            async function playAudio() {
+                if (!audio.src) {
+                    showToast('没有可播放的歌曲');
+                    return;
+                }
+                try {
+                    await audio.play();
+                } catch (error) {
+                    console.error("音频播放失败:", error);
+                    showToast('播放被浏览器阻止，请尝试与页面交互后再试');
+                    isPlaying = false;
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    albumArtLabel.classList.remove('rotating');
+                }
+            }
+
+            async function prepareSong(index) {
+                if (!state.music.playlist || index < 0 || index >= state.music.playlist.length) return false;
+                
+                if (currentBlobUrl) {
+                    URL.revokeObjectURL(currentBlobUrl);
+                    currentBlobUrl = null;
+                }
+
+                const song = state.music.playlist[index];
+                const songDataUrl = await db.get('assets', `music-${song.name}`);
+
+                if (!songDataUrl) {
+                    showToast(`歌曲数据丢失: ${song.name}`);
+                    songTitle.textContent = song.name;
+                    songArtist.textContent = '数据丢失';
+                    audio.src = '';
+                    return false;
+                }
+
+                try {
+                    const response = await fetch(songDataUrl);
+                    const blob = await response.blob();
+                    currentBlobUrl = URL.createObjectURL(blob);
+                    audio.src = currentBlobUrl;
+                    
+                    state.music.currentSongIndex = index;
+                    songTitle.textContent = song.name;
+                    songArtist.textContent = '本地音乐';
+                    playlistEl.querySelectorAll('.song-item').forEach((item, idx) => item.classList.toggle('active', idx === index));
+                    await saveState();
+                    return true;
+
+                } catch (error) {
+                    console.error("创建Blob URL失败:", error);
+                    showToast('准备歌曲时发生错误');
+                    return false;
+                }
+            }
+
+            function renderPlaylist() {
+                playlistEl.innerHTML = ''; if (!state.music.playlist || state.music.playlist.length === 0) return;
+                state.music.playlist.forEach((song, index) => {
+                    const songItem = document.createElement('div'); songItem.className = 'song-item'; songItem.textContent = song.name;
+                    
+                    songItem.addEventListener('click', async () => {
+                        const success = await prepareSong(index);
+                        if (success) {
+                            await playAudio();
+                        }
+                    });
+
+                    let pressTimer;
+                    songItem.addEventListener('mousedown', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); });
+                    songItem.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                    songItem.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                    songItem.addEventListener('touchstart', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); }, { passive: true });
+                    songItem.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    playlistEl.appendChild(songItem);
+                });
+            }
+
+            async function managePlaylistItem(index) {
+                const song = state.music.playlist[index]; if (!song) return;
+                const confirmed = await showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？这会从数据库中删除该歌曲文件。`, { buttons: [{text: '取消', value: false, class: 'bg-gray-500/50'}, {text: '移除', value: true, class: 'bg-red-500/80'}] });
+                if (confirmed) {
+                    const wasPlayingCurrentSong = (index === state.music.currentSongIndex);
+                    const removedSongName = state.music.playlist[index].name;
+                    await db.delete('assets', `music-${removedSongName}`);
+                    
+                    if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
+                    
+                    state.music.playlist.splice(index, 1);
+                    
+                    if (wasPlayingCurrentSong) {
+                        audio.pause();
+                        audio.src = '';
+                        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+                        currentBlobUrl = null;
+                        state.music.currentSongIndex = -1;
+                        songTitle.textContent = '选择一首歌曲';
+                        songArtist.textContent = '未知艺术家';
+                        currentTimeEl.textContent = '0:00';
+                        totalTimeEl.textContent = '0:00';
+                        progressBar.style.width = '0%';
+                        albumArtLabel.classList.remove('rotating');
+                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
                     }
                     
-                    // Strip audio data from playlist before saving to localStorage
-                    if (stateToSave.music && stateToSave.music.playlist) {
-                        stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
-                    }
-                    localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
-                } catch (e) {
-                    console.error("Failed to save state.", e);
-                    showDialog("保存失败", "数据无法保存，可能是浏览器存储空间已满。");
-                }
-            };
-
-            async function loadState() {
-                let savedState = null;
-                try {
-                    const rawState = localStorage.getItem('game_state_v5');
-                    if(rawState) savedState = JSON.parse(rawState);
-                } catch (e) { 
-                    console.error("Failed to parse state from localStorage, possibly corrupt data.", e);
-                    localStorage.removeItem('game_state_v5');
-                }
-
-                if (savedState) {
-                    // Create a deep copy of the default state to use as a structural base.
-                    const defaultState = JSON.parse(JSON.stringify(state));
-
-                    // Start with a shallow merge. This is fast but can break nested objects.
-                    const mergedState = { ...defaultState, ...savedState };
-
-                    // Now, explicitly and robustly re-merge the nested objects that are known to be problematic.
-                    // This pattern handles cases where savedState.key is null, undefined, or an incomplete object from an older version.
-                    mergedState.config = { ...defaultState.config, ...(savedState.config || {}) };
-                    mergedState.config.colors = { ...defaultState.config.colors, ...(savedState.config?.colors || {}) };
-                    mergedState.role = { ...defaultState.role, ...(savedState.role || {}) };
-                    mergedState.sui = { ...defaultState.sui, ...(savedState.sui || {}) };
-                    mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
-
-                    // Overwrite the global state object with the correctly and safely merged one.
-                    Object.assign(state, mergedState);
-                }
-                
-                // Load single assets from IndexedDB
-                for (const key in ASSET_KEYS) {
-                    if (ASSET_KEYS[key](state) === 'indexed') {
-                        const data = await db.get('assets', key);
-                        if (data) setAssetValue(state, key, data);
-                    }
-                }
-                
-                if (state.config.bgImage) phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
-                if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
-                if (state.config.avatarFrameImage) avatarFrame.src = state.config.avatarFrameImage;
-                
-                signatureDisplay.textContent = state.config.signature;
-                applyColors(state.config.colors);
-                renderFontOptions();
-                await applyFont(state.config.fontFamily);
-                
-                initMusicPlayer();
-                renderChatHistory();
-                renderMemoryList();
-                renderDiaryList();
-                renderSuiPage();
-            };
-
-            const showView = (view) => {
-                Object.values(pages).forEach(p => p.classList.add('hidden'));
-                if(pages[view]) pages[view].classList.remove('hidden');
-            };
-
-            const showDialog = (title, message, options = {}) => {
-                return new Promise((resolve) => {
-                    dialogTitle.textContent = title; 
-                    if (typeof message === 'string') {
-                        dialogMessage.innerHTML = message;
-                    } else { // It's a node
-                        dialogMessage.innerHTML = '';
-                        dialogMessage.appendChild(message);
-                    }
-                    dialogButtons.innerHTML = '';
-                    dialogInputContainer.classList.toggle('hidden', !options.input);
-                    if (options.input) {
-                        dialogInput.value = options.defaultValue || '';
-                        dialogInput.placeholder = options.placeholder || '';
-                    }
-
-                    const buttons = options.buttons || [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '确定', value: true, class: 'bg-blue-500' }];
-                    buttons.forEach(btnInfo => {
-                        const button = document.createElement('button');
-                        button.textContent = btnInfo.text;
-                        // Buttons inside dialog should have their own explicit text color for readability
-                        button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
-                        button.onclick = () => {
-                            dialog.classList.add('hidden'); dialog.style.display = 'none';
-                            let result;
-                            if (options.getValues) {
-                                result = btnInfo.value === false ? false : options.getValues();
-                            } else {
-                                result = options.input ? (btnInfo.value === false ? false : dialogInput.value) : btnInfo.value;
-                            }
-                            resolve(result);
-                        };
-                        dialogButtons.appendChild(button);
-                    });
-                    dialog.classList.remove('hidden'); dialog.style.display = 'flex';
-                    if (options.input) dialogInput.focus();
-                });
-            };
-
-            const showToast = (message) => {
-                const toast = document.createElement('div');
-                toast.textContent = message;
-                toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 z-50 opacity-0';
-                document.body.appendChild(toast);
-                setTimeout(() => toast.classList.remove('opacity-0'), 10);
-                setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 2000);
-            };
-            
-            const updateDateTime = () => {
-                const now = new Date();
-                timeDisplay.textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-                dateDisplay.textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-            };
-            
-            updateDateTime(); setInterval(updateDateTime, 1000);
-
-            // --- Touch Effect Initialization ---
-            const initTouchEffects = () => {
-                let isDragging = false;
-                let letterIndex = 0;
-                const letters = ['L', 'O', 'V', 'E'];
-                let lastParticleTime = 0;
-                const particleInterval = 30; // ms
-
-                const createParticle = (x, y, type) => {
-                    const particle = document.createElement('div');
-                    if (type === 'love') {
-                        particle.className = 'touch-particle love-particle';
-                        particle.textContent = 'LOVE';
-                    } else {
-                        particle.className = 'touch-particle trail-particle';
-                        particle.textContent = letters[letterIndex];
-                        letterIndex = (letterIndex + 1) % letters.length;
-                    }
-                    particle.style.left = `${x}px`;
-                    particle.style.top = `${y}px`;
-                    phoneScreen.appendChild(particle);
-                    particle.addEventListener('animationend', () => particle.remove());
-                };
-
-                const getCoords = (e) => {
-                    const rect = phoneScreen.getBoundingClientRect();
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    return { x: clientX - rect.left, y: clientY - rect.top };
-                };
-                
-                const isInteractive = (target) => {
-                    return target.closest('button, a, input, select, textarea, .message-bubble, .progress-container, .album-art, .song-item, [role="button"], [onclick]');
-                };
-
-                const handlePointerDown = (e) => {
-                    if (isInteractive(e.target)) return;
-                    isDragging = true;
-                    // Create the initial "LOVE" particle on click
-                    const { x, y } = getCoords(e);
-                    createParticle(x, y, 'love');
-                };
-
-                const handlePointerMove = (e) => {
-                    if (!isDragging) return;
-                    const now = Date.now();
-                    if (now - lastParticleTime < particleInterval) return;
-                    lastParticleTime = now;
-                    const { x, y } = getCoords(e);
-                    createParticle(x, y, 'trail');
-                };
-
-                const handlePointerUp = () => { isDragging = false; };
-
-                phoneScreen.addEventListener('mousedown', handlePointerDown);
-                phoneScreen.addEventListener('mousemove', handlePointerMove);
-                window.addEventListener('mouseup', handlePointerUp);
-                phoneScreen.addEventListener('touchstart', handlePointerDown);
-                phoneScreen.addEventListener('touchmove', handlePointerMove);
-                phoneScreen.addEventListener('touchend', handlePointerUp);
-                phoneScreen.addEventListener('touchcancel', handlePointerUp);
-            };
-            
-            // --- Music Player ---
-            function initMusicPlayer() {
-                const audio = get('main-audio'), playPauseBtn = get('play-pause'), prevBtn = get('prev'), nextBtn = get('next'), volumeSlider = get('volume');
-                const progressContainer = document.querySelector('.progress-container'), progressBar = document.querySelector('.progress-bar');
-                const currentTimeEl = get('current-time'), totalTimeEl = get('total-time'), songTitle = get('song-title'), songArtist = get('song-artist');
-                const albumArtLabel = get('album-art-label'), fileInput = get('file-input'), coverInput = get('cover-input'), playlistEl = get('playlist'), togglePlaylistBtn = get('toggle-playlist');
-                let isPlaying = false;
-                
-                function renderPlaylist() {
-                    playlistEl.innerHTML = ''; if (!state.music.playlist || state.music.playlist.length === 0) return;
-                    state.music.playlist.forEach((song, index) => {
-                        const songItem = document.createElement('div'); songItem.className = 'song-item'; songItem.textContent = song.name;
-                        songItem.addEventListener('click', () => { loadSong(index, true); });
-                        let pressTimer;
-                        songItem.addEventListener('mousedown', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); });
-                        songItem.addEventListener('mouseup', () => clearTimeout(pressTimer)); songItem.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-                        songItem.addEventListener('touchstart', () => { pressTimer = setTimeout(() => managePlaylistItem(index), 750); }, { passive: true });
-                        songItem.addEventListener('touchend', () => clearTimeout(pressTimer));
-                        playlistEl.appendChild(songItem);
-                    });
-                }
-
-                async function managePlaylistItem(index) {
-                    const song = state.music.playlist[index]; if (!song) return;
-                    const confirmed = await showDialog('管理歌曲', `确定要从列表中移除 "${song.name}" 吗？这会从数据库中删除该歌曲文件。`, { buttons: [{text: '取消', value: false, class: 'bg-gray-500/50'}, {text: '移除', value: true, class: 'bg-red-500/80'}] });
-                    if (confirmed) {
-                        const wasPlaying = (index === state.music.currentSongIndex); const removedSongName = state.music.playlist[index].name;
-                        await db.delete('assets', `music-${removedSongName}`);
-                        if (index < state.music.currentSongIndex) state.music.currentSongIndex--;
-                        state.music.playlist.splice(index, 1);
-                        if (wasPlaying) { audio.pause(); audio.src = ''; state.music.currentSongIndex = -1; songTitle.textContent = '选择一首歌曲'; songArtist.textContent = '未知艺术家'; currentTimeEl.textContent = '0:00'; totalTimeEl.textContent = '0:00'; albumArtLabel.classList.remove('rotating'); playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; }
-                        await saveState(); renderPlaylist();
-                        if(state.music.currentSongIndex !== -1) { const activeSongEl = playlistEl.children[state.music.currentSongIndex]; if (activeSongEl) activeSongEl.classList.add('active'); }
-                        showToast('歌曲已移除');
-                    }
-                }
-                
-                async function loadSong(index, play = false) {
-                    if (!state.music.playlist || index < 0 || index >= state.music.playlist.length) return;
-                    state.music.currentSongIndex = index; const song = state.music.playlist[index]; const songData = await db.get('assets', `music-${song.name}`);
-                    if (!songData) { showToast(`歌曲数据丢失: ${song.name}`); songTitle.textContent = song.name; songArtist.textContent = '数据丢失'; return; }
-                    songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; audio.src = songData;
-                    playlistEl.querySelectorAll('.song-item').forEach((item, idx) => item.classList.toggle('active', idx === index));
-                    if (play) audio.play();
-                    saveState();
-                }
-
-                function togglePlay() {
-                    if (state.music.playlist.length === 0) { showToast('请先导入音乐'); fileInput.click(); return; }
-                    if (audio.paused) { if (!audio.src && state.music.currentSongIndex !== -1) loadSong(state.music.currentSongIndex, true); else if (!audio.src) loadSong(0, true); else audio.play(); } else { audio.pause(); }
-                }
-
-                audio.onplay = () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; albumArtLabel.classList.add('rotating'); };
-                audio.onpause = () => { isPlaying = false; playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; albumArtLabel.classList.remove('rotating'); };
-                audio.onended = () => nextSong();
-                function updateProgress() { const { currentTime, duration } = audio; if (duration) { progressBar.style.width = `${(currentTime / duration) * 100}%`; currentTimeEl.textContent = formatTime(currentTime); totalTimeEl.textContent = formatTime(duration); } }
-                function setProgress(e) { if (state.music.playlist.length === 0 || !audio.duration) return; audio.currentTime = (e.offsetX / this.clientWidth) * audio.duration; }
-                function formatTime(seconds) { if (isNaN(seconds)) return '0:00'; const minutes = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60); return `${minutes}:${secs < 10 ? '0' : ''}${secs}`; }
-                const prevSong = () => { if (state.music.playlist.length === 0) return; loadSong((state.music.currentSongIndex - 1 + state.music.playlist.length) % state.music.playlist.length, true); };
-                const nextSong = () => { if (state.music.playlist.length === 0) return; loadSong((state.music.currentSongIndex + 1) % state.music.playlist.length, true); };
-                const setVolume = async () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; await saveState(); };
-
-                async function handleFileSelect(e) {
-                    const files = Array.from(e.target.files); if (files.length === 0) return; showToast(`正在处理 ${files.length} 首歌曲...`);
-                    let firstNewSongIndex = -1;
-                    for (const file of files) {
-                        const songName = file.name.replace(/\.[^/.]+$/, ""); const reader = new FileReader();
-                        const promise = new Promise((resolve, reject) => {
-                            reader.onload = async (event) => {
-                                try { const dataUrl = event.target.result; await db.set('assets', `music-${songName}`, dataUrl); const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName); if (existingSongIndex === -1) { state.music.playlist.push({ name: songName }); if (firstNewSongIndex === -1) { firstNewSongIndex = state.music.playlist.length - 1; } } resolve(); } catch (err) { reject(err); }
-                            };
-                            reader.onerror = reject; reader.readAsDataURL(file);
-                        });
-                        await promise;
-                    }
-                    renderPlaylist(); showToast('歌曲处理完成！');
-                    if (!isPlaying && firstNewSongIndex !== -1) { loadSong(firstNewSongIndex, true); }
                     await saveState();
+                    renderPlaylist();
+                    if(state.music.currentSongIndex !== -1) { const activeSongEl = playlistEl.children[state.music.currentSongIndex]; if (activeSongEl) activeSongEl.classList.add('active'); }
+                    showToast('歌曲已移除');
                 }
-                async function handleCoverSelect(e) {
-                    const file = e.target.files[0]; if (!file || !file.type.match('image.*')) return; const reader = new FileReader();
-                    reader.onload = async event => { const dataUrl = event.target.result; state.music.albumArt = dataUrl; albumArtLabel.innerHTML = `<img src="${dataUrl}" alt="album art">`; await saveState(); };
-                    reader.readAsDataURL(file);
-                }
-
-                renderPlaylist(); 
-                if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
-                if (state.music.currentSongIndex > -1) { const song = state.music.playlist[state.music.currentSongIndex]; if(song) { songTitle.textContent = song.name; songArtist.textContent = '本地音乐'; } }
-                volumeSlider.value = state.music.volume; audio.volume = state.music.volume;
-                playPauseBtn.addEventListener('click', togglePlay); prevBtn.addEventListener('click', prevSong); nextBtn.addEventListener('click', nextSong);
-                audio.addEventListener('timeupdate', updateProgress); progressContainer.addEventListener('click', setProgress); volumeSlider.addEventListener('input', setVolume);
-                fileInput.addEventListener('change', handleFileSelect); coverInput.addEventListener('change', handleCoverSelect);
-                togglePlaylistBtn.addEventListener('click', () => { playlistEl.style.display = (playlistEl.style.display === 'block') ? 'none' : 'block'; });
             }
 
-            // --- Navigation & Page Setup ---
-            strategyBtn.addEventListener('click', () => { showView('chat'); setTimeout(() => { chatHistory.scrollTop = chatHistory.scrollHeight; }, 0); });
-            memoryBtn.addEventListener('click', () => { renderMemoryList(); showView('memory'); });
-            diaryBtn.addEventListener('click', () => { renderDiaryList(); showView('diary'); });
-            suiBtn.addEventListener('click', () => {
-                try {
-                    renderSuiPage();
-                    // Reset to the first tab view
-                    suiNavBtns.forEach((btn, index) => btn.classList.toggle('active', index === 0));
-                    suiContentSections.forEach((section, index) => section.classList.toggle('hidden', index !== 0));
-                    showView('sui');
-                } catch (e) {
-                    console.error("Error opening SUI page:", e);
-                    showDialog("页面错误", "无法打开核心监控页面，可能存在损坏的数据。错误详情已记录在控制台。");
-                }
-            });
-            roleBtn.addEventListener('click', () => { get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender; get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName; get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona; get('prompt-instructions').value = state.role.promptInstructions; showView('role'); });
-            settingsBtn.addEventListener('click', () => { get('signature-input').value = state.config.signature; apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model; themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor; themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble); themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble); themeAiText.value = state.config.colors.aiText; fontFamilySelect.value = state.config.fontFamily; showView('settings'); });
-            backBtns.forEach(btn => btn.addEventListener('click', () => showView('home')));
-            avatarContainer.addEventListener('click', () => avatarUpload.click());
-
-            const handleAssetUpload = async (file, assetKey, elementToUpdate, isImageSrc) => {
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    const dataUrl = event.target.result;
-                    setAssetValue(state, assetKey, dataUrl);
-                    if (isImageSrc) elementToUpdate.src = dataUrl;
-                    else elementToUpdate.style.backgroundImage = `url(${dataUrl})`;
-                    await saveState();
-                    showToast('资源已更新');
-                };
-                reader.readAsDataURL(file);
-            };
-
-            avatarUpload.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'avatarImage', avatarImg, true));
-            bgUploadInput.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'bgImage', phoneScreen, false));
-            avatarFrameUploadInput.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'avatarFrameImage', avatarFrame, true));
-            bgUploadBtn.addEventListener('click', () => bgUploadInput.click());
-            avatarFrameUploadBtn.addEventListener('click', () => avatarFrameUploadInput.click());
-
-            const hexToRgba = (hex, alpha) => { const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r}, ${g}, ${b}, ${alpha})`; };
-            const rgbaToHex = (rgba) => { if (!rgba || !rgba.startsWith('rgba')) return '#000000'; const parts = rgba.substring(rgba.indexOf('(') + 1, rgba.lastIndexOf(')')).split(','); const r = parseInt(parts[0].trim()), g = parseInt(parts[1].trim()), b = parseInt(parts[2].trim()); return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1); };
-            
-            fontUpload.addEventListener('change', async e => {
-                if (!e.target.files || e.target.files.length === 0) return;
-                const file = e.target.files[0];
-                const defaultName = file.name.replace(/\.[^/.]+$/, "");
-                const fontName = await showDialog('命名新字体', '请为你的新字体命名:', { input: true, defaultValue: defaultName, placeholder: '例如: 可爱的像素字体' });
-                if (!fontName || state.config.customFonts[fontName]) { showToast(fontName ? '该字体名称已存在' : '已取消上传'); return; }
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    const dataUrl = event.target.result;
-                    state.config.customFonts[fontName] = dataUrl; await saveState(); renderFontOptions();
-                    fontFamilySelect.value = fontName; await applyFont(fontName); state.config.fontFamily = fontName;
-                    await saveState(); showToast(`字体 '${fontName}' 已添加并应用`);
-                };
-                reader.readAsDataURL(file);
-            });
-            
-            fontFamilySelect.addEventListener('change', async e => {
-                const selectedFont = e.target.value; state.config.fontFamily = selectedFont;
-                await applyFont(selectedFont); await saveState();
-            });
-
-            const showFontManager = () => {
-                const fontListContainer = document.createElement('div'); fontListContainer.className = 'space-y-2 max-h-60 overflow-y-auto';
-                const customFonts = Object.keys(state.config.customFonts);
-                if (customFonts.length === 0) { fontListContainer.innerHTML = `<p class="opacity-70 text-center">没有已导入的字体。</p>`; } 
-                else {
-                    customFonts.forEach(fontName => {
-                        const item = document.createElement('div'); item.className = 'flex items-center justify-between p-2 bg-white/10 rounded';
-                        const nameSpan = document.createElement('span'); nameSpan.textContent = fontName; item.appendChild(nameSpan);
-                        const deleteBtn = document.createElement('button'); deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`; deleteBtn.className = 'p-2 text-red-400 hover:text-red-500';
-                        deleteBtn.onclick = async () => {
-                            const confirmed = await showDialog('确认删除', `确定要永久删除字体 "${fontName}" 吗？此操作无法撤销。`);
-                            if (confirmed) {
-                                if (state.config.fontFamily === fontName) { state.config.fontFamily = "'Inter', sans-serif"; await applyFont(state.config.fontFamily); fontFamilySelect.value = state.config.fontFamily; showToast(`当前字体 "${fontName}" 已删除，已切换回默认字体。`); } 
-                                else { showToast(`字体 "${fontName}" 已删除。`); }
-                                delete state.config.customFonts[fontName]; await db.delete('assets', `font-${fontName}`);
-                                await saveState(); renderFontOptions(); showFontManager();
-                            }
-                        };
-                        item.appendChild(deleteBtn); fontListContainer.appendChild(item);
-                    });
-                }
-                showDialog('管理字体', fontListContainer, { buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }] });
-            };
-            manageFontsBtn.addEventListener('click', showFontManager);
-
-            saveSettingsBtn.addEventListener('click', async () => {
-                state.config.signature = get('signature-input').value; state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
-                state.config.colors.bgColor = themeBgColor.value; state.config.colors.textColor = themeTextColor.value; state.config.colors.glassBg = hexToRgba(themeGlassBg.value, 0.15); state.config.colors.userBubble = hexToRgba(themeUserBubble.value, 0.7);
-                state.config.colors.userText = themeUserText.value; state.config.colors.aiBubble = hexToRgba(themeAiBubble.value, 0.8); state.config.colors.aiText = themeAiText.value;
-                applyColors(state.config.colors); signatureDisplay.textContent = state.config.signature;
-                await saveState(); showToast('设置已保存');
-            });
-
-            restoreAppearanceBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('还原外观', '确定要移除背景图和头像框吗？');
-                if (confirmed) { state.config.bgImage = null; state.config.avatarFrameImage = null; phoneScreen.style.backgroundImage = ''; avatarFrame.src = ''; await saveState(); showToast('已还原默认外观'); }
-            });
-
-            saveRoleBtn.addEventListener('click', async () => {
-                state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value; state.role.playerPersona = get('player-persona').value; state.role.roleName = get('role-name').value; state.role.roleGender = get('role-gender').value; state.role.rolePersona = get('role-persona').value; state.role.promptInstructions = get('prompt-instructions').value;
-                await saveState(); showToast('角色设置已保存');
-            });
-
-            // --- Fullscreen Functionality ---
-            function toggleFullscreen() {
-                document.body.classList.toggle('fullscreen-mode');
-                const isFullscreen = document.body.classList.contains('fullscreen-mode');
-                const icon = fullscreenBtn.querySelector('i');
-                const text = fullscreenBtn.querySelector('span');
-
-                if (isFullscreen) {
-                    icon.className = 'fas fa-compress';
-                    text.textContent = '退出全屏';
-                    showToast('按 Esc 键可退出全屏');
+            const togglePlay = async () => {
+                if (audio.paused) {
+                    if (!audio.src) {
+                        if (state.music.playlist.length === 0) { showToast('请先导入音乐'); fileInput.click(); return; }
+                        const indexToPlay = state.music.currentSongIndex !== -1 ? state.music.currentSongIndex : 0;
+                        const success = await prepareSong(indexToPlay);
+                        if (success) await playAudio();
+                    } else {
+                        await playAudio();
+                    }
                 } else {
-                    icon.className = 'fas fa-expand';
-                    text.textContent = '全屏';
+                    audio.pause();
                 }
-            }
-            fullscreenBtn.addEventListener('click', toggleFullscreen);
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && document.body.classList.contains('fullscreen-mode')) {
-                    toggleFullscreen();
-                }
-            });
-
-            // --- Chat Functionality ---
-            const renderChatHistory = () => {
-                chatHistory.innerHTML = ''; if (!state.chat.history) state.chat.history = [];
-                state.chat.history.forEach((msg, index) => {
-                    const bubble = document.createElement('div'); bubble.className = `message-bubble ${msg.sender}`; bubble.textContent = msg.text; bubble.dataset.index = index;
-                    if(isChatBatchDeleteMode) {
-                        bubble.classList.add('pl-12');
-                        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
-                        bubble.prepend(checkbox);
-                    } else {
-                        let pressTimer;
-                        bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
-                        bubble.addEventListener('mouseup', () => clearTimeout(pressTimer)); bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-                        bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
-                        bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
-                    }
-                    chatHistory.appendChild(bubble);
-                });
-                chatFooter.style.display = isChatBatchDeleteMode ? 'none' : 'flex'; chatBatchActions.style.display = isChatBatchDeleteMode ? 'flex' : 'none';
-                if (!isChatBatchDeleteMode) { chatHistory.scrollTop = chatHistory.scrollHeight; }
-                affinityDisplay.textContent = `好感度：${state.chat.affinity}/100`;
             };
 
-            const manageChatMessage = (index) => {
-                const msg = state.chat.history[index]; if (!msg) return;
-                showDialog('管理消息', `"${msg.text}"`, { buttons: [ {text: '取消', value: 'cancel', class: 'bg-gray-500/50'}, {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'}, {text: '删除', value: 'delete', class: 'bg-red-500/80'}, {text: '编辑', value: 'edit', class: 'bg-blue-500'}]
-                }).then(async action => {
-                    if (action === 'edit') { const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text }); if (newText) { state.chat.history[index].text = newText; await saveState(); renderChatHistory(); showToast('消息已更新'); } } 
-                    else if (action === 'delete') { const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？'); if (confirmed) { state.chat.history.splice(index, 1); await saveState(); renderChatHistory(); showToast('消息已删除'); } } 
-                    else if (action === 'batch-delete') { isChatBatchDeleteMode = true; renderChatHistory(); }
-                });
+            const prevSong = async () => {
+                if (state.music.playlist.length === 0) return;
+                const newIndex = (state.music.currentSongIndex - 1 + state.music.playlist.length) % state.music.playlist.length;
+                if (await prepareSong(newIndex)) {
+                    await playAudio();
+                }
             };
 
-            const sendMessage = async (sender, text) => { if (!text || !text.trim()) return; state.chat.history.push({ sender, text }); if (sender === 'user') userInput.value = ''; await saveState(); renderChatHistory(); };
-            async function sendAiMessages(texts) { for (const text of texts) { const trimmedText = text.trim(); if (trimmedText) { await sendMessage('ai', trimmedText); await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400)); } } renderChatHistory(); }
-            sendBtn.addEventListener('click', () => sendMessage('user', userInput.value));
-            userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage('user', userInput.value); }});
-            userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
+            const nextSong = async () => {
+                if (state.music.playlist.length === 0) return;
+                const newIndex = (state.music.currentSongIndex + 1) % state.music.playlist.length;
+                if (await prepareSong(newIndex)) {
+                    await playAudio();
+                }
+            };
+
+            audio.onplay = () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; albumArtLabel.classList.add('rotating'); };
+            audio.onpause = () => { isPlaying = false; playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; albumArtLabel.classList.remove('rotating'); };
+            audio.onended = nextSong;
+            audio.ontimeupdate = () => { const { currentTime, duration } = audio; if (duration) { progressBar.style.width = `${(currentTime / duration) * 100}%`; currentTimeEl.textContent = formatTime(currentTime); } };
+            audio.ondurationchange = () => { totalTimeEl.textContent = formatTime(audio.duration); };
             
-            const createApiPrompt = () => {
-                let systemPrompt = `# 核心情境
+            function setProgress(e) { if (state.music.playlist.length === 0 || !audio.duration) return; audio.currentTime = (e.offsetX / this.clientWidth) * audio.duration; }
+            function formatTime(seconds) { if (isNaN(seconds)) return '0:00'; const minutes = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60); return `${minutes}:${secs < 10 ? '0' : ''}${secs}`; }
+            const setVolume = async () => { audio.volume = volumeSlider.value; state.music.volume = audio.volume; await saveState(); };
+
+            async function handleFileSelect(e) {
+                const files = Array.from(e.target.files); if (files.length === 0) return; showToast(`正在处理 ${files.length} 首歌曲...`);
+                let firstNewSongIndex = -1;
+                for (const file of files) {
+                    const songName = file.name.replace(/\.[^/.]+$/, ""); const reader = new FileReader();
+                    const promise = new Promise((resolve, reject) => {
+                        reader.onload = async (event) => {
+                            try { const dataUrl = event.target.result; await db.set('assets', `music-${songName}`, dataUrl); const existingSongIndex = state.music.playlist.findIndex(s => s.name === songName); if (existingSongIndex === -1) { state.music.playlist.push({ name: songName }); if (firstNewSongIndex === -1) { firstNewSongIndex = state.music.playlist.length - 1; } } resolve(); } catch (err) { reject(err); }
+                        };
+                        reader.onerror = reject; reader.readAsDataURL(file);
+                    });
+                    await promise;
+                }
+                renderPlaylist(); showToast('歌曲处理完成！');
+                if (!isPlaying && firstNewSongIndex !== -1) {
+                    if (await prepareSong(firstNewSongIndex)) {
+                        await playAudio();
+                    }
+                }
+                await saveState();
+            }
+
+            async function handleCoverSelect(e) {
+                const file = e.target.files[0]; if (!file || !file.type.match('image.*')) return; const reader = new FileReader();
+                reader.onload = async event => { const dataUrl = event.target.result; state.music.albumArt = dataUrl; albumArtLabel.innerHTML = `<img src="${dataUrl}" alt="album art">`; await saveState(); };
+                reader.readAsDataURL(file);
+            }
+
+            renderPlaylist(); 
+            if (state.music.albumArt) albumArtLabel.innerHTML = `<img src="${state.music.albumArt}" alt="album art">`;
+            volumeSlider.value = state.music.volume; audio.volume = state.music.volume;
+            
+            if (state.music.currentSongIndex > -1 && state.music.playlist.length > state.music.currentSongIndex) {
+                await prepareSong(state.music.currentSongIndex);
+            }
+
+            playPauseBtn.addEventListener('click', togglePlay); prevBtn.addEventListener('click', prevSong); nextBtn.addEventListener('click', nextSong);
+            progressContainer.addEventListener('click', setProgress); volumeSlider.addEventListener('input', setVolume);
+            fileInput.addEventListener('change', handleFileSelect); coverInput.addEventListener('change', handleCoverSelect);
+            togglePlaylistBtn.addEventListener('click', () => { playlistEl.style.display = (playlistEl.style.display === 'block') ? 'none' : 'block'; });
+        }
+
+        // --- Navigation & Page Setup ---
+        strategyBtn.addEventListener('click', () => { showView('chat'); setTimeout(() => { chatHistory.scrollTop = chatHistory.scrollHeight; }, 0); });
+        memoryBtn.addEventListener('click', () => { renderMemoryList(); showView('memory'); });
+        diaryBtn.addEventListener('click', () => { renderDiaryList(); showView('diary'); });
+        suiBtn.addEventListener('click', () => {
+            try {
+                renderSuiPage();
+                suiNavBtns.forEach((btn, index) => btn.classList.toggle('active', index === 0));
+                suiContentSections.forEach((section, index) => section.classList.toggle('hidden', index !== 0));
+                showView('sui');
+            } catch (e) {
+                console.error("Error opening SUI page:", e);
+                showDialog("页面错误", "无法打开核心监控页面，可能存在损坏的数据。错误详情已记录在控制台。");
+            }
+        });
+        roleBtn.addEventListener('click', () => { get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender; get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName; get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona; get('prompt-instructions').value = state.role.promptInstructions; showView('role'); });
+        settingsBtn.addEventListener('click', () => { get('signature-input').value = state.config.signature; apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model; themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor; themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble); themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble); themeAiText.value = state.config.colors.aiText; fontFamilySelect.value = state.config.fontFamily; showView('settings'); });
+        backBtns.forEach(btn => btn.addEventListener('click', () => showView('home')));
+        avatarContainer.addEventListener('click', () => avatarUpload.click());
+
+        const handleAssetUpload = async (file, assetKey, elementToUpdate, isImageSrc) => {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const dataUrl = event.target.result;
+                setAssetValue(state, assetKey, dataUrl);
+                if (isImageSrc) elementToUpdate.src = dataUrl;
+                else elementToUpdate.style.backgroundImage = `url(${dataUrl})`;
+                await saveState();
+                showToast('资源已更新');
+            };
+            reader.readAsDataURL(file);
+        };
+
+        avatarUpload.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'avatarImage', avatarImg, true));
+        bgUploadInput.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'bgImage', phoneScreen, false));
+        avatarFrameUploadInput.addEventListener('change', e => handleAssetUpload(e.target.files[0], 'avatarFrameImage', avatarFrame, true));
+        bgUploadBtn.addEventListener('click', () => bgUploadInput.click());
+        avatarFrameUploadBtn.addEventListener('click', () => avatarFrameUploadInput.click());
+
+        const hexToRgba = (hex, alpha) => { const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r}, ${g}, ${b}, ${alpha})`; };
+        const rgbaToHex = (rgba) => { if (!rgba || !rgba.startsWith('rgba')) return '#000000'; const parts = rgba.substring(rgba.indexOf('(') + 1, rgba.lastIndexOf(')')).split(','); const r = parseInt(parts[0].trim()), g = parseInt(parts[1].trim()), b = parseInt(parts[2].trim()); return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1); };
+        
+        fontUpload.addEventListener('change', async e => {
+            if (!e.target.files || e.target.files.length === 0) return;
+            const file = e.target.files[0];
+            const defaultName = file.name.replace(/\.[^/.]+$/, "");
+            const fontName = await showDialog('命名新字体', '请为你的新字体命名:', { input: true, defaultValue: defaultName, placeholder: '例如: 可爱的像素字体' });
+            if (!fontName || state.config.customFonts[fontName]) { showToast(fontName ? '该字体名称已存在' : '已取消上传'); return; }
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const dataUrl = event.target.result;
+                state.config.customFonts[fontName] = dataUrl; await saveState(); renderFontOptions();
+                fontFamilySelect.value = fontName; await applyFont(fontName); state.config.fontFamily = fontName;
+                await saveState(); showToast(`字体 '${fontName}' 已添加并应用`);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        fontFamilySelect.addEventListener('change', async e => {
+            const selectedFont = e.target.value; state.config.fontFamily = selectedFont;
+            await applyFont(selectedFont); await saveState();
+        });
+
+        const showFontManager = () => {
+            const fontListContainer = document.createElement('div'); fontListContainer.className = 'space-y-2 max-h-60 overflow-y-auto';
+            const customFonts = Object.keys(state.config.customFonts);
+            if (customFonts.length === 0) { fontListContainer.innerHTML = `<p class="opacity-70 text-center">没有已导入的字体。</p>`; } 
+            else {
+                customFonts.forEach(fontName => {
+                    const item = document.createElement('div'); item.className = 'flex items-center justify-between p-2 bg-white/10 rounded';
+                    const nameSpan = document.createElement('span'); nameSpan.textContent = fontName; item.appendChild(nameSpan);
+                    const deleteBtn = document.createElement('button'); deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`; deleteBtn.className = 'p-2 text-red-400 hover:text-red-500';
+                    deleteBtn.onclick = async () => {
+                        const confirmed = await showDialog('确认删除', `确定要永久删除字体 "${fontName}" 吗？此操作无法撤销。`);
+                        if (confirmed) {
+                            if (state.config.fontFamily === fontName) { state.config.fontFamily = "'Inter', sans-serif"; await applyFont(state.config.fontFamily); fontFamilySelect.value = state.config.fontFamily; showToast(`当前字体 "${fontName}" 已删除，已切换回默认字体。`); } 
+                            else { showToast(`字体 "${fontName}" 已删除。`); }
+                            delete state.config.customFonts[fontName]; await db.delete('assets', `font-${fontName}`);
+                            await saveState(); renderFontOptions(); showFontManager();
+                        }
+                    };
+                    item.appendChild(deleteBtn); fontListContainer.appendChild(item);
+                });
+            }
+            showDialog('管理字体', fontListContainer, { buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }] });
+        };
+        manageFontsBtn.addEventListener('click', showFontManager);
+
+        saveSettingsBtn.addEventListener('click', async () => {
+            state.config.signature = get('signature-input').value; state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
+            state.config.colors.bgColor = themeBgColor.value; state.config.colors.textColor = themeTextColor.value; state.config.colors.glassBg = hexToRgba(themeGlassBg.value, 0.15); state.config.colors.userBubble = hexToRgba(themeUserBubble.value, 0.7);
+            state.config.colors.userText = themeUserText.value; state.config.colors.aiBubble = hexToRgba(themeAiBubble.value, 0.8); state.config.colors.aiText = themeAiText.value;
+            applyColors(state.config.colors); signatureDisplay.textContent = state.config.signature;
+            await saveState(); showToast('设置已保存');
+        });
+
+        restoreAppearanceBtn.addEventListener('click', async () => {
+            const confirmed = await showDialog('还原外观', '确定要移除背景图和头像框吗？');
+            if (confirmed) { state.config.bgImage = null; state.config.avatarFrameImage = null; phoneScreen.style.backgroundImage = ''; avatarFrame.src = ''; await saveState(); showToast('已还原默认外观'); }
+        });
+
+        saveRoleBtn.addEventListener('click', async () => {
+            state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value; state.role.playerPersona = get('player-persona').value; state.role.roleName = get('role-name').value; state.role.roleGender = get('role-gender').value; state.role.rolePersona = get('role-persona').value; state.role.promptInstructions = get('prompt-instructions').value;
+            await saveState(); showToast('角色设置已保存');
+        });
+
+        function toggleFullscreen() {
+            document.body.classList.toggle('fullscreen-mode');
+            const isFullscreen = document.body.classList.contains('fullscreen-mode');
+            const icon = fullscreenBtn.querySelector('i');
+            const text = fullscreenBtn.querySelector('span');
+
+            if (isFullscreen) {
+                icon.className = 'fas fa-compress';
+                text.textContent = '退出全屏';
+                showToast('按 Esc 键可退出全屏');
+            } else {
+                icon.className = 'fas fa-expand';
+                text.textContent = '全屏';
+            }
+        }
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.body.classList.contains('fullscreen-mode')) {
+                toggleFullscreen();
+            }
+        });
+
+        const renderChatHistory = (options = {}) => {
+            const { autoScroll = true, checkIndex = null } = options;
+
+            multifunctionMenu.classList.add('hidden');
+            stickerDrawer.classList.remove('open');
+
+            chatHistory.innerHTML = ''; if (!state.chat.history) state.chat.history = [];
+            state.chat.history.forEach((msg, index) => {
+                const bubbleWrapper = document.createElement('div');
+                bubbleWrapper.className = `flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`;
+                
+                let bubble;
+                switch (msg.type) {
+                    case 'transfer': bubble = createTransferBubble(msg); break;
+                    case 'voice': bubble = createVoiceBubble(msg); break;
+                    case 'sticker': bubble = createStickerBubble(msg); break;
+                    default: bubble = createTextBubble(msg);
+                }
+                
+                bubble.dataset.index = index;
+                bubble.dataset.id = msg.id;
+
+                if(isChatBatchDeleteMode) {
+                    const container = document.createElement('div');
+                    container.className = 'relative';
+                    bubble.classList.add('pl-12');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                    
+                    if (index === checkIndex) {
+                        checkbox.checked = true;
+                    }
+
+                    container.appendChild(bubble);
+                    container.appendChild(checkbox);
+                    bubbleWrapper.appendChild(container);
+                } else {
+                    let pressTimer;
+                    bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
+                    bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                    bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                    bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
+                    bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    
+                    bubbleWrapper.appendChild(bubble);
+                }
+                chatHistory.appendChild(bubbleWrapper);
+            });
+            
+            if (isChatBatchDeleteMode) {
+                chatFooter.style.display = 'none';
+                chatBatchActions.style.display = 'flex';
+                stickerDrawer.style.display = 'none'; // Fix: Force hide sticker drawer
+            } else {
+                chatFooter.style.display = 'flex';
+                chatBatchActions.style.display = 'none';
+                stickerDrawer.style.display = ''; // Fix: Revert to CSS control
+            }
+            
+            if (checkIndex !== null) {
+                const targetBubble = chatHistory.querySelector(`[data-index="${checkIndex}"]`);
+                if (targetBubble) {
+                    requestAnimationFrame(() => {
+                        targetBubble.scrollIntoView({ behavior: 'auto', block: 'center' });
+                    });
+                }
+            } else if (autoScroll && !isChatBatchDeleteMode) { 
+                chatHistory.scrollTop = chatHistory.scrollHeight; 
+            }
+
+            affinityDisplay.textContent = `好感度：${state.chat.affinity}/100`;
+        };
+
+        const createTextBubble = (msg) => {
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${msg.sender}`;
+            bubble.textContent = msg.text;
+            return bubble;
+        };
+
+        const createTransferBubble = (msg) => {
+            const bubble = document.createElement('div');
+            const statusText = { pending: '待查收', received: '已收款', returned: '已退回' };
+            bubble.className = `transfer-bubble ${msg.sender} ${msg.status}`;
+            bubble.innerHTML = `
+                <div class="transfer-content">
+                    <i class="fas fa-money-bill-transfer"></i>
+                    <div class="transfer-info">
+                        <h4>转账</h4>
+                        <p>${msg.message || '转账给你'}</p>
+                    </div>
+                </div>
+                <div class="transfer-footer">${statusText[msg.status]}</div>
+            `;
+            return bubble;
+        };
+
+        const createVoiceBubble = (msg) => {
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble voice-bubble ${msg.sender}`;
+            bubble.innerHTML = `
+                <i class="fas fa-play-circle"></i>
+                <span class="voice-duration">${msg.duration}"</span>
+                ${msg.isExpanded ? `<div class="voice-transcript">${msg.text}</div>` : ''}
+            `;
+            return bubble;
+        };
+
+        const createStickerBubble = (msg) => {
+            const bubble = document.createElement('div');
+            bubble.className = `sticker-bubble ${msg.sender}`;
+            const sticker = state.stickers.find(s => s.id === msg.stickerId);
+            if (sticker) {
+                bubble.innerHTML = `<img src="${sticker.imageDataUrl}" alt="${sticker.meaning}">`;
+            } else {
+                bubble.innerHTML = `[表情已失效]`;
+            }
+            return bubble;
+        };
+
+        const manageChatMessage = (index) => {
+            const msg = state.chat.history[index];
+            if (!msg) return;
+
+            let dialogMessage = '';
+            let dialogButtons = [];
+
+            switch (msg.type) {
+                case 'text': dialogMessage = `"${msg.text}"`; break;
+                case 'voice': dialogMessage = `一条 ${msg.duration}" 的语音消息`; break;
+                case 'transfer': dialogMessage = `一笔 ${msg.amount} 元的转账`; break;
+                case 'sticker': dialogMessage = `一个含义为 "${msg.meaning}" 的表情`; break;
+                default: dialogMessage = '一条未知类型的消息';
+            }
+            
+            const commonButtons = [
+                {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
+                {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'},
+                {text: '删除', value: 'delete', class: 'bg-red-500/80'}
+            ];
+
+            if (msg.type === 'text') {
+                dialogButtons = [...commonButtons, {text: '编辑', value: 'edit', class: 'bg-blue-500'}];
+            } else {
+                dialogButtons = commonButtons;
+            }
+
+            showDialog('管理消息', dialogMessage, { buttons: dialogButtons })
+                .then(async action => {
+                    if (action === 'edit' && msg.type === 'text') {
+                        const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
+                        if (newText) {
+                            state.chat.history[index].text = newText;
+                            await saveState();
+                            renderChatHistory({ autoScroll: false });
+                            showToast('消息已更新');
+                        }
+                    } else if (action === 'delete') {
+                        const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
+                        if (confirmed) {
+                            state.chat.history.splice(index, 1);
+                            await saveState();
+                            renderChatHistory({ autoScroll: false });
+                            showToast('消息已删除');
+                        }
+                    } else if (action === 'batch-delete') {
+                        multifunctionMenu.classList.add('hidden');
+                        stickerDrawer.classList.remove('open');
+                        isChatBatchDeleteMode = true;
+                        renderChatHistory({ checkIndex: index });
+                    }
+                });
+        };
+
+        const sendMessage = async (messageObject) => {
+            if (messageObject.type === 'text' && (!messageObject.text || !messageObject.text.trim())) return;
+            state.chat.history.push(messageObject);
+            if (messageObject.sender === 'user') userInput.value = '';
+            await saveState();
+            renderChatHistory({ autoScroll: true });
+        };
+
+        const handleSend = () => {
+            if (UILock.isLocked()) return;
+            const text = userInput.value;
+            if (!text.trim()) return;
+
+            let msgObject;
+            if (state.chat.sendMode === 'voice') {
+                msgObject = {
+                    id: Date.now(), sender: 'user', type: 'voice',
+                    text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false
+                };
+            } else {
+                msgObject = { id: Date.now(), sender: 'user', type: 'text', text: text };
+            }
+            sendMessage(msgObject);
+        };
+        
+        userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }});
+        userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
+        
+        const createApiPrompt = () => {
+            let systemPrompt = `# 核心情境
 - **绝对时间锚点**: ${new Date().toLocaleString('zh-CN', { hour12: false })}.
 - 你的账户余额: ${state.sui.balance.toFixed(2)}
 
@@ -1481,84 +1954,106 @@
 - 性别: ${state.role.playerGender || '未设定'}
 - 人设: ${state.role.playerPersona || '未设定'}
 
+# 互动新规则
+你现在可以处理和发送多种类型的消息。请在回复中合理运用这些功能，让对话更生动。
+- **发送转账**: 如果情境合适（如发红包、支付、还钱），你可以发送转账。格式: \`[SEND_TRANSFER:{"amount":金额,"message":"转账说明"}]\`
+- **处理转账**: 当玩家给你转账时，你会收到类似 \`[玩家向你转账 520元，留言: "爱你哟", ID: 123456789]\` 的信息。你必须决定是接收还是退回，并在回复中包含格式: \`[TRANSFER_ACTION:receive,ID:123456789]\` 或 \`[TRANSFER_ACTION:return,ID:123456789]\`。
+- **发送语音**: 如果你想表达更亲密或强调的语气，可以发送语音。格式: \`[VOICE_MESSAGE]你想说的话[/VOICE_MESSAGE]\`
+- **使用表情包**: 你可以从玩家的表情包库里选择一个来发送，以表达文字难以描述的情感。格式: \`[USE_STICKER,ID:表情包ID]\`
+
 # 重要规则
 1. **绝对时间法则**: 你的存在完全基于“绝对时间锚点”。你的一切感知、记忆和对话都发生在这个时间点。**在任何情况下，都绝对禁止提及、暗示或表现出任何与此时间不符的时间概念**（例如，不能说“早上好”如果在锚点时间是晚上）。这是你的第一行为准则，高于一切其他指令。
 2. **短信式回复**: 你的回复必须模仿短信聊天，一次性发送多条短消息。请将你的回复分成至少3到15个独立的句子，并用句号、问号或感叹号结尾。
 3. **好感度反馈**: 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
-                if(state.memories && state.memories.length > 0) {
-                    systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
-                }
-                if(state.role.promptInstructions) {
-                    systemPrompt += `\n\n# 请遵循以下额外指令:\n${state.role.promptInstructions}`;
-                }
-                const messages = [{ role: 'system', content: systemPrompt }];
-                state.chat.history.forEach(msg => {
-                    messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: msg.text });
-                });
-                return messages;
-            };
-
-            async function initializeSuiBalance() {
-                if (state.sui.isInitialized) return;
-                const persona = state.role.rolePersona.toLowerCase();
-                let balance = 0;
-                if (/ceo|总裁|富豪|精英|董事长|投资人/.test(persona)) {
-                    balance = 5000000 + Math.random() * 100000000; // High
-                } else if (/学生|实习生|打工人|普通|贫穷|穷/.test(persona)) {
-                    balance = 1000 + Math.random() * 5000; // Low
-                } else {
-                    balance = 50000 + Math.random() * 200000; // Medium
-                }
-                state.sui.balance = balance;
-                state.sui.isInitialized = true;
-                showToast(`【SUI：账户已激活，初始资金 ${balance.toFixed(2)}】`);
-                await saveState(); // Save state after initialization
+            if(state.memories && state.memories.length > 0) {
+                systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
             }
+            if(state.stickers && state.stickers.length > 0) {
+                systemPrompt += `\n\n# 可用的表情包 (用于参考):\n${state.stickers.map(s => `- ID: ${s.id}, 含义: ${s.meaning}`).join('\n')}`;
+            }
+            if(state.role.promptInstructions) {
+                systemPrompt += `\n\n# 请遵循以下额外指令:\n${state.role.promptInstructions}`;
+            }
+            const messages = [{ role: 'system', content: systemPrompt }];
+            state.chat.history.forEach(msg => {
+                let content = '';
+                const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
+                switch (msg.type) {
+                    case 'text': content = msg.text; break;
+                    case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
+                    case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
+                    case 'transfer':
+                        if (msg.sender === 'user') {
+                            content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`;
+                        } else {
+                            content = `[你向${state.role.playerName || '玩家'}转账 ${msg.amount}元，留言: "${msg.message}"]`;
+                        }
+                        break;
+                }
+                messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
+            });
+            return messages;
+        };
 
-            // --- SUI Helper: API Call Abstraction ---
-            async function callSuiApi(systemPrompt) {
-                if (!state.config.api.baseUrl || !state.config.api.key) return null;
-                console.log('%c[SUI] 正在调用SUI API...', 'color: #03a9f4; font-weight: bold;', { prompt: systemPrompt });
-                try {
-                    const messages = [{ role: 'system', content: systemPrompt }];
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-                        body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.6 })
-                    });
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`%c[SUI] API 请求失败，状态码: ${response.status}.`, 'color: #f44336; font-weight: bold;', '响应:', errorText);
-                        return null;
-                    }
-                    const data = await response.json();
-                    const content = data.choices?.[0]?.message?.content;
-                    if (!content) { console.warn('%c[SUI] API 响应中不包含任何内容。', 'color: #ffc107;'); return null; }
-                    console.log('%c[SUI] 从API收到原始文本:', 'color: #4caf50;', content);
-                    const jsonRegex = /({[\s\S]*})|(\[[\s\S]*\])/;
-                    const match = content.match(jsonRegex);
-                    if (!match) { console.error('%c[SUI] 解析失败：在响应中未找到有效的JSON结构。', 'color: #f44336; font-weight: bold;'); return null; }
-                    const jsonString = match[0];
-                    console.log('%c[SUI] 正则表达式提取出的JSON字符串:', 'color: #ff9800;', jsonString);
-                    try {
-                        const parsedJson = JSON.parse(jsonString);
-                        console.log('%c[SUI] JSON解析成功！', 'color: #8bc34a; font-weight: bold;', parsedJson);
-                        return parsedJson;
-                    } catch (e) {
-                        console.error('%c[SUI] JSON解析失败，即使已经提取出字符串。', 'color: #f44336; font-weight: bold;', e, '问题字符串:', jsonString);
-                        return null;
-                    }
-                } catch (error) {
-                    console.error("%c[SUI] callSuiApi 函数发生严重错误:", 'color: #f44336; font-weight: bold;', error);
+        async function initializeSuiBalance() {
+            if (state.sui.isInitialized) return;
+            const persona = state.role.rolePersona.toLowerCase();
+            let balance = 0;
+            if (/ceo|总裁|富豪|精英|董事长|投资人/.test(persona)) {
+                balance = 5000000 + Math.random() * 100000000;
+            } else if (/学生|实习生|打工人|普通|贫穷|穷/.test(persona)) {
+                balance = 1000 + Math.random() * 5000;
+            } else {
+                balance = 50000 + Math.random() * 200000;
+            }
+            state.sui.balance = balance;
+            state.sui.isInitialized = true;
+            showToast(`【SUI：账户已激活，初始资金 ${balance.toFixed(2)}】`);
+            await saveState();
+        }
+
+        async function callSuiApi(systemPrompt) {
+            if (!state.config.api.baseUrl || !state.config.api.key) return null;
+            console.log('%c[SUI] 正在调用SUI API...', 'color: #03a9f4; font-weight: bold;', { prompt: systemPrompt });
+            try {
+                const messages = [{ role: 'system', content: systemPrompt }];
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.6 })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`%c[SUI] API 请求失败，状态码: ${response.status}.`, 'color: #f44336; font-weight: bold;', '响应:', errorText);
                     return null;
                 }
+                const data = await response.json();
+                const content = data.choices?.[0]?.message?.content;
+                if (!content) { console.warn('%c[SUI] API 响应中不包含任何内容。', 'color: #ffc107;'); return null; }
+                console.log('%c[SUI] 从API收到原始文本:', 'color: #4caf50;', content);
+                const jsonRegex = /({[\s\S]*})|(\[[\s\S]*\])/;
+                const match = content.match(jsonRegex);
+                if (!match) { console.error('%c[SUI] 解析失败：在响应中未找到有效的JSON结构。', 'color: #f44336; font-weight: bold;'); return null; }
+                const jsonString = match[0];
+                console.log('%c[SUI] 正则表达式提取出的JSON字符串:', 'color: #ff9800;', jsonString);
+                try {
+                    const parsedJson = JSON.parse(jsonString);
+                    console.log('%c[SUI] JSON解析成功！', 'color: #8bc34a; font-weight: bold;', parsedJson);
+                    return parsedJson;
+                } catch (e) {
+                    console.error('%c[SUI] JSON解析失败，即使已经提取出字符串。', 'color: #f44336; font-weight: bold;', e, '问题字符串:', jsonString);
+                    return null;
+                }
+            } catch (error) {
+                console.error("%c[SUI] callSuiApi 函数发生严重错误:", 'color: #f44336; font-weight: bold;', error);
+                return null;
             }
+        }
 
-            // --- SUI Feature: Contextual Transaction Generation ---
-            async function generateContextualTransaction() {
-                const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-                const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
-                const systemPrompt = `你是一个智能生活模拟器，为AI角色生成金融交易。你需要决定这笔交易是与玩家对话相关，还是角色自己的独立行为。
+        async function generateContextualTransaction() {
+            const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
+            const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
+            const systemPrompt = `你是一个智能生活模拟器，为AI角色生成金融交易。你需要决定这笔交易是与玩家对话相关，还是角色自己的独立行为。
 # 核心信息
 - 角色人设: ${state.role.rolePersona || '未设定'}
 - 账户余额: ${state.sui.balance.toFixed(2)}
@@ -1575,38 +2070,37 @@
 # 示例输出
 [
   {"description": "支付上月信用卡账单", "amount": -8540.50},
-  {"description": "收到项目奖金", "amount": 15000}
+  {"description": "收到项目奖金", "amount": +15000}
 ]`;
-                const transactionsData = await callSuiApi(systemPrompt);
-                if (Array.isArray(transactionsData) && transactionsData.length > 0) {
-                    let totalChange = 0;
-                    for (const transaction of transactionsData) {
-                        if (transaction.description && typeof transaction.amount === 'number') {
-                            const newItem = {
-                                id: Date.now() + Math.random(),
-                                timestamp: new Date().toLocaleString('zh-CN', { hour12: false }),
-                                description: transaction.description,
-                                amount: transaction.amount
-                            };
-                            state.sui.transactions.unshift(newItem);
-                            totalChange += newItem.amount;
-                        }
-                    }
-                    if (transactionsData.length > 0) {
-                        state.sui.balance += totalChange;
-                        showToast(`【SUI：新增 ${transactionsData.length} 笔账户变动】`);
-                        if (pages.sui.offsetParent !== null) { renderSuiPage(); }
-                        await saveState();
+            const transactionsData = await callSuiApi(systemPrompt);
+            if (Array.isArray(transactionsData) && transactionsData.length > 0) {
+                let totalChange = 0;
+                for (const transaction of transactionsData) {
+                    if (transaction.description && typeof transaction.amount === 'number') {
+                        const newItem = {
+                            id: Date.now() + Math.random(),
+                            timestamp: new Date().toLocaleString('zh-CN', { hour12: false }),
+                            description: transaction.description,
+                            amount: transaction.amount
+                        };
+                        state.sui.transactions.unshift(newItem);
+                        totalChange += newItem.amount;
                     }
                 }
+                if (transactionsData.length > 0) {
+                    state.sui.balance += totalChange;
+                    showToast(`【SUI：新增 ${transactionsData.length} 笔账户变动】`);
+                    if (pages.sui.offsetParent !== null) { renderSuiPage(); }
+                    await saveState();
+                }
             }
-            
-            // --- SUI Feature: AI-Generated Other Chats ---
-            async function generateSuiOtherChat() {
-                const roleName = state.role.roleName || '角色';
-                const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
-                const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-                const systemPrompt = `你是一个智能生活模拟器，为AI角色“${roleName}”生成外部通讯。你需要决定这次通讯是与玩家对话相关，还是角色自己的独立行为。
+        }
+        
+        async function generateSuiOtherChat() {
+            const roleName = state.role.roleName || '角色';
+            const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
+            const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
+            const systemPrompt = `你是一个智能生活模拟器，为AI角色“${roleName}”生成外部通讯。你需要决定这次通讯是与玩家对话相关，还是角色自己的独立行为。
 # 核心信息
 - 角色人设: ${state.role.rolePersona || '未设定'}
 - 当前时间: ${currentTime}
@@ -1623,21 +2117,20 @@
     {"sender": "发送者姓名", "text": "消息内容"}
   ]
 }`;
-                const chatData = await callSuiApi(systemPrompt);
-                if (chatData && chatData.with && Array.isArray(chatData.log) && chatData.log.length > 0) {
-                    const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), with: chatData.with, log: chatData.log };
-                    state.sui.otherChats.unshift(newItem);
-                    showToast(`【SUI：收到来自 ${chatData.with} 的新消息】`);
-                    if (pages.sui.offsetParent !== null) { renderSuiPage(); }
-                    await saveState();
-                }
+            const chatData = await callSuiApi(systemPrompt);
+            if (chatData && chatData.with && Array.isArray(chatData.log) && chatData.log.length > 0) {
+                const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), with: chatData.with, log: chatData.log };
+                state.sui.otherChats.unshift(newItem);
+                showToast(`【SUI：收到来自 ${chatData.with} 的新消息】`);
+                if (pages.sui.offsetParent !== null) { renderSuiPage(); }
+                await saveState();
             }
+        }
 
-            // --- SUI Feature: AI-Generated Browsing Session ---
-            async function generateSuiBrowsingSession() {
-                const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
-                const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-                const systemPrompt = `你是一个智能生活模拟器，为AI角色生成网页浏览记录。你需要决定这次浏览是与玩家对话相关，还是角色自己的独立行为。
+        async function generateSuiBrowsingSession() {
+            const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
+            const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
+            const systemPrompt = `你是一个智能生活模拟器，为AI角色生成网页浏览记录。你需要决定这次浏览是与玩家对话相关，还是角色自己的独立行为。
 # 核心信息
 - 角色人设: ${state.role.rolePersona || '未设定'}
 - 当前时间: ${currentTime}
@@ -1653,303 +2146,697 @@
     {"title": "页面标题", "url": "页面URL"}
   ]
 }`;
-                const browsingData = await callSuiApi(systemPrompt);
-                if (browsingData && Array.isArray(browsingData.session) && browsingData.session.length > 0) {
-                    const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), session: browsingData.session };
-                    state.sui.browsingHistory.unshift(newItem);
-                    showToast(`【SUI：检测到新的浏览活动】`);
-                    if (pages.sui.offsetParent !== null) { renderSuiPage(); }
-                    await saveState();
+            const browsingData = await callSuiApi(systemPrompt);
+            if (browsingData && Array.isArray(browsingData.session) && browsingData.session.length > 0) {
+                const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), session: browsingData.session };
+                state.sui.browsingHistory.unshift(newItem);
+                showToast(`【SUI：检测到新的浏览活动】`);
+                if (pages.sui.offsetParent !== null) { renderSuiPage(); }
+                await saveState();
+            }
+        }
+
+        async function triggerSuiGeneration() {
+            if (!state.config.api.key) return; 
+            await initializeSuiBalance(); 
+            const generationTasks = [];
+            const transactionChance = 0.65, otherChatChance = 0.55, browsingChance = 0.55;  
+            if (Math.random() < transactionChance) { generationTasks.push(generateContextualTransaction()); }
+            if (Math.random() < otherChatChance) { generationTasks.push(generateSuiOtherChat()); }
+            if (Math.random() < browsingChance) { generationTasks.push(generateSuiBrowsingSession()); }
+            if (generationTasks.length > 0) { await Promise.all(generationTasks); }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        async function getAiReply() {
+            if (UILock.isLocked()) return;
+            if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+            showToast('角色正在思考中...'); aiReplyBtn.disabled = true;
+            try {
+                const messages = createApiPrompt();
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false }) });
+                if (!response.ok) { const errorData = await response.json().catch(() => ({ error: { message: '无法解析错误响应' } })); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || '未知网络错误'}`); }
+                const data = await response.json(); if (data.error) { throw new Error(`API返回错误: ${data.error.message}`); }
+                const choice = data.choices?.[0]; if (!choice) { throw new Error("无法解析API响应格式：响应中缺少 'choices' 数组或数组为空。"); }
+                if (choice.finish_reason === 'content_filter') { throw new Error("AI回复因内容安全策略被拦截。"); }
+                let aiResponse = choice.message?.content;
+                if (!aiResponse) { if (choice.finish_reason === 'length') { throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。"); } throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。"); }
+                
+                const specialMessageQueue = [];
+                const textMessageQueue = [];
+
+                const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/;
+                aiResponse = aiResponse.replace(affinityRegex, (match, p1) => {
+                    state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(p1, 10)));
+                    return '';
+                });
+
+                const transferActionRegex = /\[TRANSFER_ACTION:(receive|return),ID:(\d+)\]/g;
+                aiResponse = aiResponse.replace(transferActionRegex, (match, action, id) => {
+                    const transferMsg = state.chat.history.find(m => m.id === parseInt(id));
+                    if (transferMsg) {
+                        transferMsg.status = action === 'receive' ? 'received' : 'returned';
+                        if (action === 'receive') { state.sui.balance += transferMsg.amount; }
+                    }
+                    return '';
+                });
+
+                const sendTransferRegex = /\[SEND_TRANSFER:({.*?})\]/g;
+                aiResponse = aiResponse.replace(sendTransferRegex, (match, jsonString) => {
+                    try {
+                        const transferData = JSON.parse(jsonString);
+                        if (transferData.amount > 0 && state.sui.balance >= transferData.amount) {
+                            specialMessageQueue.push({ type: 'send_transfer', data: transferData });
+                        }
+                    } catch(e) { console.error("Failed to parse SEND_TRANSFER JSON", e); }
+                    return '';
+                });
+
+                const voiceMessageRegex = /\[VOICE_MESSAGE\]([\s\S]*?)\[\/VOICE_MESSAGE\]/g;
+                aiResponse = aiResponse.replace(voiceMessageRegex, (match, text) => {
+                    const trimmedText = text.trim();
+                    if (trimmedText) {
+                        specialMessageQueue.push({ type: 'voice', data: { text: trimmedText } });
+                    }
+                    return '';
+                });
+
+                const useStickerRegex = /\[USE_STICKER,ID:(\d+)\]/g;
+                aiResponse = aiResponse.replace(useStickerRegex, (match, stickerId) => {
+                    const id = parseInt(stickerId);
+                    const sticker = state.stickers.find(s => s.id === id);
+                    if (sticker) {
+                        specialMessageQueue.push({ type: 'sticker', data: { stickerId: sticker.id, meaning: sticker.meaning } });
+                    }
+                    return '';
+                });
+                
+                const replyMessages = aiResponse.trim().match(/[^。！？?!]+[。！？?!]?/g) || [];
+                replyMessages.forEach(text => {
+                    if (text.trim()) {
+                        textMessageQueue.push({ type: 'text', data: { text: text.trim() } });
+                    }
+                });
+
+                shuffleArray(specialMessageQueue);
+                const finalMessageQueue = [...textMessageQueue];
+                specialMessageQueue.forEach(item => {
+                    const randomIndex = Math.floor(Math.random() * (finalMessageQueue.length + 1));
+                    finalMessageQueue.splice(randomIndex, 0, item);
+                });
+
+                for (const msg of finalMessageQueue) {
+                    switch (msg.type) {
+                        case 'send_transfer':
+                            state.sui.balance -= msg.data.amount;
+                            await sendMessage({
+                                id: Date.now(), sender: 'ai', type: 'transfer',
+                                amount: msg.data.amount, message: msg.data.message, status: 'pending'
+                            });
+                            break;
+                        case 'voice':
+                            await sendMessage({
+                                id: Date.now(), sender: 'ai', type: 'voice', text: msg.data.text,
+                                duration: Math.max(1, Math.ceil(msg.data.text.length / 3)), isExpanded: false
+                            });
+                            break;
+                        case 'sticker':
+                            await sendMessage({
+                                id: Date.now(), sender: 'ai', type: 'sticker',
+                                stickerId: msg.data.stickerId, meaning: msg.data.meaning
+                            });
+                            break;
+                        case 'text':
+                            await sendMessage({
+                                id: Date.now(), sender: 'ai', type: 'text', text: msg.data.text
+                            });
+                            break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
                 }
+                
+                await triggerSuiGeneration();
+            } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
+        }
+
+        restartChatBtn.addEventListener('click', async () => { 
+            const ok = await showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。'); 
+            if (ok) { 
+                state.chat = { history: [], affinity: 0, sendMode: 'text' }; 
+                await saveState(); 
+                renderChatHistory({ autoScroll: true }); 
+                showToast('对话已清空'); 
+            } 
+        });
+
+        summarizeMemoryBtn.addEventListener('click', async () => {
+            if (state.chat.history.length === 0) { showDialog('错误', '没有聊天记录可以总结。'); return; } 
+            if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+            showToast('正在总结聊天内容...'); summarizeMemoryBtn.disabled = true;
+            try {
+                const chatContent = state.chat.history.map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}：${msg.text}`).join('\n');
+                const systemPrompt = "你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁的记忆存档。"; 
+                const messages = [ { role: 'system', content: systemPrompt }, { role: 'user', content: `对话内容:\n${chatContent}\n\n请简洁地总结以上对话内容，例如：'玩家与[角色]在[地点]讨论了[主题]。'` } ];
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 }) });
+                if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
+                const data = await response.json(); let summaryText = data.choices?.[0]?.message?.content;
+                if (summaryText) { 
+                    state.memories.unshift({ id: Date.now(), content: summaryText, timestamp: new Date().toLocaleString() }); 
+                    await saveState(); 
+                    renderMemoryList(); 
+                    showToast('记忆已成功存档！'); 
+                } else { throw new Error("API response is empty or malformed."); }
+            } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `总结记忆时发生错误: ${error.message}`); } finally { summarizeMemoryBtn.disabled = false; }
+        });
+
+        confirmBatchDeleteChatBtn.addEventListener('click', async () => {
+            const indicesToDelete = Array.from(chatHistory.querySelectorAll('.batch-delete-checkbox:checked')).map(cb => {
+                const bubble = cb.closest('.flex.w-full > div').querySelector('[data-index]');
+                return parseInt(bubble.dataset.index);
+            });
+            if (indicesToDelete.length === 0) { showToast('没有选中任何消息'); return; }
+            const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 条消息吗？`);
+            if (confirmed) {
+                indicesToDelete.sort((a, b) => b - a).forEach(index => state.chat.history.splice(index, 1));
+                await saveState();
+                isChatBatchDeleteMode = false;
+                UILock.lock();
+                renderChatHistory({ autoScroll: false });
+                showToast('消息已删除');
             }
+        });
+        
+        cancelBatchDeleteChatBtn.addEventListener('click', () => {
+            isChatBatchDeleteMode = false;
+            UILock.lock();
+            renderChatHistory({ autoScroll: false });
+        });
 
-            // --- SUI Trigger (Called after AI reply) ---
-            async function triggerSuiGeneration() {
-                if (!state.config.api.key) return; 
-                await initializeSuiBalance(); 
-                const generationTasks = [];
-                const transactionChance = 0.65, otherChatChance = 0.55, browsingChance = 0.55;  
-                if (Math.random() < transactionChance) { generationTasks.push(generateContextualTransaction()); }
-                if (Math.random() < otherChatChance) { generationTasks.push(generateSuiOtherChat()); }
-                if (Math.random() < browsingChance) { generationTasks.push(generateSuiBrowsingSession()); }
-                if (generationTasks.length > 0) { await Promise.all(generationTasks); }
+        multifunctionToggleBtn.addEventListener('click', () => {
+            if (UILock.isLocked()) return;
+            multifunctionMenu.classList.toggle('hidden');
+            stickerDrawer.classList.remove('open');
+        });
+        
+        aiReplyBtn.addEventListener('click', getAiReply);
+        sendBtn.addEventListener('click', handleSend);
+
+        voiceModeBtn.addEventListener('click', () => {
+            if (UILock.isLocked()) return;
+            state.chat.sendMode = state.chat.sendMode === 'text' ? 'voice' : 'text';
+            const icon = sendBtn.querySelector('i');
+            if (state.chat.sendMode === 'voice') {
+                voiceModeBtn.classList.add('text-blue-400');
+                icon.className = 'fas fa-microphone';
+                userInput.placeholder = '输入语音文字...';
+                showToast('已切换到语音模式');
+            } else {
+                voiceModeBtn.classList.remove('text-blue-400');
+                icon.className = 'fas fa-heart';
+                userInput.placeholder = '请输入消息...';
+                showToast('已切换到文本模式');
             }
+            multifunctionMenu.classList.add('hidden');
+        });
 
-            aiReplyBtn.addEventListener('click', async () => {
-                if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-                showToast('角色正在思考中...'); aiReplyBtn.disabled = true;
-                try {
-                    const messages = createApiPrompt();
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false }) });
-                    if (!response.ok) { const errorData = await response.json().catch(() => ({ error: { message: '无法解析错误响应' } })); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || '未知网络错误'}`); }
-                    const data = await response.json(); if (data.error) { throw new Error(`API返回错误: ${data.error.message}`); }
-                    const choice = data.choices?.[0]; if (!choice) { throw new Error("无法解析API响应格式：响应中缺少 'choices' 数组或数组为空。"); }
-                    if (choice.finish_reason === 'content_filter') { throw new Error("AI回复因内容安全策略被拦截。"); }
-                    let aiResponse = choice.message?.content;
-                    if (!aiResponse) { if (choice.finish_reason === 'length') { throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。"); } throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。"); }
-                    
-                    const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/; const match = aiResponse.match(affinityRegex);
-                    if (match && match[1]) { state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(match[1], 10))); aiResponse = aiResponse.replace(affinityRegex, '').trim(); }
-                    const replyMessages = aiResponse.match(/[^。！？?!]+[。！？?!]?/g) || [aiResponse];
-                    await sendAiMessages(replyMessages);
-                    await triggerSuiGeneration();
-                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
+        transferBtn.addEventListener('click', async () => {
+            if (UILock.isLocked()) return;
+            multifunctionMenu.classList.add('hidden');
+            const result = await showDialog('发起转账', '', {
+                complexInput: `
+                    <div class="space-y-2">
+                        <input type="number" id="transfer-amount-input" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="转账金额">
+                        <input type="text" id="transfer-message-input" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="留言 (可选)">
+                    </div>
+                `,
+                getValues: () => ({
+                    amount: parseFloat(get('transfer-amount-input').value) || 0,
+                    message: get('transfer-message-input').value || '转账给你'
+                })
             });
 
-            restartChatBtn.addEventListener('click', async () => { const ok = await showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。'); if (ok) { state.chat = { history: [], affinity: 0 }; await saveState(); renderChatHistory(); showToast('对话已清空'); } });
-            cancelBatchDeleteChatBtn.addEventListener('click', () => { isChatBatchDeleteMode = false; renderChatHistory(); });
-            confirmBatchDeleteChatBtn.addEventListener('click', async () => {
-                const indicesToDelete = []; chatHistory.querySelectorAll('.message-bubble').forEach(bubble => { const checkbox = bubble.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { indicesToDelete.push(parseInt(bubble.dataset.index)); } });
-                if (indicesToDelete.length === 0) { showToast('没有选中任何消息'); return; }
-                const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 条消息吗？`);
-                if (confirmed) { indicesToDelete.sort((a, b) => b - a).forEach(index => state.chat.history.splice(index, 1)); await saveState(); isChatBatchDeleteMode = false; renderChatHistory(); showToast('消息已删除'); }
-            });
-            
-            summarizeMemoryBtn.addEventListener('click', async () => {
-                if (state.chat.history.length === 0) { showDialog('错误', '没有聊天记录可以总结。'); return; } if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-                showToast('正在总结聊天内容...'); summarizeMemoryBtn.disabled = true;
-                try {
-                    const chatContent = state.chat.history.map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}：${msg.text}`).join('\n');
-                    const systemPrompt = "你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁的记忆存档。"; const messages = [ { role: 'system', content: systemPrompt }, { role: 'user', content: `对话内容:\n${chatContent}\n\n请简洁地总结以上对话内容，例如：'玩家与[角色]在[地点]讨论了[主题]。'` } ];
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 }) });
-                    if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
-                    const data = await response.json(); let summaryText = data.choices?.[0]?.message?.content;
-                    if (summaryText) { state.memories.push({ id: Date.now(), content: summaryText, timestamp: new Date().toLocaleString() }); await saveState(); renderMemoryList(); showToast('记忆已成功存档！'); } else { throw new Error("API response is empty or malformed."); }
-                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `总结记忆时发生错误: ${error.message}`); } finally { summarizeMemoryBtn.disabled = false; }
-            });
-            
-            // --- Memory Page ---
-            addMemoryBtn.addEventListener('click', async () => { const content = await showDialog('添加新记忆', '请输入记忆内容:', { input: true, defaultValue: '' }); if (content) { state.memories.push({ id: Date.now(), content, timestamp: new Date().toLocaleString() }); await saveState(); renderMemoryList(); showToast('记忆已添加'); } });
-            const renderMemoryList = () => {
-                if (!state.memories) state.memories = [];
-                memoryListEl.innerHTML = state.memories.length === 0 ? '<p class="opacity-70 text-center">沒有记忆存档。</p>' : '';
-                [...state.memories].reverse().forEach(mem => {
-                    const item = document.createElement('div'); item.className = 'memory-item'; item.dataset.id = mem.id;
-                    let innerHTML = `<p class="whitespace-pre-wrap">${mem.content}</p><p class="text-xs opacity-50 mt-1">${mem.timestamp}</p>`;
-                    if (isMemoryBatchDeleteMode) { item.classList.add('pl-12'); innerHTML = `<input type="checkbox" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">` + innerHTML; }
-                    item.innerHTML = innerHTML;
-                    if (!isMemoryBatchDeleteMode) { item.addEventListener('click', () => showMemoryDetails(mem.id)); }
-                    memoryListEl.appendChild(item);
+            if (result && result.amount > 0) {
+                await sendMessage({
+                    id: Date.now(), sender: 'user', type: 'transfer',
+                    amount: result.amount, message: result.message, status: 'pending'
                 });
-                memoryBatchActions.style.display = isMemoryBatchDeleteMode ? 'flex' : 'none';
-            };
-            const showMemoryDetails = (memId) => {
-                const memIndex = state.memories.findIndex(m => m.id === memId); if (memIndex === -1) return; const mem = state.memories[memIndex];
-                showDialog('管理记忆', '请选择操作', { buttons: [{text: '取消', value: 'cancel', class: 'bg-gray-500/50'}, {text: '删除', value: 'delete', class: 'bg-red-500/80'}, {text: '编辑', value: 'edit', class: 'bg-blue-500'}]
-                }).then(async action => {
-                    if (action === 'edit') { const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: mem.content }); if (newContent) { state.memories[memIndex].content = newContent; state.memories[memIndex].timestamp = new Date().toLocaleString(); await saveState(); renderMemoryList(); showToast('记忆已更新'); } } 
-                    else if (action === 'delete') { const confirmed = await showDialog('确认删除', '确定要删除这条记忆吗？'); if (confirmed) { state.memories.splice(memIndex, 1); await saveState(); renderMemoryList(); showToast('记忆已删除'); } }
-                });
-            };
-            batchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = true; renderMemoryList(); }); cancelBatchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = false; renderMemoryList(); });
-            confirmBatchDeleteMemoriesBtn.addEventListener('click', async () => {
-                const selectedIds = []; memoryListEl.querySelectorAll('.memory-item').forEach(item => { const checkbox = item.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { selectedIds.push(parseInt(item.dataset.id)); } });
-                if (selectedIds.length === 0) { showToast('没有选中任何记忆'); return; }
-                const confirmed = await showDialog('批量删除', `确定要删除选中的 ${selectedIds.length} 条记忆吗？`);
-                if (confirmed) { state.memories = state.memories.filter(d => !selectedIds.includes(d.id)); await saveState(); isMemoryBatchDeleteMode = false; renderMemoryList(); showToast('记忆已删除'); }
-            });
+            } else if (result) {
+                showToast('转账金额必须大于0');
+            }
+        });
 
-            // --- Diary Page ---
-            const renderMarkdown = (text) => text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/~~(.*?)~~/g, '<del>$1</del>');
-            const renderDiaryList = () => {
-                if (!state.diaries) state.diaries = [];
-                diaryListContainer.innerHTML = state.diaries.length === 0 ? '<p class="opacity-70 text-center">还没有日记，试着生成一篇吧。</p>' : '';
-                [...state.diaries].reverse().forEach(diary => {
-                    const item = document.createElement('div'); item.className = 'diary-entry'; item.dataset.id = diary.id; let innerHTML = '';
-                    if (isDiaryBatchDeleteMode) { innerHTML += `<input type="checkbox" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0">`; item.classList.add('pl-12'); } 
-                    else { innerHTML += `<button class="diary-delete-btn" title="删除日记"><i class="fas fa-times"></i></button>`; item.classList.remove('pl-12'); }
-                    innerHTML += `<p class="text-xs opacity-50 mb-2">${diary.timestamp}</p><div class="diary-content">${renderMarkdown(diary.content)}</div>`;
-                    item.innerHTML = innerHTML;
-                    if (!isDiaryBatchDeleteMode) { item.querySelector('.diary-delete-btn').addEventListener('click', (e) => { e.stopPropagation(); showDialog('删除日记', '确定要删除这篇日记吗？').then(async confirmed => { if (confirmed) { state.diaries = state.diaries.filter(d => d.id !== diary.id); await saveState(); renderDiaryList(); showToast('日记已删除'); } }); }); }
-                    diaryListContainer.appendChild(item);
-                });
-                diaryBatchActions.style.display = isDiaryBatchDeleteMode ? 'flex' : 'none';
-            };
-            generateDiaryBtn.addEventListener('click', async () => {
-                if (state.chat.history.length < 5) { showDialog('无法生成', '聊天记录太少，无法生成有意义的日记。'); return; } if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-                showToast('AI正在撰写日记...'); generateDiaryBtn.disabled = true;
-                try {
-                    const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`;
-                    const messages = [{ role: 'system', content: systemPrompt }];
-                    const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 }) });
-                    if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
-                    const data = await response.json(); const diaryContent = data.choices?.[0]?.message?.content;
-                    if (diaryContent) { state.diaries.push({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString() }); await saveState(); renderDiaryList(); showToast('日记已生成');
-                    } else { throw new Error("API response is empty or malformed."); }
-                } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `生成日记时发生错误: ${error.message}`); } finally { generateDiaryBtn.disabled = false; }
-            });
-            batchDeleteDiariesBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = true; renderDiaryList(); });
-            cancelBatchDeleteBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = false; renderDiaryList(); });
-            confirmBatchDeleteBtn.addEventListener('click', async () => {
-                const selectedIds = []; diaryListContainer.querySelectorAll('.diary-entry').forEach(item => { const checkbox = item.querySelector('.batch-delete-checkbox'); if (checkbox && checkbox.checked) { selectedIds.push(parseInt(item.dataset.id)); } });
-                if (selectedIds.length === 0) { showToast('没有选中任何日记'); return; }
-                const confirmed = await showDialog('批量删除', `确定要删除选中的 ${selectedIds.length} 篇日记吗？`);
-                if (confirmed) { state.diaries = state.diaries.filter(d => !selectedIds.includes(d.id)); await saveState(); isDiaryBatchDeleteMode = false; renderDiaryList(); showToast('日记已删除'); }
-            });
+        stickerPanelBtn.addEventListener('click', () => {
+            if (UILock.isLocked()) return;
+            stickerDrawer.classList.toggle('open');
+            multifunctionMenu.classList.add('hidden');
+        });
+        closeStickerDrawerBtn.addEventListener('click', () => stickerDrawer.classList.remove('open'));
 
-            // --- SUI Page ---
-            const renderSuiPage = () => {
-                suiBalanceEl.textContent = state.sui.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                const createSuiItem = (itemData, type) => {
+        const renderStickerDrawer = () => {
+            stickerGrid.innerHTML = '';
+            if (state.stickers.length === 0) {
+                stickerGrid.innerHTML = `<p class="text-center opacity-70 col-span-full">还没有表情包，快去添加吧！</p>`;
+            } else {
+                state.stickers.forEach(sticker => {
                     const item = document.createElement('div');
-                    item.className = 'sui-list-item';
-                    item.dataset.id = itemData.id;
-                    item.dataset.type = type;
+                    item.className = 'sticker-item';
+                    item.innerHTML = `
+                        <img src="${sticker.imageDataUrl}" alt="${sticker.meaning}">
+                        <button class="sticker-item-delete" data-id="${sticker.id}"><i class="fas fa-times"></i></button>
+                    `;
+                    item.querySelector('img').addEventListener('click', async () => {
+                        await sendMessage({
+                            id: Date.now(), sender: 'user', type: 'sticker',
+                            stickerId: sticker.id, meaning: sticker.meaning
+                        });
+                        stickerDrawer.classList.remove('open');
+                    });
+                    item.querySelector('.sticker-item-delete').addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        const confirmed = await showDialog('删除表情', `确定要删除这个表情吗？`);
+                        if (confirmed) {
+                            state.stickers = state.stickers.filter(s => s.id !== sticker.id);
+                            await db.delete('stickers', sticker.id);
+                            await saveState();
+                            renderStickerDrawer();
+                            showToast('表情已删除');
+                        }
+                    });
+                    stickerGrid.appendChild(item);
+                });
+            }
+        };
 
-                    let contentHtml = '';
-                    switch (type) {
-                        case 'transactions':
-                            contentHtml = `
-                                <span class="timestamp">${itemData.timestamp}</span>
-                                <div class="flex justify-between items-center">
-                                    <span>${itemData.description}</span>
-                                    <span class="font-mono ${itemData.amount >= 0 ? 'amount-positive' : 'amount-negative'}">${itemData.amount.toFixed(2)}</span>
-                                </div>`;
-                            break;
-                        case 'otherChats':
-                            const chatLogHtml = itemData.log.map(msg => `<p><strong>${msg.sender}:</strong> ${msg.text}</p>`).join('');
-                            contentHtml = `
-                                <span class="timestamp">${itemData.timestamp}</span>
-                                <p>与 <span class="chat-with">${itemData.with}</span> 的通讯记录</p>
-                                <div class="sui-chat-log">${chatLogHtml}</div>`;
-                            break;
-                        case 'browsingHistory':
-                            const sessionHtml = itemData.session.map(page => `<p>${page.title}<br><span class="url">${page.url}</span></p>`).join('');
-                            contentHtml = `
-                                <span class="timestamp">${itemData.timestamp}</span>
-                                <p>网页浏览会话</p>
-                                <div class="sui-browsing-session">${sessionHtml}</div>`;
-                            break;
-                    }
-                    
-                    const actionsHtml = `
-                        <div class="sui-item-actions">
-                            <button class="sui-action-btn" data-action="save" title="存档至记忆"><i class="fas fa-bookmark"></i></button>
-                            <button class="sui-action-btn" data-action="delete" title="删除"><i class="fas fa-trash-alt"></i></button>
-                        </div>`;
+        addStickerBtn.addEventListener('click', () => stickerUploadInput.click());
+        stickerUploadInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const meaning = await showDialog('添加表情', '给这个表情添加一个简单的含义描述，方便AI理解和使用。', { input: true, placeholder: '例如：开心、哭泣、疑惑' });
+            if (!meaning) { showToast('已取消添加'); return; }
 
-                    item.innerHTML = actionsHtml + contentHtml;
-                    return item;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const newSticker = {
+                    id: Date.now(),
+                    imageDataUrl: event.target.result,
+                    meaning: meaning
                 };
-
-                suiTransactionsListEl.innerHTML = !state.sui.transactions || state.sui.transactions.length === 0 ? '<p class="opacity-70 text-center">暂无记录</p>' : '';
-                state.sui.transactions.forEach(tx => suiTransactionsListEl.appendChild(createSuiItem(tx, 'transactions')));
-                
-                suiOtherChatsListEl.innerHTML = !state.sui.otherChats || state.sui.otherChats.length === 0 ? '<p class="opacity-70 text-center">暂无记录</p>' : '';
-                state.sui.otherChats.forEach(chat => suiOtherChatsListEl.appendChild(createSuiItem(chat, 'otherChats')));
-                
-                suiBrowsingHistoryListEl.innerHTML = !state.sui.browsingHistory || state.sui.browsingHistory.length === 0 ? '<p class="opacity-70 text-center">暂无记录</p>' : '';
-                state.sui.browsingHistory.forEach(session => suiBrowsingHistoryListEl.appendChild(createSuiItem(session, 'browsingHistory')));
+                state.stickers.push(newSticker);
+                await db.set('stickers', newSticker.id, newSticker);
+                await saveState();
+                renderStickerDrawer();
+                showToast('表情已添加');
             };
-            
-            suiNav.addEventListener('click', (e) => {
-                const targetButton = e.target.closest('.sui-nav-btn'); if (!targetButton) return;
-                suiNavBtns.forEach(btn => btn.classList.remove('active')); targetButton.classList.add('active');
-                const targetSectionId = targetButton.dataset.target;
-                suiContentSections.forEach(section => { section.classList.toggle('hidden', section.id !== targetSectionId); });
-            });
+            reader.readAsDataURL(file);
+            stickerUploadInput.value = '';
+        });
 
-            suiContentContainer.addEventListener('click', async (e) => {
-                const button = e.target.closest('.sui-action-btn');
-                if (!button) return;
+        chatHistory.addEventListener('click', async (e) => {
+            const bubble = e.target.closest('.message-bubble, .transfer-bubble, .voice-bubble');
+            if (!bubble) return;
 
-                const itemEl = button.closest('.sui-list-item');
-                const id = parseFloat(itemEl.dataset.id);
-                const type = itemEl.dataset.type;
-                const action = button.dataset.action;
-                const dataArray = state.sui[type];
-                const itemIndex = dataArray.findIndex(item => item.id === id);
-                if (itemIndex === -1) return;
-                const itemData = dataArray[itemIndex];
+            const index = parseInt(bubble.dataset.index);
+            const msg = state.chat.history[index];
+            if (!msg) return;
 
-                if (action === 'delete') {
-                    const confirmed = await showDialog('确认删除', '确定要删除这条记录吗？');
-                    if (confirmed) {
-                        dataArray.splice(itemIndex, 1);
-                        await saveState();
-                        renderSuiPage();
-                        showToast('记录已删除');
-                    }
-                } else if (action === 'save') {
-                    let memoryContent = '';
-                    switch (type) {
-                        case 'transactions':
-                            memoryContent = `[SUI记录] 交易: ${itemData.description}, 金额: ${itemData.amount.toFixed(2)}`;
-                            break;
-                        case 'otherChats':
-                            const chatSummary = itemData.log.map(m => `${m.sender}: ${m.text}`).join('; ');
-                            memoryContent = `[SUI记录] 与 ${itemData.with} 的通讯: ${chatSummary}`;
-                            break;
-                        case 'browsingHistory':
-                            const pageTitles = itemData.session.map(p => p.title).join(', ');
-                            memoryContent = `[SUI记录] 浏览网页: ${pageTitles}`;
-                            break;
-                    }
-                    state.memories.push({ id: Date.now(), content: memoryContent, timestamp: new Date().toLocaleString() });
+            if (msg.type === 'voice') {
+                const scrollContainer = chatHistory;
+                const oldScrollHeight = scrollContainer.scrollHeight;
+                const oldScrollTop = scrollContainer.scrollTop;
+
+                msg.isExpanded = !msg.isExpanded;
+                await saveState();
+
+                renderChatHistory({ autoScroll: false }); 
+
+                requestAnimationFrame(() => {
+                    const newScrollHeight = scrollContainer.scrollHeight;
+                    const heightDifference = newScrollHeight - oldScrollHeight;
+                    scrollContainer.scrollTop = oldScrollTop + heightDifference;
+                });
+            } else if (msg.type === 'transfer' && msg.sender === 'ai' && msg.status === 'pending') {
+                const confirmed = await showDialog('确认收款', `确定要接收这笔 ${msg.amount} 元的转账吗？`, {
+                    buttons: [
+                        { text: '忽略', value: 'ignore', class: 'bg-gray-500/50' },
+                        { text: '接收', value: 'receive', class: 'bg-green-500' }
+                    ]
+                });
+                if (confirmed === 'receive') {
+                    msg.status = 'received';
+                    state.sui.balance += msg.amount;
+                    state.sui.transactions.unshift({
+                        id: Date.now(),
+                        timestamp: new Date().toLocaleString('zh-CN'),
+                        description: `收到来自 ${state.role.roleName || '角色'} 的转账`,
+                        amount: msg.amount
+                    });
                     await saveState();
-                    showToast('已存入记忆');
+                    renderChatHistory({ autoScroll: false });
+                    showToast(`已收款 ${msg.amount} 元`);
+                }
+            }
+        });
+
+        const renderMemoryList = () => {
+            memoryListEl.innerHTML = '';
+            if (!state.memories || state.memories.length === 0) {
+                memoryListEl.innerHTML = `<p class="text-center opacity-70">还没有任何记忆存档。</p>`;
+                return;
+            }
+            state.memories.forEach((mem, index) => {
+                const item = document.createElement('div');
+                item.className = 'memory-item p-4';
+                item.innerHTML = `
+                    ${isMemoryBatchDeleteMode ? `<input type="checkbox" data-index="${index}" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0 absolute top-4 left-4">` : ''}
+                    <p class="text-sm ${isMemoryBatchDeleteMode ? 'pl-8' : ''}">${mem.content}</p>
+                    <div class="text-xs opacity-50 mt-2 text-right ${isMemoryBatchDeleteMode ? 'pl-8' : ''}">${mem.timestamp}</div>
+                `;
+                if (!isMemoryBatchDeleteMode) {
+                    let pressTimer;
+                    const startPress = () => { pressTimer = setTimeout(() => manageMemory(index), 750); };
+                    const cancelPress = () => clearTimeout(pressTimer);
+                    item.addEventListener('mousedown', startPress);
+                    item.addEventListener('mouseup', cancelPress);
+                    item.addEventListener('mouseleave', cancelPress);
+                    item.addEventListener('touchstart', startPress, { passive: true });
+                    item.addEventListener('touchend', cancelPress);
+                }
+                memoryListEl.appendChild(item);
+            });
+            memoryBatchActions.style.display = isMemoryBatchDeleteMode ? 'flex' : 'none';
+        };
+
+        const manageMemory = (index) => {
+            const mem = state.memories[index];
+            if (!mem) return;
+            showDialog('管理记忆', `"${mem.content}"`, {
+                buttons: [
+                    {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
+                    {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'},
+                    {text: '删除', value: 'delete', class: 'bg-red-500/80'},
+                    {text: '编辑', value: 'edit', class: 'bg-blue-500'}
+                ]
+            }).then(async action => {
+                if (action === 'edit') {
+                    const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: mem.content });
+                    if (newContent) {
+                        state.memories[index].content = newContent;
+                        await saveState();
+                        renderMemoryList();
+                        showToast('记忆已更新');
+                    }
+                } else if (action === 'delete') {
+                    const confirmed = await showDialog('确认删除', '确定要删除这条记忆吗？');
+                    if (confirmed) {
+                        state.memories.splice(index, 1);
+                        await saveState();
+                        renderMemoryList();
+                        showToast('记忆已删除');
+                    }
+                } else if (action === 'batch-delete') {
+                    isMemoryBatchDeleteMode = true;
+                    renderMemoryList();
                 }
             });
+        };
 
-            suiClearAccountBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('重置账户', '确定要清空所有交易记录并重置账户吗？<br><br>这会导致下次对话时，系统根据角色人设重新生成初始资金。');
-                if (confirmed) {
-                    state.sui.transactions = [];
+        addMemoryBtn.addEventListener('click', async () => {
+            const content = await showDialog('添加新记忆', '', { input: true, placeholder: '输入记忆内容...' });
+            if (content) {
+                state.memories.unshift({ id: Date.now(), content, timestamp: new Date().toLocaleString() });
+                await saveState();
+                renderMemoryList();
+                showToast('记忆已添加');
+            }
+        });
+        batchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = !isMemoryBatchDeleteMode; renderMemoryList(); });
+        cancelBatchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = false; renderMemoryList(); });
+        confirmBatchDeleteMemoriesBtn.addEventListener('click', async () => {
+            const indicesToDelete = Array.from(memoryListEl.querySelectorAll('.batch-delete-checkbox:checked')).map(cb => parseInt(cb.dataset.index));
+            if (indicesToDelete.length === 0) { showToast('未选择任何记忆'); return; }
+            const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 条记忆吗？`);
+            if (confirmed) {
+                indicesToDelete.sort((a, b) => b - a).forEach(index => state.memories.splice(index, 1));
+                await saveState();
+                isMemoryBatchDeleteMode = false;
+                renderMemoryList();
+                showToast('记忆已删除');
+            }
+        });
+
+        const renderDiaryList = () => {
+            diaryListContainer.innerHTML = '';
+            if (!state.diaries || state.diaries.length === 0) { diaryListContainer.innerHTML = `<p class="text-center opacity-70">TA还没有写过日记。</p>`; return; }
+            state.diaries.forEach((diary, index) => {
+                const entryEl = document.createElement('div');
+                entryEl.className = 'diary-entry';
+                const contentHtml = diary.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/~~(.*?)~~/g, '<del>$1</del>').replace(/\n/g, '<br>');
+                entryEl.innerHTML = `
+                    <div class="text-sm text-right opacity-60 mb-2">${diary.timestamp}</div>
+                    <div class="diary-content text-base leading-relaxed ${isDiaryBatchDeleteMode ? 'pl-8' : ''}">${contentHtml}</div>
+                `;
+                if (isDiaryBatchDeleteMode) {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.dataset.index = index;
+                    checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                    entryEl.prepend(checkbox);
+                } else {
+                    const deleteBtn = document.createElement('button'); deleteBtn.className = 'diary-delete-btn'; deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    deleteBtn.onclick = async () => {
+                        const confirmed = await showDialog('确认删除', '确定要删除这篇日记吗？');
+                        if (confirmed) {
+                            state.diaries.splice(index, 1);
+                            await saveState();
+                            renderDiaryList();
+                            showToast('日记已删除');
+                        }
+                    };
+                    entryEl.appendChild(deleteBtn);
+                }
+                diaryListContainer.appendChild(entryEl);
+            });
+            diaryBatchActions.style.display = isDiaryBatchDeleteMode ? 'flex' : 'none';
+        };
+
+        generateDiaryBtn.addEventListener('click', async () => {
+            if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
+            showToast('正在生成新日记...'); generateDiaryBtn.disabled = true;
+            try {
+                const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
+                const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`
+                const messages = [{ role: 'system', content: systemPrompt }];
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 }) });
+                if (!response.ok) { throw new Error('API request failed'); }
+                const data = await response.json(); const diaryContent = data.choices?.[0]?.message?.content;
+                if (diaryContent) {
+                    state.diaries.unshift({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) });
+                    await saveState(); renderDiaryList(); showToast('新日记已生成');
+                } else { throw new Error('API response was empty.'); }
+            } catch (error) { console.error("日记生成失败:", error); showDialog('生成失败', `生成日记时发生错误: ${error.message}`); } finally { generateDiaryBtn.disabled = false; }
+        });
+
+        batchDeleteDiariesBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = !isDiaryBatchDeleteMode; renderDiaryList(); });
+        cancelBatchDeleteBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = false; renderDiaryList(); });
+        confirmBatchDeleteBtn.addEventListener('click', async () => {
+            const indicesToDelete = Array.from(diaryListContainer.querySelectorAll('.batch-delete-checkbox:checked')).map(cb => parseInt(cb.dataset.index));
+            if (indicesToDelete.length === 0) { showToast('未选择任何日记'); return; }
+            const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 篇日记吗？`);
+            if (confirmed) {
+                indicesToDelete.sort((a, b) => b - a).forEach(index => state.diaries.splice(index, 1));
+                await saveState(); isDiaryBatchDeleteMode = false; renderDiaryList(); showToast('日记已删除');
+            }
+        });
+
+        suiNav.addEventListener('click', (e) => {
+            const targetBtn = e.target.closest('.sui-nav-btn');
+            if (!targetBtn) return;
+            const targetSectionId = targetBtn.dataset.target;
+            suiNavBtns.forEach(btn => btn.classList.remove('active'));
+            targetBtn.classList.add('active');
+            suiContentSections.forEach(section => section.classList.add('hidden'));
+            const targetSection = get(targetSectionId);
+            if (targetSection) targetSection.classList.remove('hidden');
+        });
+
+        const renderSuiPage = () => {
+            suiBalanceEl.textContent = state.sui.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            if (state.sui.transactions.length === 0) { suiTransactionsListEl.innerHTML = `<p class="opacity-70 text-center">暂无记录</p>`; } 
+            else {
+                suiTransactionsListEl.innerHTML = '';
+                state.sui.transactions.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'sui-list-item transaction-item'; 
+                    el.innerHTML = `
+                        <div class="flex-grow flex flex-col">
+                            <span class="timestamp">${item.timestamp}</span>
+                            <span>${item.description}</span>
+                            <span class="amount-${item.amount > 0 ? 'positive' : 'negative'} font-mono text-lg mt-1">${item.amount > 0 ? '+' : ''}${item.amount.toFixed(2)}</span>
+                        </div>
+                        <div class="sui-item-actions">
+                            <button class="sui-action-btn" title="存为记忆" data-type="transactions" data-id="${item.id}" data-action="save"><i class="fas fa-save"></i></button>
+                            <button class="sui-action-btn" title="删除" data-type="transactions" data-id="${item.id}" data-action="delete"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `;
+                    suiTransactionsListEl.appendChild(el);
+                });
+            }
+
+            if (state.sui.otherChats.length === 0) { suiOtherChatsListEl.innerHTML = `<p class="opacity-70 text-center">暂无记录</p>`; } 
+            else {
+                suiOtherChatsListEl.innerHTML = '';
+                state.sui.otherChats.forEach(item => {
+                    const el = document.createElement('div'); el.className = 'sui-list-item';
+                    const chatLogHtml = item.log.map(log => `<p><strong>${log.sender}:</strong> ${log.text}</p>`).join('');
+                    el.innerHTML = `
+                        <div>
+                            <span class="timestamp">${item.timestamp}</span>
+                            与 <span class="chat-with">${item.with}</span> 的对话
+                            <div class="sui-chat-log">${chatLogHtml}</div>
+                        </div>
+                        <div class="sui-item-actions">
+                            <button class="sui-action-btn" title="存为记忆" data-type="otherChats" data-id="${item.id}" data-action="save"><i class="fas fa-save"></i></button>
+                            <button class="sui-action-btn" title="删除" data-type="otherChats" data-id="${item.id}" data-action="delete"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `;
+                    suiOtherChatsListEl.appendChild(el);
+                });
+            }
+            
+            if (state.sui.browsingHistory.length === 0) { suiBrowsingHistoryListEl.innerHTML = `<p class="opacity-70 text-center">暂无记录</p>`; } 
+            else {
+                suiBrowsingHistoryListEl.innerHTML = '';
+                state.sui.browsingHistory.forEach(item => {
+                    const el = document.createElement('div'); el.className = 'sui-list-item';
+                    const sessionHtml = item.session.map(page => `<p><strong>${page.title}</strong><br><span class="url">${page.url}</span></p>`).join('');
+                    el.innerHTML = `
+                        <div>
+                            <span class="timestamp">${item.timestamp}</span>
+                            浏览会话
+                            <div class="sui-browsing-session">${sessionHtml}</div>
+                        </div>
+                        <div class="sui-item-actions">
+                            <button class="sui-action-btn" title="存为记忆" data-type="browsingHistory" data-id="${item.id}" data-action="save"><i class="fas fa-save"></i></button>
+                            <button class="sui-action-btn" title="删除" data-type="browsingHistory" data-id="${item.id}" data-action="delete"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `;
+                    suiBrowsingHistoryListEl.appendChild(el);
+                });
+            }
+        };
+        
+        async function deleteSuiItem(type, id) {
+            const confirmed = await showDialog('确认删除', '确定要删除这条记录吗？此操作无法撤销。');
+            if (confirmed) {
+                state.sui[type] = state.sui[type].filter(item => item.id !== id);
+                await saveState();
+                renderSuiPage();
+                showToast('记录已删除');
+            }
+        }
+
+        async function saveSuiItemToMemory(type, id) {
+            const item = state.sui[type].find(i => i.id === id);
+            if (!item) return;
+
+            let memoryContent = '';
+            switch (type) {
+                case 'transactions':
+                    memoryContent = `[SUI记录] 发生了一笔交易：${item.description}，金额 ${item.amount.toFixed(2)}。`;
+                    break;
+                case 'otherChats':
+                    const chatSummary = item.log.map(l => `${l.sender}: ${l.text}`).join('; ');
+                    memoryContent = `[SUI记录] ${state.role.roleName} 与 ${item.with} 进行了交谈，内容摘要: ${chatSummary}`;
+                    break;
+                case 'browsingHistory':
+                    const pageTitles = item.session.map(p => p.title).join(', ');
+                    memoryContent = `[SUI记录] ${state.role.roleName} 浏览了关于 "${pageTitles}" 的网页。`;
+                    break;
+            }
+
+            if (memoryContent) {
+                state.memories.unshift({ id: Date.now(), content: memoryContent, timestamp: new Date().toLocaleString() });
+                await saveState();
+                showToast('SUI记录已存为记忆');
+            }
+        }
+
+        suiContentContainer.addEventListener('click', e => {
+            const actionBtn = e.target.closest('.sui-action-btn');
+            if (actionBtn) {
+                const type = actionBtn.dataset.type;
+                const id = parseFloat(actionBtn.dataset.id);
+                const action = actionBtn.dataset.action;
+                if (type && id) {
+                    if (action === 'delete') {
+                        deleteSuiItem(type, id);
+                    } else if (action === 'save') {
+                        saveSuiItemToMemory(type, id);
+                    }
+                }
+            }
+        });
+
+        const clearSuiSection = async (type, name) => {
+            if (state.sui[type].length === 0) { showToast(`【${name}】记录已为空`); return; }
+            const confirmed = await showDialog('清空确认', `确定要清空所有【${name}】记录吗？此操作不可逆。`);
+            if (confirmed) {
+                state.sui[type] = [];
+                if (type === 'transactions') {
                     state.sui.balance = 0;
                     state.sui.isInitialized = false;
-                    await saveState();
-                    renderSuiPage();
-                    showToast('账户记录已清空并重置');
                 }
-            });
+                await saveState();
+                renderSuiPage();
+                showToast(`【${name}】记录已清空`);
+            }
+        };
 
-            suiClearCommsBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('清空通讯记录', '确定要清空所有外部通讯记录吗？');
-                if (confirmed) {
-                    state.sui.otherChats = [];
-                    await saveState();
-                    renderSuiPage();
-                    showToast('外部通讯记录已清空');
-                }
-            });
+        suiClearAccountBtn.addEventListener('click', () => clearSuiSection('transactions', '账户'));
+        suiClearCommsBtn.addEventListener('click', () => clearSuiSection('otherChats', '通讯'));
+        suiClearBrowsingBtn.addEventListener('click', () => clearSuiSection('browsingHistory', '浏览'));
 
-            suiClearBrowsingBtn.addEventListener('click', async () => {
-                const confirmed = await showDialog('清空浏览记录', '确定要清空所有网页浏览记录吗？');
-                if (confirmed) {
-                    state.sui.browsingHistory = [];
-                    await saveState();
-                    renderSuiPage();
-                    showToast('浏览记录已清空');
-                }
-            });
+        exportDataBtn.addEventListener('click', async () => {
+            await saveState();
+            const stateToExport = localStorage.getItem('game_state_v5');
+            if (!stateToExport) { showDialog('导出失败', '没有可导出的数据。'); return; }
+            const blob = new Blob([stateToExport], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'game_data.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast('数据已导出');
+        });
+        
+        importDataBtn.addEventListener('click', () => importFileInput.click());
+        importFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    const confirmed = await showDialog('导入确认', '这将覆盖你当前的所有设置和进度。确定要导入吗？');
+                    if (confirmed) {
+                        localStorage.setItem('game_state_v5', JSON.stringify(importedData));
+                        showToast('正在应用数据...');
+                        location.reload();
+                    }
+                } catch (error) { showDialog('导入失败', `文件格式错误或已损坏: ${error.message}`); }
+            };
+            reader.readAsText(file);
+            importFileInput.value = '';
+        });
 
-            // --- Data Management ---
-            exportDataBtn.addEventListener('click', async () => {
-                await saveState(); const rawState = localStorage.getItem('game_state_v5');
-                if (!rawState) { showDialog('导出失败', '无法读取本地数据。'); return; }
-                const blob = new Blob([rawState], { type: 'application/json' }); const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `game_data_${new Date().toISOString().slice(0,10)}.json`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast('数据已导出');
-            });
-            importDataBtn.addEventListener('click', () => importFileInput.click());
-            importFileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    try {
-                        const importedState = JSON.parse(event.target.result);
-                        const confirmed = await showDialog('导入数据', '这将覆盖当前所有数据，确定要导入吗？应用将会刷新。');
-                        if (confirmed) { localStorage.setItem('game_state_v5', JSON.stringify(importedState)); showToast('数据导入成功，正在刷新...'); setTimeout(() => location.reload(), 1500); }
-                    } catch (error) { showDialog('导入失败', '文件格式错误或已损坏。'); console.error('Import failed:', error); } finally { importFileInput.value = ''; }
-                };
-                reader.readAsText(file);
-            });
+        await loadState();
+        initTouchEffects();
 
-            // --- Initial Load ---
-            await loadState();
-            initTouchEffects();
-
-        })();
+    })();
     </script>
 </body>
 </html>
