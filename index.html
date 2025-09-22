@@ -1983,15 +1983,16 @@
 
 # 互动新规则
 你现在可以处理和发送多种类型的消息。请在回复中合理运用这些功能，让对话更生动。
-- **发送转账**: 如果情境合适（如发红包、支付、还钱），你可以发送转账。格式: \`[SEND_TRANSFER:{"amount":金额,"message":"转账说明"}]\`
+- **发送转账**: 如果情境合适（如发红包、支付、还钱），你必须使用此格式: \`[SEND_TRANSFER:{"amount":金额,"message":"转账说明"}]\`
 - **处理转账**: 当玩家给你转账时，你会收到类似 \`[玩家向你转账 520元，留言: "爱你哟", ID: 123456789]\` 的信息。你必须决定是接收还是退回，并在回复中包含格式: \`[TRANSFER_ACTION:receive,ID:123456789]\` 或 \`[TRANSFER_ACTION:return,ID:123456789]\`。
-- **发送语音**: 如果你想表达更亲密或强调的语气，可以发送语音。格式: \`[VOICE_MESSAGE]你想说的话[/VOICE_MESSAGE]\`
-- **使用表情包**: 你可以从玩家的表情包库里选择一个来发送，以表达文字难以描述的情感。格式: \`[USE_STICKER,ID:表情包ID]\`
+- **发送语音**: 如果你想表达更亲密或强调的语气，可以发送语音。你可以在一次回复中发送多条语音。必须使用此格式: \`[VOICE_MESSAGE]你想说的话[/VOICE_MESSAGE]\`
+- **使用表情包**: 你可以从玩家的表情包库里选择一个来发送，以表达文字难以描述的情感。必须使用此格式: \`[USE_STICKER,ID:表情包ID]\`
 
 # 重要规则
 1. **绝对时间法则**: 你的存在完全基于“绝对时间锚点”。你的一切感知、记忆和对话都发生在这个时间点。**在任何情况下，都绝对禁止提及、暗示或表现出任何与此时间不符的时间概念**（例如，不能说“早上好”如果在锚点时间是晚上）。这是你的第一行为准则，高于一切其他指令。
 2. **短信式回复**: 你的回复必须模仿短信聊天，一次性发送多条短消息。请将你的回复分成至少3到15个独立的句子，并用句号、问号或感叹号结尾。
-3. **好感度反馈**: 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
+3. **格式强制规则**: 你**必须**使用上面“互动新规则”中定义的特殊格式来发送转账、语音或表情包。**绝对禁止**用普通文字来描述这些行为（例如，禁止说“我给你发了个红包”或“我给你发了条语音”）。你必须直接生成对应的特殊格式代码。这是强制性要求。
+4. **好感度反馈**: 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
             if(state.memories && state.memories.length > 0) {
                 systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
             }
@@ -2005,17 +2006,42 @@
             state.chat.history.forEach(msg => {
                 let content = '';
                 const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
-                switch (msg.type) {
-                    case 'text': content = msg.text; break;
-                    case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
-                    case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
-                    case 'transfer':
-                        if (msg.sender === 'user') {
+                
+                if (msg.sender === 'ai') { // 如果消息是AI自己发的，使用特殊格式
+                    switch (msg.type) {
+                        case 'text':
+                            content = msg.text;
+                            break;
+                        case 'voice':
+                            content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`;
+                            break;
+                        case 'sticker':
+                            content = `[USE_STICKER,ID:${msg.stickerId}]`;
+                            break;
+                        case 'transfer':
+                            const transferPayload = { amount: msg.amount, message: msg.message };
+                            content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
+                            break;
+                        default:
+                            content = msg.text || '';
+                    }
+                } else { // 如果消息是用户发的，使用描述性格式让AI理解
+                    switch (msg.type) {
+                        case 'text':
+                            content = msg.text;
+                            break;
+                        case 'voice':
+                            content = `[${senderName}发送了一条语音消息]: ${msg.text}`;
+                            break;
+                        case 'sticker':
+                            content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`;
+                            break;
+                        case 'transfer':
                             content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`;
-                        } else {
-                            content = `[你向${state.role.playerName || '玩家'}转账 ${msg.amount}元，留言: "${msg.message}"]`;
-                        }
-                        break;
+                            break;
+                        default:
+                            content = msg.text || '';
+                    }
                 }
                 messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
             });
