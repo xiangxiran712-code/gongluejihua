@@ -615,6 +615,18 @@
         .sticker-item:hover .sticker-item-delete {
             opacity: 1;
         }
+        /* --- 缩小多功能菜单 (新版) --- */
+
+/* 缩小菜单里每个按钮的大小和图标大小 */
+#multifunction-menu button {
+    padding: 0.5rem;      /* 减小按钮的内边距，让它变小 (原 p-3) */
+    font-size: 1.125rem;  /* 减小图标的大小 (原 text-2xl) */
+}
+
+/* 缩小整个菜单框的内边距 */
+#multifunction-menu .glass-container {
+    padding: 0.25rem;     /* (原 p-2) */
+}
     </style>
 </head>
 <body>
@@ -1004,7 +1016,7 @@
             }
         };
 
-        const APP_VERSION = "3.2.2"; // Version with sticker drawer fix
+        const APP_VERSION = "3.3.0"; // Version with UI size and fullscreen persistence fixes
 
         // --- IndexedDB Helper ---
         const db = {
@@ -1132,7 +1144,8 @@
             diaries: [],
             sui: { isInitialized: false, balance: 0, transactions: [], otherChats: [], browsingHistory: [] },
             music: { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 },
-            stickers: []
+            stickers: [],
+            ui: { isFullscreen: false } // New: For UI state persistence
         };
         
         const applyColors = (colors) => {
@@ -1246,6 +1259,7 @@
                 mergedState.sui = { ...defaultState.sui, ...(savedState.sui || {}) };
                 mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
                 mergedState.chat = { ...defaultState.chat, ...(savedState.chat || {}) };
+                mergedState.ui = { ...defaultState.ui, ...(savedState.ui || {}) }; // New: Merge UI state
 
                 Object.assign(state, mergedState);
             }
@@ -1268,6 +1282,15 @@
             renderFontOptions();
             await applyFont(state.config.fontFamily);
             
+            // New: Apply fullscreen state on load
+            if (state.ui.isFullscreen) {
+                document.body.classList.add('fullscreen-mode');
+                const icon = fullscreenBtn.querySelector('i');
+                const text = fullscreenBtn.querySelector('span');
+                icon.className = 'fas fa-compress';
+                text.textContent = '退出全屏';
+            }
+
             await initMusicPlayer();
             renderChatHistory({ autoScroll: true });
             renderMemoryList();
@@ -1714,13 +1737,16 @@
             await saveState(); showToast('角色设置已保存');
         });
 
-        function toggleFullscreen() {
-            document.body.classList.toggle('fullscreen-mode');
-            const isFullscreen = document.body.classList.contains('fullscreen-mode');
+        async function toggleFullscreen() {
+            const isNowFullscreen = !state.ui.isFullscreen;
+            state.ui.isFullscreen = isNowFullscreen;
+
+            document.body.classList.toggle('fullscreen-mode', isNowFullscreen);
+            
             const icon = fullscreenBtn.querySelector('i');
             const text = fullscreenBtn.querySelector('span');
 
-            if (isFullscreen) {
+            if (isNowFullscreen) {
                 icon.className = 'fas fa-compress';
                 text.textContent = '退出全屏';
                 showToast('按 Esc 键可退出全屏');
@@ -1728,6 +1754,7 @@
                 icon.className = 'fas fa-expand';
                 text.textContent = '全屏';
             }
+            await saveState();
         }
         fullscreenBtn.addEventListener('click', toggleFullscreen);
         window.addEventListener('keydown', (e) => {
@@ -1789,11 +1816,11 @@
             if (isChatBatchDeleteMode) {
                 chatFooter.style.display = 'none';
                 chatBatchActions.style.display = 'flex';
-                stickerDrawer.style.display = 'none'; // Fix: Force hide sticker drawer
+                stickerDrawer.style.display = 'none';
             } else {
                 chatFooter.style.display = 'flex';
                 chatBatchActions.style.display = 'none';
-                stickerDrawer.style.display = ''; // Fix: Revert to CSS control
+                stickerDrawer.style.display = '';
             }
             
             if (checkIndex !== null) {
@@ -2630,7 +2657,15 @@
             showToast('正在生成新日记...'); generateDiaryBtn.disabled = true;
             try {
                 const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-                const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`
+                const systemPrompt = `你现在是角色“${state.role.roleName}”，请根据你的角色设定和最近发生的事件，写一篇日记。日记应该反映你的心境、思考或对最近事件的感受。请直接返回日记正文，不要包含任何额外说明或标题。
+# 角色设定:
+${state.role.rolePersona}
+# 最近事件参考:
+${recentHistory || '无'}
+# 写作要求:
+- 使用第一人称。
+- 风格符合角色设定。
+- 可以使用 Markdown 语法来强调重点 (\`**加粗**\`)、表达内心想法 (\`*斜体*\`) 或划掉不想承认的内容 (\`~~删除线~~\`)。`;
                 const messages = [{ role: 'system', content: systemPrompt }];
                 const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 }) });
                 if (!response.ok) { throw new Error('API request failed'); }
