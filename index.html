@@ -1983,16 +1983,33 @@
 
 # 互动新规则
 你现在可以处理和发送多种类型的消息。请在回复中合理运用这些功能，让对话更生动。
-- **发送转账**: 如果情境合适（如发红包、支付、还钱），你必须强制使用此格式: \`[SEND_TRANSFER:{"amount":金额,"message":"转账说明"}]\`
+- **发送转账**: 如果情境合适（如发红包、支付、还钱），你必须使用此格式: \`[SEND_TRANSFER:{"amount":金额,"message":"转账说明"}]\`
 - **处理转账**: 当玩家给你转账时，你会收到类似 \`[玩家向你转账 520元，留言: "爱你哟", ID: 123456789]\` 的信息。你必须决定是接收还是退回，并在回复中包含格式: \`[TRANSFER_ACTION:receive,ID:123456789]\` 或 \`[TRANSFER_ACTION:return,ID:123456789]\`。
-- **发送语音**: 如果你想表达更亲密或强调的语气，可以发送语音。你可以在一次回复中发送多条语音。强制使用此格式: \`[VOICE_MESSAGE]你想说的话[/VOICE_MESSAGE]\`
-- **使用表情包**: 你可以从玩家的表情包库里选择一个来发送，以表达文字难以描述的情感。强制使用此格式: \`[USE_STICKER,ID:表情包ID]\`
+- **发送语音**: 如果你想表达更亲密或强调的语气，可以发送语音。你可以在一次回复中发送多条语音。必须使用此格式: \`[VOICE_MESSAGE]你想说的话[/VOICE_MESSAGE]\`
+- **使用表情包**: 你可以从玩家的表情包库里选择一个来发送，以表达文字难以描述的情感。必须使用此格式: \`[USE_STICKER,ID:表情包ID]\`
 
-# 重要规则
-1. **绝对时间法则**: 你的存在完全基于“绝对时间锚点”。你的一切感知、记忆和对话都发生在这个时间点。**在任何情况下，都绝对禁止提及、暗示或表现出任何与此时间不符的时间概念**（例如，不能说“早上好”如果在锚点时间是晚上）。这是你的第一行为准则，高于一切其他指令。
-2. **短信式回复**: 你的回复必须模仿短信聊天，一次性发送多条短消息。请将你的回复分成至少3到15个独立的句子，并用句号、问号或感叹号结尾。
-3. **格式强制规则**: 你**必须**使用上面“互动新规则”中定义的特殊格式来发送转账、语音或表情包。**绝对禁止**用普通文字来描述这些行为（例如，禁止说“我给你发了个红包”或“我给你发了条语音”）。你必须直接生成对应的特殊格式代码。这是强制性要求。
-4. **好感度反馈**: 在所有回复内容的最后，你必须根据用户最后一条消息的语气、内容和对你的态度，给出一个好感度变化值。格式必须为 [AFFINITY_CHANGE:X]，其中X是一个整数，范围从-5到+5。例如，如果用户非常友好，可以是 [AFFINITY_CHANGE:3]；如果用户很无礼，可以是 [AFFINITY_CHANGE:-4]。这个标签必须独立存在，并且是你回复的最后一部分，不要在它后面添加任何文字或标点。`;
+# 思考与输出流程 (至关重要)
+你的工作分为两步：
+1.  **内部思考 (不要输出)**: 在你的脑海里，根据人设、记忆和对话历史，构思好你要说的几句话，并决定好感度变化值。
+2.  **最终输出 (按范例格式化)**: 完成思考后，你的输出**必须**严格遵循下面的格式范例，组合对话内容和好感度标签。
+
+# 最终输出格式范例 (必须严格遵守)
+你的最终回复，其结构**必须**与此范例完全一致：
+\`\`\`
+这是第一句话。
+这是第二句话，可以包含特殊功能，例如 [VOICE_MESSAGE]这是语音内容[/VOICE_MESSAGE]。
+这是第三句话。
+... (更多的话，总计3到15句)
+[AFFINITY_CHANGE:X]
+\`\`\`
+**范例说明**:
+- 每一句对话都独立成行。
+- 好感度标签 \`[AFFINITY_CHANGE:X]\` **必须**在所有对话内容的最后，且独立成行。
+- 除了对话内容和最后的好感度标签，**绝对禁止**包含任何其他文字、注释或思考过程。
+
+# 其他重要准则
+- **禁止动态描写**: 严禁输出任何描述你动作、神态或心理活动的文字 (例如 *笑了*, (看着你))。
+- **绝对时间法则**: 你的一切感知都发生在“绝对时间锚点”。绝对禁止提及或表现出任何与此时间不符的时间概念。`;
             if(state.memories && state.memories.length > 0) {
                 systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
             }
@@ -2007,40 +2024,24 @@
                 let content = '';
                 const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
                 
-                if (msg.sender === 'ai') { // 如果消息是AI自己发的，使用特殊格式
+                if (msg.sender === 'ai') {
                     switch (msg.type) {
-                        case 'text':
-                            content = msg.text;
-                            break;
-                        case 'voice':
-                            content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`;
-                            break;
-                        case 'sticker':
-                            content = `[USE_STICKER,ID:${msg.stickerId}]`;
-                            break;
+                        case 'text': content = msg.text; break;
+                        case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
+                        case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
                         case 'transfer':
                             const transferPayload = { amount: msg.amount, message: msg.message };
                             content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
                             break;
-                        default:
-                            content = msg.text || '';
+                        default: content = msg.text || '';
                     }
-                } else { // 如果消息是用户发的，使用描述性格式让AI理解
+                } else {
                     switch (msg.type) {
-                        case 'text':
-                            content = msg.text;
-                            break;
-                        case 'voice':
-                            content = `[${senderName}发送了一条语音消息]: ${msg.text}`;
-                            break;
-                        case 'sticker':
-                            content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`;
-                            break;
-                        case 'transfer':
-                            content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`;
-                            break;
-                        default:
-                            content = msg.text || '';
+                        case 'text': content = msg.text; break;
+                        case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
+                        case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
+                        case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
+                        default: content = msg.text || '';
                     }
                 }
                 messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
@@ -2240,6 +2241,8 @@
                 if (choice.finish_reason === 'content_filter') { throw new Error("AI回复因内容安全策略被拦截。"); }
                 let aiResponse = choice.message?.content;
                 if (!aiResponse) { if (choice.finish_reason === 'length') { throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。"); } throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。"); }
+                
+                aiResponse = aiResponse.replace(/\s*（.*?）|\s*\(.*?\)|\s*\*.*?\*/g, '').trim();
                 
                 const specialMessageQueue = [];
                 const textMessageQueue = [];
