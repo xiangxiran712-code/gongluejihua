@@ -2280,7 +2280,7 @@
                     return '';
                 });
 
-                const useStickerRegex = /\[USE_STICKER,ID:(\d+)\]/g;
+                const useStickerRegex = /\[USE_STICKER,ID:(\d+)[^\]]*\]/g;
                 aiResponse = aiResponse.replace(useStickerRegex, (match, stickerId) => {
                     const id = parseInt(stickerId);
                     const sticker = state.stickers.find(s => s.id === id);
