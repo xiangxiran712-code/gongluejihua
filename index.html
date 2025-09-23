@@ -2271,7 +2271,7 @@
                     return '';
                 });
 
-                const voiceMessageRegex = /\[VOICE_MESSAGE\]([\s\S]*?)\[\/VOICE_MESSAGE\]/g;
+                const voiceMessageRegex = /\[VO-?ICE_MESSAGE\]([\s\S]*?)\[\/VO-?ICE_MESSAGE\]/g;
                 aiResponse = aiResponse.replace(voiceMessageRegex, (match, text) => {
                     const trimmedText = text.trim();
                     if (trimmedText) {
