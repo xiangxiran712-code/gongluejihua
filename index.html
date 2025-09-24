@@ -1698,7 +1698,25 @@
             }
         });
         roleBtn.addEventListener('click', () => { get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender; get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName; get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona; get('prompt-instructions').value = state.role.promptInstructions; showView('role'); });
-        settingsBtn.addEventListener('click', () => { get('signature-input').value = state.config.signature; apiBaseUrl.value = state.config.api.baseUrl; apiKey.value = state.config.api.key; apiModel.value = state.config.api.model; themeBgColor.value = state.config.colors.bgColor; themeTextColor.value = state.config.colors.textColor; themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); themeUserBubble.value = rgbaToHex(state.config.colors.userBubble); themeUserText.value = state.config.colors.userText; themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble); themeAiText.value = state.config.colors.aiText; fontFamilySelect.value = state.config.fontFamily; showView('settings'); });
+        settingsBtn.addEventListener('click', () => { 
+            get('signature-input').value = state.config.signature; 
+            apiBaseUrl.value = state.config.api.baseUrl; 
+            apiKey.value = state.config.api.key; 
+            apiModel.value = state.config.api.model; 
+            // --- 新增代码 ---
+            // 从 state 中读取 maxContext 的值并填充到输入框中，如果值不存在则使用默认值 20
+            get('api-max-context').value = state.config.api.maxContext || 20; 
+            // --- 新增结束 ---
+            themeBgColor.value = state.config.colors.bgColor; 
+            themeTextColor.value = state.config.colors.textColor; 
+            themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); 
+            themeUserBubble.value = rgbaToHex(state.config.colors.userBubble); 
+            themeUserText.value = state.config.colors.userText; 
+            themeAiBubble.value = rgbaToHex(state.config.colors.aiBubble); 
+            themeAiText.value = state.config.colors.aiText; 
+            fontFamilySelect.value = state.config.fontFamily; 
+            showView('settings'); 
+        });
         backBtns.forEach(btn => btn.addEventListener('click', () => showView('home')));
         avatarContainer.addEventListener('click', () => avatarUpload.click());
 
@@ -2271,8 +2289,11 @@
             }
             const messages = [{ role: 'system', content: systemPrompt }];
             
-            // --- 核心修正：重写历史记录处理逻辑，跳过所有系统消息 ---
-            state.chat.history.forEach(msg => {
+            // --- 核心修正：使用设置的上下文条数来截取历史记录 ---
+            const contextLimit = state.config.api.maxContext || 20;
+            const historyToProcess = state.chat.history.slice(-contextLimit);
+
+            historyToProcess.forEach(msg => {
                 // 如果消息是系统消息（如模式切换提示），则直接跳过，不发送给API
                 if (msg.sender === 'system') {
                     return;
@@ -2347,8 +2368,11 @@ ${state.memories.map(m => `- ${m.content}`).join('\n') || '  (暂无)'}
 `;
             const messages = [{ role: 'system', content: systemPrompt }];
 
-            // --- 核心修正：重写历史记录处理逻辑，跳过所有系统消息 ---
-            state.chat.history.forEach(msg => {
+            // --- 核心修正：使用设置的上下文条数来截取历史记录 ---
+            const contextLimit = state.config.api.maxContext || 20;
+            const historyToProcess = state.chat.history.slice(-contextLimit);
+
+            historyToProcess.forEach(msg => {
                 // 如果消息是系统消息（如模式切换提示），则直接跳过，不发送给API
                 if (msg.sender === 'system') {
                     return;
