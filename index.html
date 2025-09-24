@@ -2270,24 +2270,15 @@
             }
             const messages = [{ role: 'system', content: systemPrompt }];
             
-            // --- 这是本次的核心修正：重写历史记录处理逻辑 ---
+            // --- 核心修正：重写历史记录处理逻辑，跳过所有系统消息 ---
             state.chat.history.forEach(msg => {
+                // 如果消息是系统消息（如模式切换提示），则直接跳过，不发送给API
+                if (msg.sender === 'system') {
+                    return;
+                }
+
                 let content = '';
                 const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
-                
-                if (msg.sender === 'system') {
-                    // 将系统消息转换为强硬的、不容置疑的模式切换指令
-                    if (msg.text.includes('剧情模式')) {
-                        content = `(【系统强制指令】模式已切换：剧情模式。你的所有回复【必须】是小说式描写，包含环境、动作和对话。这是绝对规则。)`;
-                    } else if (msg.text.includes('手机模式')) {
-                        content = `(【系统强制指令】模式已切换：手机聊天。你的所有回复【必须】是纯文本聊天消息，严禁任何小说式描写。这是绝对规则。)`;
-                    } else {
-                        return; // 跳过其他类型的系统消息，不发送给AI
-                    }
-                    // 将这条强制指令作为用户回合的一部分发给AI，使其在生成回复前必须处理这条规则
-                    messages.push({ role: 'user', content: content });
-                    return; // 处理完这条系统消息，继续处理下一条历史记录
-                }
 
                 if (msg.sender === 'ai') {
                     switch (msg.type) {
@@ -2309,7 +2300,11 @@
                         default: content = msg.text || '';
                     }
                 }
-                messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
+                
+                // 确保不发送内容为空的消息
+                if (content) {
+                    messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
+                }
             });
             // --- 修正结束 ---
 
@@ -2351,24 +2346,15 @@ ${state.memories.map(m => `- ${m.content}`).join('\n') || '  (暂无)'}
 `;
             const messages = [{ role: 'system', content: systemPrompt }];
 
-            // --- 这是本次的核心修正：重写历史记录处理逻辑 ---
+            // --- 核心修正：重写历史记录处理逻辑，跳过所有系统消息 ---
             state.chat.history.forEach(msg => {
+                // 如果消息是系统消息（如模式切换提示），则直接跳过，不发送给API
+                if (msg.sender === 'system') {
+                    return;
+                }
+
                 let content = '';
                 const role = msg.sender === 'user' ? 'user' : 'assistant';
-                
-                if (msg.sender === 'system') {
-                    // 将系统消息转换为强硬的、不容置疑的模式切换指令
-                    if (msg.text.includes('剧情模式')) {
-                        content = `(【系统强制指令】模式已切换：剧情模式。你的所有回复【必须】是小说式描写，包含环境、动作和对话。这是绝对规则。)`;
-                    } else if (msg.text.includes('手机模式')) {
-                        content = `(【系统强制指令】模式已切换：手机聊天。你的所有回复【必须】是纯文本聊天消息，严禁任何小说式描写。这是绝对规则。)`;
-                    } else {
-                        return; // 跳过其他类型的系统消息
-                    }
-                    // 将这条强制指令作为用户回合的一部分发给AI
-                    messages.push({ role: 'user', content: content });
-                    return; // 处理完毕，继续下一条
-                }
                 
                 if (msg.sender === 'user') {
                     switch(msg.type) {
@@ -2379,12 +2365,13 @@ ${state.memories.map(m => `- ${m.content}`).join('\n') || '  (暂无)'}
                         default: content = msg.text;
                     }
                 } else { // AI sender
-                    // 在剧情模式下，AI之前的回复本身就是叙事性文本，直接使用
-                    // 如果是手机模式下的消息，也直接作为文本内容，让AI在剧情模式下理解这是之前发生的事
                     content = msg.text; 
                 }
 
-                messages.push({ role: role, content: content });
+                // 确保不发送内容为空的消息
+                if (content) {
+                    messages.push({ role: role, content: content });
+                }
             });
             // --- 修正结束 ---
 
