@@ -2591,8 +2591,10 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                     affinityMatches.forEach(match => {
                         // 从每个匹配项中提取数字
                         const value = parseInt(match.match(/(-?\d+)/)[1], 10);
-                        affinityChange += value;
-                    });
+                        if (!isNaN(value)) {
+                            affinityChange += value;
+                        }
+                      });
                     
                     if (affinityChange !== 0) {
                         state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
