@@ -374,7 +374,6 @@
         .sui-list-item .amount-positive { color: #4ade80; }
         .sui-list-item .amount-negative { color: #f87171; }
         .sui-list-item .chat-with { font-weight: bold; color: #93c5fd; }
-        /* NEW: Styles for chat log in SUI */
         .sui-chat-log {
             margin-top: 6px;
             padding-left: 10px;
@@ -385,7 +384,6 @@
             line-height: 1.4;
         }
         .sui-list-item .url { color: #a78bfa; word-break: break-all; }
-        /* NEW: Styles for browsing session in SUI */
         .sui-browsing-session {
             margin-top: 6px;
             padding-left: 10px;
@@ -400,7 +398,6 @@
             opacity: 0.7;
             font-size: 0.7rem;
         }
-        /* NEW: SUI item action buttons */
         .sui-item-actions {
             position: absolute;
             top: 0.5rem;
@@ -430,7 +427,6 @@
         .sui-action-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-        /* NEW: Section-specific clear button */
         .sui-section-clear-btn {
             background: rgba(255, 82, 82, 0.2);
             border: 1px solid rgba(255, 82, 82, 0.4);
@@ -450,11 +446,14 @@
             color: white;
             box-shadow: 0 0 8px rgba(255, 82, 82, 0.5);
         }
-        /* [修正] Transaction Item Layout */
+        /* MODIFIED: Transaction Item Layout */
         .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            /* No longer flex, elements will stack */
+        }
+        .sui-list-item .amount-display {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* --- Touch Effect --- */
@@ -501,6 +500,11 @@
         }
         .multifunction-btn:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+        .multifunction-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .transfer-bubble {
@@ -617,16 +621,55 @@
         }
         /* --- 缩小多功能菜单 (新版) --- */
 
-/* 缩小菜单里每个按钮的大小和图标大小 */
-#multifunction-menu button {
-    padding: 0.5rem;      /* 减小按钮的内边距，让它变小 (原 p-3) */
-    font-size: 1.125rem;  /* 减小图标的大小 (原 text-2xl) */
-}
+        /* 缩小菜单里每个按钮的大小和图标大小 */
+        #multifunction-menu button {
+            padding: 0.5rem;      /* 减小按钮的内边距，让它变小 (原 p-3) */
+            font-size: 1.125rem;  /* 减小图标的大小 (原 text-2xl) */
+        }
 
-/* 缩小整个菜单框的内边距 */
-#multifunction-menu .glass-container {
-    padding: 0.25rem;     /* (原 p-2) */
-}
+        /* 缩小整个菜单框的内边距 */
+        #multifunction-menu .glass-container {
+            padding: 0.25rem;     /* (原 p-2) */
+        }
+
+        /* --- NEW: Story Mode & System Message Styles --- */
+        #chat-page.story-mode .chat-header {
+            background-color: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        #chat-history.story-mode {
+            padding: 1rem;
+            display: block; /* Override flex display */
+        }
+        .story-block {
+            margin-bottom: 1.2em;
+            line-height: 1.75;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            cursor: default;
+        }
+        .story-block p {
+            margin: 0;
+            padding: 0;
+        }
+        .story-block strong {
+            font-weight: bold;
+        }
+        .system-message-wrapper {
+            width: 100%;
+            text-align: center;
+            margin: 0.5rem 0;
+        }
+        .system-message-text {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+        }
     </style>
 </head>
 <body>
@@ -733,6 +776,7 @@
                                     <button id="transfer-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="转账"><i class="fas fa-money-bill-wave"></i></button>
                                     <button id="voice-mode-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="语音模式"><i class="fas fa-microphone"></i></button>
                                     <button id="sticker-panel-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="表情包"><i class="fas fa-grin-alt"></i></button>
+                                    <button id="story-mode-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="剧情模式"><i class="fas fa-book-open"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -997,8 +1041,9 @@
         </div>
     </div>
 
-        <script>
-         (async () => { // Wrap in an async IIFE to use top-level await
+    
+<script>
+    (async () => { // Wrap in an async IIFE to use top-level await
         const get = id => document.getElementById(id);
         
         const UILock = {
@@ -1016,7 +1061,7 @@
             }
         };
 
-        const APP_VERSION = "3.3.0"; // Version with UI size and fullscreen persistence fixes
+        const APP_VERSION = "3.7.0"; // Version with parsing fixes
 
         // --- IndexedDB Helper ---
         const db = {
@@ -1084,8 +1129,9 @@
         let loadedFontFaces = new Set();
 
         // Page elements
+        const chatPage = get('chat-page');
         const phoneScreen = get('phone-screen');
-        const pages = { home: get('home-page'), chat: get('chat-page'), role: get('role-page'), settings: get('settings-page'), memory: get('memory-page'), diary: get('diary-page'), sui: get('sui-page') };
+        const pages = { home: get('home-page'), chat: chatPage, role: get('role-page'), settings: get('settings-page'), memory: get('memory-page'), diary: get('diary-page'), sui: get('sui-page') };
 
         // Buttons
         const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
@@ -1103,7 +1149,7 @@
         const chatBatchActions = get('chat-batch-actions'), confirmBatchDeleteChatBtn = get('confirm-batch-delete-chat-btn'), cancelBatchDeleteChatBtn = get('cancel-batch-delete-chat-btn');
         let isChatBatchDeleteMode = false;
         const multifunctionToggleBtn = get('multifunction-toggle-btn'), multifunctionMenu = get('multifunction-menu');
-        const transferBtn = get('transfer-btn'), voiceModeBtn = get('voice-mode-btn'), stickerPanelBtn = get('sticker-panel-btn');
+        const transferBtn = get('transfer-btn'), voiceModeBtn = get('voice-mode-btn'), stickerPanelBtn = get('sticker-panel-btn'), storyModeBtn = get('story-mode-btn');
         const stickerDrawer = get('sticker-drawer'), stickerGrid = get('sticker-grid'), addStickerBtn = get('add-sticker-btn');
         const stickerUploadInput = get('sticker-upload-input'), closeStickerDrawerBtn = get('close-sticker-drawer-btn');
 
@@ -1139,13 +1185,13 @@
             version: APP_VERSION,
             config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFonts: {} },
             role: { playerName: '', playerGender: '', playerPersona: '', roleName: '', roleGender: '', rolePersona: '', promptInstructions: '' },
-            chat: { history: [], affinity: 0, sendMode: 'text' },
+            chat: { history: [], affinity: 0, sendMode: 'text', mode: 'phone' }, // mode: 'phone' or 'story'
             memories: [],
             diaries: [],
             sui: { isInitialized: false, balance: 0, transactions: [], otherChats: [], browsingHistory: [] },
             music: { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 },
             stickers: [],
-            ui: { isFullscreen: false } // New: For UI state persistence
+            ui: { isFullscreen: false }
         };
         
         const applyColors = (colors) => {
@@ -1251,6 +1297,12 @@
             }
 
             if (savedState) {
+                // Compatibility check for story mode transition
+                if (!savedState.chat || typeof savedState.chat.mode === 'undefined') {
+                    if (savedState.chat) savedState.chat.mode = 'phone';
+                    else savedState.chat = { history: [], affinity: 0, sendMode: 'text', mode: 'phone' };
+                }
+
                 const defaultState = JSON.parse(JSON.stringify(state));
                 const mergedState = { ...defaultState, ...savedState };
                 mergedState.config = { ...defaultState.config, ...(savedState.config || {}) };
@@ -1259,7 +1311,7 @@
                 mergedState.sui = { ...defaultState.sui, ...(savedState.sui || {}) };
                 mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
                 mergedState.chat = { ...defaultState.chat, ...(savedState.chat || {}) };
-                mergedState.ui = { ...defaultState.ui, ...(savedState.ui || {}) }; // New: Merge UI state
+                mergedState.ui = { ...defaultState.ui, ...(savedState.ui || {}) };
 
                 Object.assign(state, mergedState);
             }
@@ -1282,7 +1334,6 @@
             renderFontOptions();
             await applyFont(state.config.fontFamily);
             
-            // New: Apply fullscreen state on load
             if (state.ui.isFullscreen) {
                 document.body.classList.add('fullscreen-mode');
                 const icon = fullscreenBtn.querySelector('i');
@@ -1765,54 +1816,127 @@
 
         const renderChatHistory = (options = {}) => {
             const { autoScroll = true, checkIndex = null } = options;
+            const isStoryMode = state.chat.mode === 'story';
 
             multifunctionMenu.classList.add('hidden');
             stickerDrawer.classList.remove('open');
 
-            chatHistory.innerHTML = ''; if (!state.chat.history) state.chat.history = [];
-            state.chat.history.forEach((msg, index) => {
-                const bubbleWrapper = document.createElement('div');
-                bubbleWrapper.className = `flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`;
-                
-                let bubble;
-                switch (msg.type) {
-                    case 'transfer': bubble = createTransferBubble(msg); break;
-                    case 'voice': bubble = createVoiceBubble(msg); break;
-                    case 'sticker': bubble = createStickerBubble(msg); break;
-                    default: bubble = createTextBubble(msg);
-                }
-                
-                bubble.dataset.index = index;
-                bubble.dataset.id = msg.id;
+            chatHistory.innerHTML = '';
+            chatPage.classList.toggle('story-mode', isStoryMode);
+            chatHistory.classList.toggle('story-mode', isStoryMode);
+            
+            if (!state.chat.history) state.chat.history = [];
 
-                if(isChatBatchDeleteMode) {
-                    const container = document.createElement('div');
-                    container.className = 'relative';
-                    bubble.classList.add('pl-12');
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+            state.chat.history.forEach((msg, index) => {
+                if (msg.sender === 'system') {
+                    chatHistory.appendChild(createSystemMessage(msg));
+                    return;
+                }
+
+                if (isStoryMode) {
+                    // --- Story Mode Rendering ---
+                    const block = document.createElement('div');
+                    block.className = 'story-block';
+                    block.dataset.index = index;
+                    block.dataset.id = msg.id;
+
+                    const content = document.createElement('p');
+                    let narrativeText = '';
+
+                    // Convert phone messages to narrative for display
+                    if (msg.sender === 'user') {
+                        narrativeText = `<strong>${state.role.playerName || '你'}:</strong> `;
+                        switch(msg.type) {
+                            case 'text': narrativeText += msg.text; break;
+                            case 'voice': narrativeText += `(发送了一段语音) "${msg.text}"`; break;
+                            case 'transfer': narrativeText += `(向${state.role.roleName || '对方'}转账 ${msg.amount}元) "${msg.message}"`; break;
+                            case 'sticker': narrativeText += `(发送了一个表示“${msg.meaning}”的表情)`; break;
+                            default: narrativeText += msg.text;
+                        }
+                    } else { // AI sender
+                        switch(msg.type) {
+                            case 'text': narrativeText = msg.text.replace(/\n/g, '<br>'); break;
+                            case 'voice': narrativeText = `<strong>${state.role.roleName || 'AI'}:</strong> (语音) "${msg.text}"`; break;
+                            case 'transfer': narrativeText = `(一则转账消息出现在屏幕上，金额 ${msg.amount}元，留言: "${msg.message}")`; break;
+                            case 'sticker': narrativeText = `<strong>${state.role.roleName || 'AI'}:</strong> (发来一个表示“${msg.meaning}”的表情)`; break;
+                            default: narrativeText = msg.text.replace(/\n/g, '<br>');
+                        }
+                    }
+                    content.innerHTML = narrativeText;
+                    block.appendChild(content);
+
+                    let pressTimer;
+                    block.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
+                    block.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                    block.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                    block.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
+                    block.addEventListener('touchend', () => clearTimeout(pressTimer));
+
+                    chatHistory.appendChild(block);
+                } else {
+                    // --- Phone (Bubble) Mode Rendering ---
+                    const bubbleWrapper = document.createElement('div');
+                    bubbleWrapper.className = `flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`;
                     
-                    if (index === checkIndex) {
-                        checkbox.checked = true;
+                    // Convert story messages to simple text bubbles for display
+                    if (msg.type === 'story' || (msg.text && (msg.type !== 'text' && msg.type !== 'transfer' && msg.type !== 'voice' && msg.type !== 'sticker'))) {
+                        msg.type = 'text';
                     }
 
-                    container.appendChild(bubble);
-                    container.appendChild(checkbox);
-                    bubbleWrapper.appendChild(container);
-                } else {
-                    let pressTimer;
-                    bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
-                    bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
-                    bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-                    bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
-                    bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    let bubble;
+                    switch (msg.type) {
+                        case 'transfer': bubble = createTransferBubble(msg); break;
+                        case 'voice': bubble = createVoiceBubble(msg); break;
+                        case 'sticker': bubble = createStickerBubble(msg); break;
+                        default: bubble = createTextBubble(msg);
+                    }
                     
-                    bubbleWrapper.appendChild(bubble);
+                    bubble.dataset.index = index;
+                    bubble.dataset.id = msg.id;
+
+                    if(isChatBatchDeleteMode) {
+                        const container = document.createElement('div');
+                        container.className = 'relative';
+                        bubble.classList.add('pl-12');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                        
+                        if (index === checkIndex) {
+                            checkbox.checked = true;
+                        }
+
+                        container.appendChild(bubble);
+                        container.appendChild(checkbox);
+                        bubbleWrapper.appendChild(container);
+                    } else {
+                        let pressTimer;
+                        bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
+                        bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                        bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                        bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
+                        bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                        
+                        bubbleWrapper.appendChild(bubble);
+                    }
+                    chatHistory.appendChild(bubbleWrapper);
                 }
-                chatHistory.appendChild(bubbleWrapper);
             });
             
+            // --- UI Updates based on mode ---
+            storyModeBtn.classList.toggle('text-blue-400', isStoryMode);
+            [transferBtn, voiceModeBtn, stickerPanelBtn].forEach(btn => {
+                btn.disabled = isStoryMode;
+            });
+            
+            if (isStoryMode) {
+                aiReplyBtn.textContent = '继续剧情';
+                userInput.placeholder = '输入你的行动或对话...';
+            } else {
+                aiReplyBtn.textContent = '角色回复';
+                userInput.placeholder = state.chat.sendMode === 'voice' ? '输入语音文字...' : '请输入消息...';
+            }
+
             if (isChatBatchDeleteMode) {
                 chatFooter.style.display = 'none';
                 chatBatchActions.style.display = 'flex';
@@ -1824,10 +1948,10 @@
             }
             
             if (checkIndex !== null) {
-                const targetBubble = chatHistory.querySelector(`[data-index="${checkIndex}"]`);
-                if (targetBubble) {
+                const targetEl = chatHistory.querySelector(`[data-index="${checkIndex}"]`);
+                if (targetEl) {
                     requestAnimationFrame(() => {
-                        targetBubble.scrollIntoView({ behavior: 'auto', block: 'center' });
+                        targetEl.scrollIntoView({ behavior: 'auto', block: 'center' });
                     });
                 }
             } else if (autoScroll && !isChatBatchDeleteMode) { 
@@ -1835,6 +1959,13 @@
             }
 
             affinityDisplay.textContent = `好感度：${state.chat.affinity}/100`;
+        };
+
+        const createSystemMessage = (msg) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'system-message-wrapper';
+            wrapper.innerHTML = `<span class="system-message-text">${msg.text}</span>`;
+            return wrapper;
         };
 
         const createTextBubble = (msg) => {
@@ -1847,7 +1978,9 @@
         const createTransferBubble = (msg) => {
             const bubble = document.createElement('div');
             const statusText = { pending: '待查收', received: '已收款', returned: '已退回' };
-            bubble.className = `transfer-bubble ${msg.sender} ${msg.status}`;
+            // --- 核心修正 ---
+            // 在这里添加了 'message-bubble' 类
+            bubble.className = `message-bubble transfer-bubble ${msg.sender} ${msg.status}`;
             bubble.innerHTML = `
                 <div class="transfer-content">
                     <i class="fas fa-money-bill-transfer"></i>
@@ -1874,7 +2007,9 @@
 
         const createStickerBubble = (msg) => {
             const bubble = document.createElement('div');
-            bubble.className = `sticker-bubble ${msg.sender}`;
+            // --- 核心修正 ---
+            // 在这里添加了 'message-bubble' 类
+            bubble.className = `message-bubble sticker-bubble ${msg.sender}`;
             const sticker = state.stickers.find(s => s.id === msg.stickerId);
             if (sticker) {
                 bubble.innerHTML = `<img src="${sticker.imageDataUrl}" alt="${sticker.meaning}">`;
@@ -1886,17 +2021,36 @@
 
         const manageChatMessage = (index) => {
             const msg = state.chat.history[index];
-            if (!msg) return;
+            if (!msg) return; // 只检查消息是否存在
 
+            // 优先处理系统消息（如模式切换分割线）
+            if (msg.sender === 'system') {
+                showDialog('管理系统消息', `消息内容: "${msg.text}"`, {
+                    buttons: [
+                        { text: '取消', value: 'cancel', class: 'bg-gray-500/50' },
+                        { text: '删除', value: 'delete', class: 'bg-red-500/80' }
+                    ]
+                }).then(async action => {
+                    if (action === 'delete') {
+                        state.chat.history.splice(index, 1);
+                        await saveState();
+                        renderChatHistory({ autoScroll: false });
+                        showToast('消息已删除');
+                    }
+                });
+                return; // 处理完毕，退出函数
+            }
+
+            // --- 以下为原有的对用户和AI消息的处理逻辑 ---
             let dialogMessage = '';
             let dialogButtons = [];
-
+            
             switch (msg.type) {
-                case 'text': dialogMessage = `"${msg.text}"`; break;
+                case 'text': dialogMessage = `"${(msg.text || '').substring(0, 50)}..."`; break;
                 case 'voice': dialogMessage = `一条 ${msg.duration}" 的语音消息`; break;
                 case 'transfer': dialogMessage = `一笔 ${msg.amount} 元的转账`; break;
                 case 'sticker': dialogMessage = `一个含义为 "${msg.meaning}" 的表情`; break;
-                default: dialogMessage = '一条未知类型的消息';
+                default: dialogMessage = `"${(msg.text || '').substring(0, 50)}..."`;
             }
             
             const commonButtons = [
@@ -1905,41 +2059,122 @@
                 {text: '删除', value: 'delete', class: 'bg-red-500/80'}
             ];
 
-            if (msg.type === 'text') {
+            if ((msg.type === 'text' || state.chat.mode === 'story') && !isChatBatchDeleteMode) {
                 dialogButtons = [...commonButtons, {text: '编辑', value: 'edit', class: 'bg-blue-500'}];
             } else {
                 dialogButtons = commonButtons;
             }
 
-            showDialog('管理消息', dialogMessage, { buttons: dialogButtons })
-                .then(async action => {
-                    if (action === 'edit' && msg.type === 'text') {
-                        const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
-                        if (newText) {
-                            state.chat.history[index].text = newText;
-                            await saveState();
-                            renderChatHistory({ autoScroll: false });
-                            showToast('消息已更新');
-                        }
-                    } else if (action === 'delete') {
-                        const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
-                        if (confirmed) {
-                            state.chat.history.splice(index, 1);
-                            await saveState();
-                            renderChatHistory({ autoScroll: false });
-                            showToast('消息已删除');
-                        }
-                    } else if (action === 'batch-delete') {
-                        multifunctionMenu.classList.add('hidden');
-                        stickerDrawer.classList.remove('open');
-                        isChatBatchDeleteMode = true;
-                        renderChatHistory({ checkIndex: index });
+            showDialog('管理消息', dialogMessage, { 
+                buttons: dialogButtons.map(b => b.disabled ? {...b, class: `${b.class} opacity-50 cursor-not-allowed`} : b) 
+            }).then(async action => {
+                const buttonInfo = dialogButtons.find(b => b.value === action);
+                if (buttonInfo && buttonInfo.disabled) return;
+
+                if (action === 'edit') {
+                    const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
+                    if (newText) {
+                        state.chat.history[index].text = newText;
+                        await saveState();
+                        renderChatHistory({ autoScroll: false });
+                        showToast('消息已更新');
                     }
-                });
+                } else if (action === 'delete') {
+                    const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
+                    if (confirmed) {
+                        state.chat.history.splice(index, 1);
+                        await saveState();
+                        renderChatHistory({ autoScroll: false });
+                        showToast('消息已删除');
+                    }
+                } else if (action === 'batch-delete') {
+                    multifunctionMenu.classList.add('hidden');
+                    stickerDrawer.classList.remove('open');
+                    isChatBatchDeleteMode = true;
+                    renderChatHistory({ checkIndex: index });
+                }
+            });
         };
 
+        // --- 唯一且正确的事件监听器 ---
+        chatHistory.addEventListener('click', async (e) => {
+            // 首先，找到被点击消息的容器 (气泡或剧情块)
+            const msgContainer = e.target.closest('.message-bubble, .story-block');
+            if (!msgContainer) return;
+
+            const msgId = parseInt(msgContainer.dataset.id, 10);
+            const msg = state.chat.history.find(m => m.id === msgId);
+            if (!msg) return;
+
+            // --- 语音消息点击处理 ---
+            if (e.target.closest('.voice-bubble') && msg.type === 'voice') {
+                msg.isExpanded = !msg.isExpanded;
+                
+                const scrollPosition = chatHistory.scrollHeight - chatHistory.scrollTop;
+                renderChatHistory({ autoScroll: false });
+                chatHistory.scrollTop = chatHistory.scrollHeight - scrollPosition;
+                
+                await saveState();
+                return;
+            }
+
+            // --- 转账消息点击处理 (增加退回功能) ---
+            if (e.target.closest('.transfer-bubble.pending') && msg.type === 'transfer' && msg.sender === 'ai') {
+                const action = await showDialog(
+                    '处理转账',
+                    `你收到一笔来自 ${state.role.roleName || '对方'} 的转账，金额 ${msg.amount.toFixed(2)} 元。`,
+                    {
+                        buttons: [
+                            { text: '取消', value: false, class: 'bg-gray-500/50' },
+                            { text: '退回', value: 'return', class: 'bg-yellow-600/80' },
+                            { text: '收取', value: 'receive', class: 'bg-blue-500' }
+                        ]
+                    }
+                );
+
+                if (action === 'receive') {
+                    msg.status = 'received';
+                    // 更新SUI账户余额
+                    state.sui.balance += msg.amount;
+                    // 在SUI中添加一条交易记录
+                    state.sui.transactions.unshift({
+                        id: Date.now(),
+                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                        description: `收到来自 ${state.role.roleName || '对方'} 的转账`,
+                        amount: msg.amount,
+                        relatedChatId: msg.id
+                    });
+                    showToast(`收款成功，余额增加 ${msg.amount.toFixed(2)}`);
+                    await saveState();
+                    renderChatHistory({ autoScroll: false });
+                } else if (action === 'return') {
+                    msg.status = 'returned';
+                    
+                    // --- 核心修正 1: 将金额返还给AI的余额 ---
+                    state.sui.balance += msg.amount;
+
+                    // --- 核心修正 2: 添加一笔退款的收入记录到SUI ---
+                    state.sui.transactions.unshift({
+                        id: Date.now(),
+                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                        description: `${state.role.playerName || '你'} 退回了一笔转账`,
+                        amount: msg.amount, // 金额为正，代表收入
+                        relatedChatId: msg.id
+                    });
+
+                    showToast(`已退回该笔转账，资金已返还`);
+                    await saveState();
+                    renderChatHistory({ autoScroll: false });
+                }
+                // 如果 action 为 false (点击了取消)，则不执行任何操作
+                return;
+            }
+        });
+
         const sendMessage = async (messageObject) => {
-            if (messageObject.type === 'text' && (!messageObject.text || !messageObject.text.trim())) return;
+            if (!messageObject.text && messageObject.sender !== 'system' && messageObject.type !== 'sticker' && messageObject.type !== 'transfer') return;
+            if (messageObject.sender !== 'system' && (!messageObject.text || !messageObject.text.trim()) && (messageObject.type === 'text' || messageObject.type === 'voice')) return;
+            
             state.chat.history.push(messageObject);
             if (messageObject.sender === 'user') userInput.value = '';
             await saveState();
@@ -1952,7 +2187,11 @@
             if (!text.trim()) return;
 
             let msgObject;
-            if (state.chat.sendMode === 'voice') {
+            const isStoryMode = state.chat.mode === 'story';
+
+            if (isStoryMode) {
+                msgObject = { id: Date.now(), sender: 'user', type: 'text', text: text };
+            } else if (state.chat.sendMode === 'voice') {
                 msgObject = {
                     id: Date.now(), sender: 'user', type: 'voice',
                     text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false
@@ -1966,9 +2205,10 @@
         userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }});
         userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
         
-        const createApiPrompt = () => {
+        const createPhoneApiPrompt = () => {
             let systemPrompt = `# 核心情境
 - **绝对时间锚点**: ${new Date().toLocaleString('zh-CN', { hour12: false })}.
+- **当前模式**: 你正在扮演角色“${state.role.roleName || '角色'}”，通过一个手机聊天APP与玩家（用户）进行**纯文本对话**。你的所有回复都必须、也只能是**聊天消息**。
 - 你的账户余额: ${state.sui.balance.toFixed(2)}
 
 # 你的角色信息
@@ -1980,6 +2220,9 @@
 - 名称: ${state.role.playerName || '玩家'}
 - 性别: ${state.role.playerGender || '未设定'}
 - 人设: ${state.role.playerPersona || '未设定'}
+
+# 上下文感知
+- **连贯的记忆**: 你们的互动是连续的。聊天记录中可能包含之前线下（剧情模式）发生的事件描述。请将这些描述视为你们共同的经历，并在此基础上进行当前的手机对话。
 
 # 互动新规则
 你现在可以处理和发送多种类型的消息。请在回复中合理运用这些功能，让对话更生动。
@@ -2005,11 +2248,17 @@
 **范例说明**:
 - 每一句对话都独立成行。
 - 好感度标签 \`[AFFINITY_CHANGE:X]\` **必须**在所有对话内容的最后，且独立成行。
+- **X 是一个整数，代表好感度的变化值。如果玩家的言行让你高兴，X为正数；如果让你不满或失望，X为负数；如果没有特别感觉，X为0。例如：[AFFINITY_CHANGE:2] 或 [AFFINITY_CHANGE:-1]。**
 - 除了对话内容和最后的好感度标签，**绝对禁止**包含任何其他文字、注释或思考过程。
 
 # 其他重要准则
 - **禁止动态描写**: 严禁输出任何描述你动作、神态或心理活动的文字 (例如 *笑了*, (看着你))。
-- **绝对时间法则**: 你的一切感知都发生在“绝对时间锚点”。绝对禁止提及或表现出任何与此时间不符的时间概念。`;
+- **绝对时间法则**: 你的一切感知都发生在“绝对时间锚点”。绝对禁止提及或表现出任何与此时间不符的时间概念。
+- **禁止模拟系统**: 禁止输出任何形式的系统提示或元注释。** 你的回复中绝对不能包含 \`[系统提示: ...]\` 或任何类似的、看起来像程序指令的方括号文本。
+- **禁止切换文体**: 绝对禁止在回复中突然转为第三人称叙事或小说风格。你只能作为“${state.role.roleName || '角色'}”说出你想说的话。
+
+# 最终指令 (ABSOLUTE FINAL INSTRUCTION)
+你的回复**必须**严格遵守上述格式。**绝对禁止**包含任何解释、思考过程或元注释。你的回复应该直接以第一句对话开始。任何偏离格式的回复都将被视为失败。`;
             if(state.memories && state.memories.length > 0) {
                 systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
             }
@@ -2020,10 +2269,26 @@
                 systemPrompt += `\n\n# 请遵循以下额外指令:\n${state.role.promptInstructions}`;
             }
             const messages = [{ role: 'system', content: systemPrompt }];
+            
+            // --- 这是本次的核心修正：重写历史记录处理逻辑 ---
             state.chat.history.forEach(msg => {
                 let content = '';
                 const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
                 
+                if (msg.sender === 'system') {
+                    // 将系统消息转换为强硬的、不容置疑的模式切换指令
+                    if (msg.text.includes('剧情模式')) {
+                        content = `(【系统强制指令】模式已切换：剧情模式。你的所有回复【必须】是小说式描写，包含环境、动作和对话。这是绝对规则。)`;
+                    } else if (msg.text.includes('手机模式')) {
+                        content = `(【系统强制指令】模式已切换：手机聊天。你的所有回复【必须】是纯文本聊天消息，严禁任何小说式描写。这是绝对规则。)`;
+                    } else {
+                        return; // 跳过其他类型的系统消息，不发送给AI
+                    }
+                    // 将这条强制指令作为用户回合的一部分发给AI，使其在生成回复前必须处理这条规则
+                    messages.push({ role: 'user', content: content });
+                    return; // 处理完这条系统消息，继续处理下一条历史记录
+                }
+
                 if (msg.sender === 'ai') {
                     switch (msg.type) {
                         case 'text': content = msg.text; break;
@@ -2035,7 +2300,7 @@
                             break;
                         default: content = msg.text || '';
                     }
-                } else {
+                } else { // user
                     switch (msg.type) {
                         case 'text': content = msg.text; break;
                         case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
@@ -2046,6 +2311,83 @@
                 }
                 messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
             });
+            // --- 修正结束 ---
+
+            return messages;
+        };
+
+        const createStoryApiPrompt = () => {
+            let systemPrompt = `# 模式转换：剧情模式
+你现在是故事的叙述者。你不再是通过手机与玩家对话，而是与玩家在同一个场景中进行实时互动。
+
+# 上下文感知
+- **连贯的记忆**: 你们的互动是连续的。你们刚刚可能还在手机上聊天，现在场景已经切换到了线下。下面的历史记录包含了之前的手机聊天内容，请在此基础上无缝衔接，继续发展剧情。
+
+# 核心规则
+1.  **解除限制**: 你现在**可以**并且**应该**进行详细的**环境描写、动作描写、神态描写和心理活动描写**。
+2.  **扮演双重角色**: 你既是**故事的旁白**，又是角色 **${state.role.roleName || 'AI'}** 本人。你需要用旁白推动剧情，并用对话展现角色性格。
+3.  **输出格式**: 你的回复必须是一个**连贯的、小说风格的段落**。将旁白和角色的对话自然地融合在一起。
+    -   对话部分使用引号包裹，例如：他微笑着说：“你好。”
+    -   动作和环境描写则直接陈述，例如：阳光透过窗户洒在地板上，他端起咖啡杯，轻轻吹了口气。
+4.  **好感度标签**: 在所有叙述和对话的**最后**，另起一行，必须包含好感度变化标签 \`[AFFINITY_CHANGE:X]\`。
+    -   **X是一个整数，代表好感度的变化值。**
+    -   **如果玩家的言行让你高兴或感动，X应为正数（例如：1, 2, 5）。**
+    -   **如果玩家的言行让你感到不满、被冒犯或失望，X应为负数（例如：-1, -2, -5）。**
+    -   **如果互动很平淡，X可以为0。**
+
+# 情境信息
+- **你的角色**: ${state.role.roleName || 'AI'} (${state.role.roleGender || '未设定'})，人设: ${state.role.rolePersona || '未设定'}
+- **玩家角色**: ${state.role.playerName || '玩家'} (${state.role.playerGender || '未设定'})，人设: ${state.role.playerPersona || '未设定'}
+- **共同记忆**:
+${state.memories.map(m => `- ${m.content}`).join('\n') || '  (暂无)'}
+- **额外指令**: ${state.role.promptInstructions || '无'}
+
+# 任务
+根据玩家的输入，继续推进故事。你的回复应该生动、富有画面感，并符合角色设定。
+
+# 输出范例
+微风拂过你的脸颊，带来了花园里玫瑰的芬芳。${state.role.roleName} 停下脚步，转身看着你，眼中带着一丝笑意。“这里的风景真不错，不是吗？” 他轻声说道，目光越过你的肩膀，望向远方的落日。
+[AFFINITY_CHANGE:2]
+`;
+            const messages = [{ role: 'system', content: systemPrompt }];
+
+            // --- 这是本次的核心修正：重写历史记录处理逻辑 ---
+            state.chat.history.forEach(msg => {
+                let content = '';
+                const role = msg.sender === 'user' ? 'user' : 'assistant';
+                
+                if (msg.sender === 'system') {
+                    // 将系统消息转换为强硬的、不容置疑的模式切换指令
+                    if (msg.text.includes('剧情模式')) {
+                        content = `(【系统强制指令】模式已切换：剧情模式。你的所有回复【必须】是小说式描写，包含环境、动作和对话。这是绝对规则。)`;
+                    } else if (msg.text.includes('手机模式')) {
+                        content = `(【系统强制指令】模式已切换：手机聊天。你的所有回复【必须】是纯文本聊天消息，严禁任何小说式描写。这是绝对规则。)`;
+                    } else {
+                        return; // 跳过其他类型的系统消息
+                    }
+                    // 将这条强制指令作为用户回合的一部分发给AI
+                    messages.push({ role: 'user', content: content });
+                    return; // 处理完毕，继续下一条
+                }
+                
+                if (msg.sender === 'user') {
+                    switch(msg.type) {
+                        case 'text': content = msg.text; break;
+                        case 'voice': content = `[玩家发送了一段语音]: "${msg.text}"`; break;
+                        case 'transfer': content = `[玩家向你转账 ${msg.amount}元，留言: "${msg.message}"]`; break;
+                        case 'sticker': content = `[玩家发送了一个表示“${msg.meaning}”的表情]`; break;
+                        default: content = msg.text;
+                    }
+                } else { // AI sender
+                    // 在剧情模式下，AI之前的回复本身就是叙事性文本，直接使用
+                    // 如果是手机模式下的消息，也直接作为文本内容，让AI在剧情模式下理解这是之前发生的事
+                    content = msg.text; 
+                }
+
+                messages.push({ role: role, content: content });
+            });
+            // --- 修正结束 ---
+
             return messages;
         };
 
@@ -2070,7 +2412,10 @@
             if (!state.config.api.baseUrl || !state.config.api.key) return null;
             console.log('%c[SUI] 正在调用SUI API...', 'color: #03a9f4; font-weight: bold;', { prompt: systemPrompt });
             try {
-                const messages = [{ role: 'system', content: systemPrompt }];
+                const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: '请根据系统指令，立即生成所需的JSON对象。' }
+];
                 const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
@@ -2104,403 +2449,956 @@
             }
         }
 
-        async function generateContextualTransaction() {
-            const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-            const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
-            const systemPrompt = `你是一个智能生活模拟器，为AI角色生成金融交易。你需要决定这笔交易是与玩家对话相关，还是角色自己的独立行为。
-# 核心信息
-- 角色人设: ${state.role.rolePersona || '未设定'}
-- 账户余额: ${state.sui.balance.toFixed(2)}
-- 当前时间: ${currentTime}
-- 最近对话: ${recentHistory}
+        async function generateTransactionBatch() {
+            const recentHistory = state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色')}: ${msg.type === 'text' ? msg.text : `[${msg.type}消息]`}`).join('\n');
+            const persona = state.role.rolePersona;
+            const count = Math.floor(Math.random() * 3) + 1; // 随机生成 1-3 条
 
-# 任务：决策与生成
-1.  **决策优先级 1 (情境关联)**: 首先，分析“最近对话”。对话中是否明确提到了任何与花钱或赚钱相关的行为？如果存在**强关联**，请生成与对话内容直接相关的交易。
-2.  **决策优先级 2 (独立生活)**: 如果对话中**没有**强关联的触发点，请**忽略对话内容**。转而根据角色的“人设”和“当前时间”来构思一笔或多笔完全独立的、符合其生活逻辑的交易。
-3.  **财务平衡原则**: 你的目标是模拟一个真实、动态的财务状况。**不要只生成收入或支出**。根据角色的生活方式和当前情境，合理地创造支出和收入（如日常消费、账单、娱乐）和收入（如薪水、奖金、投资回报）。账户应该有进有出，而不是单向增长或减少。
-4.  **数量要求**: 你必须生成 **1 到 3 笔** 交易记录。
-5.  **输出格式**: 必须返回一个JSON**数组**，其中包含1到3个交易对象。每个对象格式为 \`{"description": "交易描述", "amount": 数字}\`。如果经过判断，当前不适合生成任何交易，则返回一个空数组: \`[]\`。
+            const systemPrompt = `你是一个生活模拟器。基于以下角色设定和最近的对话，生成 ${count} 笔符合该角色生活方式的交易记录。
 
-# 示例输出
-[
-  {"description": "支付上月信用卡账单", "amount": -8540.50},
-  {"description": "收到项目奖金", "amount": +15000}
-]`;
-            const transactionsData = await callSuiApi(systemPrompt);
-            if (Array.isArray(transactionsData) && transactionsData.length > 0) {
-                let totalChange = 0;
-                for (const transaction of transactionsData) {
-                    if (transaction.description && typeof transaction.amount === 'number') {
-                        const newItem = {
-                            id: Date.now() + Math.random(),
-                            timestamp: new Date().toLocaleString('zh-CN', { hour12: false }),
+角色设定: ${persona}
+最近对话:
+${recentHistory}
+---
+你的输出必须是一个JSON数组，每个对象包含 "description" (字符串) 和 "amount" (数字)。
+- \`amount\` 为正数代表收入，为负数代表支出。
+- 请根据角色设定，合理地混合收入和支出。例如，一个CEO可能会有大额投资回报（收入）和奢侈品消费（支出）；一个学生可能会有兼职收入和生活开销。
+- 描述要简洁明了。
+
+例如，如果需要生成2笔记录:
+[{"description": "季度项目奖金", "amount": +50000}, {"description": "购买新款笔记本电脑", "amount": -15800}]
+
+不要输出任何其他内容，只输出JSON数组。`;
+
+            const result = await callSuiApi(systemPrompt);
+            
+            if (result && Array.isArray(result)) {
+                let totalAmount = 0;
+                for (const transaction of result) {
+                    if (typeof transaction.description === 'string' && typeof transaction.amount === 'number') {
+                        const newTransaction = {
+                            id: Date.now() + Math.random(), // Add random to avoid collision in batch
+                            timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
                             description: transaction.description,
                             amount: transaction.amount
                         };
-                        state.sui.transactions.unshift(newItem);
-                        totalChange += newItem.amount;
+                        state.sui.transactions.unshift(newTransaction);
+                        totalAmount += transaction.amount;
+                        showToast(`【SUI：新交易 - ${transaction.description} ${transaction.amount.toFixed(2)}】`);
                     }
                 }
-                if (transactionsData.length > 0) {
-                    state.sui.balance += totalChange;
-                    showToast(`【SUI：新增 ${transactionsData.length} 笔账户变动】`);
-                    if (pages.sui.offsetParent !== null) { renderSuiPage(); }
-                    await saveState();
-                }
-            }
-        }
-        
-        async function generateSuiOtherChat() {
-            const roleName = state.role.roleName || '角色';
-            const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
-            const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-            const systemPrompt = `你是一个智能生活模拟器，为AI角色“${roleName}”生成外部通讯。你需要决定这次通讯是与玩家对话相关，还是角色自己的独立行为。
-# 核心信息
-- 角色人设: ${state.role.rolePersona || '未设定'}
-- 当前时间: ${currentTime}
-- 与玩家的最近对话: ${recentHistory}
-
-# 任务：决策与生成
-1.  **决策优先级 1 (情境关联)**: 首先，分析“与玩家的最近对话”。对话中是否提到了某个具体的人、或一个涉及他人的约定（如“我等下要去见王教授”、“我妹妹快生日了”）？如果存在**强关联**，请生成一段“${roleName}”与该相关人物的对话。
-2.  **决策优先级 2 (独立生活)**: 如果对话中**没有**强关联的触发点，请**忽略对话内容**。转而根据角色的“人设”和“当前时间”来构思一段完全独立的、符合其生活逻辑的对话（如与同事讨论工作、与朋友闲聊、家人的问候等）。
-3.  **输出格式**: 必须以JSON格式返回，不要包含任何解释。
-# JSON格式:
-{
-  "with": "对方姓名",
-  "log": [
-    {"sender": "发送者姓名", "text": "消息内容"}
-  ]
-}`;
-            const chatData = await callSuiApi(systemPrompt);
-            if (chatData && chatData.with && Array.isArray(chatData.log) && chatData.log.length > 0) {
-                const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), with: chatData.with, log: chatData.log };
-                state.sui.otherChats.unshift(newItem);
-                showToast(`【SUI：收到来自 ${chatData.with} 的新消息】`);
-                if (pages.sui.offsetParent !== null) { renderSuiPage(); }
+                state.sui.balance += totalAmount;
                 await saveState();
             }
         }
 
-        async function generateSuiBrowsingSession() {
-            const currentTime = new Date().toLocaleString('zh-CN', { hour12: false });
-            const recentHistory = state.chat.history.slice(-6).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-            const systemPrompt = `你是一个智能生活模拟器，为AI角色生成网页浏览记录。你需要决定这次浏览是与玩家对话相关，还是角色自己的独立行为。
-# 核心信息
-- 角色人设: ${state.role.rolePersona || '未设定'}
-- 当前时间: ${currentTime}
-- 与玩家的最近对话: ${recentHistory}
+        async function generateOtherChat() {
+            const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色')}: ${msg.text}`).join('\n');
+            const persona = state.role.rolePersona;
+            const systemPrompt = `你是一个生活模拟器。基于以下角色设定，虚构一段该角色与另一人（非玩家）的简短对话（2-4句）。
+角色设定: ${persona}
+---
+你的输出必须是一个JSON对象，格式如下: {"with": "对话者名称/身份", "log": [{"sender": "角色名", "text": "对话内容"}, {"sender": "对话者", "text": "对话内容"}]}
+例如: {"with": "助理小陈", "log": [{"sender": "${state.role.roleName}", "text": "下午的会议资料准备好了吗？"}, {"sender": "助理小陈", "text": "准备好了，董事长。"}]}
+不要输出任何其他内容。`;
+            const result = await callSuiApi(systemPrompt);
+            if (result && result.with && Array.isArray(result.log)) {
+                const newChat = {
+                    id: Date.now(),
+                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                    with: result.with,
+                    log: result.log
+                };
+                state.sui.otherChats.unshift(newChat);
+                showToast(`【SUI：新通讯 - 与 ${result.with} 的对话】`);
+                await saveState();
+            }
+        }
 
-# 任务：决策与生成
-1.  **决策优先级 1 (情境关联)**: 首先，分析“与玩家的最近对话”。对话中是否提到了某个需要查询信息的话题（如一部电影、一个地点、一个知识点、一件商品）？如果存在**强关联**，请生成一段与该话题直接相关的浏览记录。
-2.  **决策优先级 2 (独立生活)**: 如果对话中**没有**强关联的触发点，请**忽略对话内容**。转而根据角色的“人设”、“职业”或“兴趣爱好”来构思一段完全独立的浏览记录（如工作查资料、看新闻、刷社交媒体、网上购物等）。
-3.  **输出格式**: 必须以JSON格式返回，不要包含任何解释。
-# JSON格式:
-{
-  "session": [
-    {"title": "页面标题", "url": "页面URL"}
-  ]
-}`;
-            const browsingData = await callSuiApi(systemPrompt);
-            if (browsingData && Array.isArray(browsingData.session) && browsingData.session.length > 0) {
-                const newItem = { id: Date.now(), timestamp: new Date().toLocaleString('zh-CN', { hour12: false }), session: browsingData.session };
-                state.sui.browsingHistory.unshift(newItem);
-                showToast(`【SUI：检测到新的浏览活动】`);
-                if (pages.sui.offsetParent !== null) { renderSuiPage(); }
+        async function generateBrowsingHistory() {
+            const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? '玩家' : '角色'}: ${msg.text}`).join('\n');
+            const persona = state.role.rolePersona;
+            const systemPrompt = `你是一个生活模拟器。基于以下角色设定和最近对话，虚构一个该角色刚刚进行的网络浏览会话（2-3个相关页面）。
+角色设定: ${persona}
+最近对话:
+${recentHistory}
+---
+你的输出必须是一个JSON对象，格式如下: {"session": [{"title": "页面标题1", "url": "https://example.com/page1"}, {"title": "页面标题2", "url": "https://example.com/page2"}]}
+URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或最近关心的话题。不要输出任何其他内容。`;
+            const result = await callSuiApi(systemPrompt);
+            if (result && Array.isArray(result.session) && result.session.length > 0) {
+                const newHistory = {
+                    id: Date.now(),
+                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                    session: result.session
+                };
+                state.sui.browsingHistory.unshift(newHistory);
+                showToast(`【SUI：新浏览记录 - 搜索了“${result.session[0].title}”】`);
                 await saveState();
             }
         }
 
         async function triggerSuiGeneration() {
-            if (!state.config.api.key) return; 
-            await initializeSuiBalance(); 
-            const generationTasks = [];
-            const transactionChance = 0.65, otherChatChance = 0.55, browsingChance = 0.55;  
-            if (Math.random() < transactionChance) { generationTasks.push(generateContextualTransaction()); }
-            if (Math.random() < otherChatChance) { generationTasks.push(generateSuiOtherChat()); }
-            if (Math.random() < browsingChance) { generationTasks.push(generateSuiBrowsingSession()); }
-            if (generationTasks.length > 0) { await Promise.all(generationTasks); }
-        }
+            // 定义一个空数组，用来存放所有需要执行的生成任务（Promise）
+            const promises = [];
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+            // --- 核心升级：调用批量交易生成函数 ---
+            // 交易记录：80% 的生成概率
+            if (Math.random() < 0.80) {
+                promises.push(generateTransactionBatch());
+            }
+
+            // 2. 外部通讯：50% 的生成概率
+            if (Math.random() < 0.50) {
+                promises.push(generateOtherChat());
+            }
+
+            // 3. 浏览记录：50% 的生成概率
+            if (Math.random() < 0.50) {
+                promises.push(generateBrowsingHistory());
+            }
+
+            // 如果有任何任务被选中，就并行执行它们
+            if (promises.length > 0) {
+                try {
+                    // Promise.all 会同时开始所有任务，并等待它们全部完成
+                    await Promise.all(promises);
+                    console.log(`%c[SUI] 成功并行生成了 ${promises.length} 组记录。`, 'color: #4caf50; font-weight: bold;');
+                } catch (error) {
+                    // 如果其中任何一个任务失败，这里会捕获到错误
+                    console.error("%c[SUI] 并行生成记录时发生错误:", 'color: #f44336; font-weight: bold;', error);
+                }
+            }
+        }
+        
+        async function getAiReply() {
+            if (!state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！'); return; }
+            aiReplyBtn.disabled = true;
+            showToast('对方正在输入...');
+            await initializeSuiBalance();
+
+            try {
+                const messages = state.chat.mode === 'phone' ? createPhoneApiPrompt() : createStoryApiPrompt();
+                
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7 })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                const reply = data.choices[0].message.content.trim();
+                
+                // 【核心升级】使用高容错的正则表达式优先处理好感度标签
+                let cleanReply = reply;
+                const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
+                const affinityMatches = reply.match(affinityRegex);
+
+                if (affinityMatches) {
+                    let affinityChange = 0;
+                    affinityMatches.forEach(match => {
+                        // 从每个匹配项中提取数字
+                        const value = parseInt(match.match(/(-?\d+)/)[1], 10);
+                        affinityChange += value;
+                    });
+                    
+                    if (affinityChange !== 0) {
+                        state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
+                        const sign = affinityChange > 0 ? '+' : '';
+                        showToast(`好感度 ${sign}${affinityChange}`);
+                    }
+                    
+                    // 从回复文本中删除所有匹配到的好感度指令标签
+                    cleanReply = reply.replace(affinityRegex, '').trim();
+                }
+                // 【升级结束】
+                
+                if (state.chat.mode === 'story') {
+                    await sendMessage({ id: Date.now(), sender: 'ai', type: 'story', text: cleanReply });
+                } else {
+                    // --- 容错解析与智能分句 (此部分逻辑不变) ---
+                    const tagRegex = /(\[VO-?ICE_MESSAGE\].*?\[\/VO-?ICE_MESSAGE\]|\[SEND-?_TRANSFER:.*?\]|\[USE-?_STICKER,ID:\d+\]|\[TRANSFER-?_ACTION:(?:receive|return),ID:\d+\])/gis;
+
+                    const mixedParts = cleanReply.split(tagRegex).filter(part => part && part.trim());
+                    
+                    let processedParts = [];
+                    for (const part of mixedParts) {
+                        if (!part.match(tagRegex)) {
+                            const sentences = part.split(/(?<=[。！？…”])\s*/).filter(s => s.trim());
+                            processedParts.push(...sentences);
+                        } else {
+                            processedParts.push(part);
+                        }
+                    }
+
+                    for (const part of processedParts) {
+                        const trimmedPart = part.trim();
+                        
+                        const voiceMatch = trimmedPart.match(/^\[VO-?ICE_MESSAGE\](.*)\[\/VO-?ICE_MESSAGE\]$/si);
+                        const transferMatch = trimmedPart.match(/^\[SEND-?_TRANSFER:(.*)\]$/si);
+                        const stickerMatch = trimmedPart.match(/^\[USE-?_STICKER,ID:(\d+)\]$/i);
+                        const actionMatch = trimmedPart.match(/^\[TRANSFER-?_ACTION:(receive|return),ID:(\d+)\]$/i);
+
+                        let msgObject;
+
+                        if (voiceMatch) {
+                            const text = voiceMatch[1].trim();
+                            if (text) msgObject = { id: Date.now(), sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
+                        } else if (transferMatch) {
+                            try {
+                                let payloadString = transferMatch[1].replace(/(\r\n|\n|\r)/gm, "");
+                                const payload = JSON.parse(payloadString);
+                                const transferId = Date.now();
+                                msgObject = { id: transferId, sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message, status: 'pending' };
+                                state.sui.balance -= payload.amount;
+                                state.sui.transactions.unshift({
+                                    id: Date.now(),
+                                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                                    description: `向 ${state.role.playerName || '你'} 转账`,
+                                    amount: -payload.amount,
+                                    relatedChatId: transferId
+                                });
+                                showToast(`【SUI：转账 -${payload.amount.toFixed(2)}】`);
+                            } catch (e) { 
+                                console.error("Failed to parse transfer payload:", transferMatch[1], e); 
+                                msgObject = { id: Date.now(), sender: 'ai', type: 'text', text: `[转账格式错误: ${trimmedPart}]` };
+                            }
+                        } else if (stickerMatch) {
+                            const stickerId = parseInt(stickerMatch[1], 10);
+                            const sticker = state.stickers.find(s => s.id === stickerId);
+                            if (sticker) {
+                                msgObject = { id: Date.now(), sender: 'ai', type: 'sticker', stickerId: sticker.id, meaning: sticker.meaning };
+                            }
+                        } else if (actionMatch) {
+                            const action = actionMatch[1];
+                            const msgId = parseInt(actionMatch[2], 10);
+                            const transferMsg = state.chat.history.find(m => m.id === msgId && m.type === 'transfer');
+                            if (transferMsg) {
+                                transferMsg.status = action === 'receive' ? 'received' : 'returned';
+                                if (action === 'receive') {
+                                    state.sui.balance += transferMsg.amount;
+                                    state.sui.transactions.unshift({
+                                        id: Date.now(),
+                                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                                        description: `收到来自 ${state.role.playerName || '你'} 的转账`,
+                                        amount: transferMsg.amount,
+                                        relatedChatId: transferMsg.id
+                                    });
+                                    showToast(`【SUI：收款 ${transferMsg.amount.toFixed(2)}】`);
+                                }
+                                if (processedParts.length === 1) {
+                                    const defaultText = action === 'receive' ? '我收下啦，谢谢！' : '心意领了，但这个还是退给你吧。';
+                                    msgObject = { id: Date.now(), sender: 'ai', type: 'text', text: defaultText };
+                                }
+                            }
+                        } else {
+                            if (trimmedPart) {
+                                msgObject = { id: Date.now(), sender: 'ai', type: 'text', text: trimmedPart };
+                            }
+                        }
+
+                        if (msgObject) {
+                            await sendMessage(msgObject);
+                            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500)); // Typing delay
+                        }
+                    }
+                }
+                
+                await saveState();
+                await triggerSuiGeneration();
+
+            } catch (error) {
+                console.error("AI 回复失败:", error);
+                showDialog('AI 回复失败', `错误: ${error.message}`);
+            } finally {
+                aiReplyBtn.disabled = false;
             }
         }
 
-        async function getAiReply() {
+        sendBtn.addEventListener('click', handleSend);
+        aiReplyBtn.addEventListener('click', async () => {
             if (UILock.isLocked()) return;
-            if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-            showToast('角色正在思考中...'); aiReplyBtn.disabled = true;
-            try {
-                const messages = createApiPrompt();
-                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7, stream: false }) });
-                if (!response.ok) { const errorData = await response.json().catch(() => ({ error: { message: '无法解析错误响应' } })); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || '未知网络错误'}`); }
-                const data = await response.json(); if (data.error) { throw new Error(`API返回错误: ${data.error.message}`); }
-                const choice = data.choices?.[0]; if (!choice) { throw new Error("无法解析API响应格式：响应中缺少 'choices' 数组或数组为空。"); }
-                if (choice.finish_reason === 'content_filter') { throw new Error("AI回复因内容安全策略被拦截。"); }
-                let aiResponse = choice.message?.content;
-                if (!aiResponse) { if (choice.finish_reason === 'length') { throw new Error("AI回复因达到最大长度限制而被截断，且内容为空。请检查API的max_tokens设置。"); } throw new Error("无法解析API响应格式：在API的成功响应中未找到有效的 'content' 内容。"); }
-                
-                aiResponse = aiResponse.replace(/\s*（.*?）|\s*\(.*?\)|\s*\*.*?\*/g, '').trim();
-                
-                const specialMessageQueue = [];
-                const textMessageQueue = [];
+            UILock.lock();
+            await getAiReply();
+        });
 
-                const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/;
-                aiResponse = aiResponse.replace(affinityRegex, (match, p1) => {
-                    state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + parseInt(p1, 10)));
-                    return '';
-                });
-
-                const transferActionRegex = /\[TRANSFER_ACTION:(receive|return),ID:(\d+)\]/g;
-                aiResponse = aiResponse.replace(transferActionRegex, (match, action, id) => {
-                    const transferMsg = state.chat.history.find(m => m.id === parseInt(id));
-                    if (transferMsg) {
-                        transferMsg.status = action === 'receive' ? 'received' : 'returned';
-                        if (action === 'receive') { state.sui.balance += transferMsg.amount; }
-                    }
-                    return '';
-                });
-
-                const sendTransferRegex = /\[SEND_TRANSFER:({.*?})\]/g;
-                aiResponse = aiResponse.replace(sendTransferRegex, (match, jsonString) => {
-                    try {
-                        const transferData = JSON.parse(jsonString);
-                        if (transferData.amount > 0 && state.sui.balance >= transferData.amount) {
-                            specialMessageQueue.push({ type: 'send_transfer', data: transferData });
-                        }
-                    } catch(e) { console.error("Failed to parse SEND_TRANSFER JSON", e); }
-                    return '';
-                });
-
-                const voiceMessageRegex = /\[VO-?_?ICE_?MESSAGE\]([\s\S]*?)\[\/VO-?_?ICE_?MESSAGE\]/g;
-                aiResponse = aiResponse.replace(voiceMessageRegex, (match, text) => {
-                    const trimmedText = text.trim();
-                    if (trimmedText) {
-                        specialMessageQueue.push({ type: 'voice', data: { text: trimmedText } });
-                    }
-                    return '';
-                });
-
-                const useStickerRegex = /\[USE_?STICK-?ER,ID:(\d+)[^\]]*\]/g;
-                aiResponse = aiResponse.replace(useStickerRegex, (match, stickerId) => {
-                    const id = parseInt(stickerId);
-                    const sticker = state.stickers.find(s => s.id === id);
-                    if (sticker) {
-                        specialMessageQueue.push({ type: 'sticker', data: { stickerId: sticker.id, meaning: sticker.meaning } });
-                    }
-                    return '';
-                });
-                
-                const replyMessages = aiResponse.trim().match(/[^。！？?!]+[。！？?!]?/g) || [];
-                replyMessages.forEach(text => {
-                    if (text.trim()) {
-                        textMessageQueue.push({ type: 'text', data: { text: text.trim() } });
-                    }
-                });
-
-                const finalMessageQueue = [...textMessageQueue];
-                specialMessageQueue.forEach(item => {
-                    const randomIndex = Math.floor(Math.random() * (finalMessageQueue.length + 1));
-                    finalMessageQueue.splice(randomIndex, 0, item);
-                });
-
-                for (const msg of finalMessageQueue) {
-                    switch (msg.type) {
-                        case 'send_transfer':
-                            state.sui.balance -= msg.data.amount;
-                            await sendMessage({
-                                id: Date.now(), sender: 'ai', type: 'transfer',
-                                amount: msg.data.amount, message: msg.data.message, status: 'pending'
-                            });
-                            break;
-                        case 'voice':
-                            await sendMessage({
-                                id: Date.now(), sender: 'ai', type: 'voice', text: msg.data.text,
-                                duration: Math.max(1, Math.ceil(msg.data.text.length / 3)), isExpanded: false
-                            });
-                            break;
-                        case 'sticker':
-                            await sendMessage({
-                                id: Date.now(), sender: 'ai', type: 'sticker',
-                                stickerId: msg.data.stickerId, meaning: msg.data.meaning
-                            });
-                            break;
-                        case 'text':
-                            await sendMessage({
-                                id: Date.now(), sender: 'ai', type: 'text', text: msg.data.text
-                            });
-                            break;
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
-                }
-                
-                await triggerSuiGeneration();
-            } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `错误: ${error.message}`); } finally { aiReplyBtn.disabled = false; }
-        }
-
-        restartChatBtn.addEventListener('click', async () => { 
-            const ok = await showDialog('新对话', '确定要清除所有聊天记录吗？这也会将好感度重置为0。'); 
-            if (ok) { 
-                state.chat = { history: [], affinity: 0, sendMode: 'text' }; 
-                await saveState(); 
-                renderChatHistory({ autoScroll: true }); 
-                showToast('对话已清空'); 
-            } 
+        restartChatBtn.addEventListener('click', async () => {
+            const confirmed = await showDialog('新对话', '这将清除当前对话记录并重置好感度，但不会删除记忆存档。确定开始新对话吗？');
+            if (confirmed) {
+                state.chat.history = [];
+                state.chat.affinity = 0;
+                await saveState();
+                renderChatHistory();
+                showToast('已开始新的对话');
+            }
         });
 
         summarizeMemoryBtn.addEventListener('click', async () => {
-            if (state.chat.history.length === 0) { showDialog('错误', '没有聊天记录可以总结。'); return; } 
-            if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-            showToast('正在总结聊天内容...'); summarizeMemoryBtn.disabled = true;
+            // 定义固定的上下文数量
+            const SUMMARY_CONTEXT_COUNT = 100;
+
+            // 1. 前置检查
+            if (state.chat.history.length === 0) {
+                showDialog('无法存档', '没有聊天记录可以总结。');
+                return;
+            }
+            if (!state.config.api.baseUrl || !state.config.api.key) {
+                showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); });
+                return;
+            }
+
+            // 2. 用户确认 (提示信息会显示实际将总结的条数)
+            const actualCount = Math.min(state.chat.history.length, SUMMARY_CONTEXT_COUNT);
+            const confirmed = await showDialog('存档记忆', `确定要将最近的 ${actualCount} 条对话存档为一条新的记忆吗？`);
+            if (!confirmed) return;
+
+            // 3. 执行API调用和UI反馈
+            showToast('正在总结聊天内容...');
+            summarizeMemoryBtn.disabled = true;
             try {
-                const chatContent = state.chat.history.map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}：${msg.text}`).join('\n');
-                const systemPrompt = "你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁的记忆存档。"; 
-                const messages = [ { role: 'system', content: systemPrompt }, { role: 'user', content: `对话内容:\n${chatContent}\n\n请简洁地总结以上对话内容，例如：'玩家与[角色]在[地点]讨论了[主题]。'` } ];
-                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 }) });
-                if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`); }
-                const data = await response.json(); let summaryText = data.choices?.[0]?.message?.content;
-                if (summaryText) { 
-                    state.memories.unshift({ id: Date.now(), content: summaryText, timestamp: new Date().toLocaleString() }); 
-                    await saveState(); 
-                    renderMemoryList(); 
-                    showToast('记忆已成功存档！'); 
-                } else { throw new Error("API response is empty or malformed."); }
-            } catch (error) { console.error("API请求失败:", error); showDialog('API请求失败', `总结记忆时发生错误: ${error.message}`); } finally { summarizeMemoryBtn.disabled = false; }
+                // 使用 slice 截取固定数量的最近消息
+                const chatToSummarize = state.chat.history.slice(-SUMMARY_CONTEXT_COUNT);
+
+                const chatContent = chatToSummarize
+                    .map(msg => {
+                        const sender = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
+                        let textContent = msg.text;
+                        if (msg.type === 'voice') textContent = `(语音) ${msg.text}`;
+                        if (msg.type === 'transfer') textContent = `(转账 ${msg.amount}元) ${msg.message}`;
+                        if (msg.type === 'sticker') textContent = `(发送表情: ${msg.meaning})`;
+                        return `${sender}：${textContent}`;
+                    })
+                    .join('\n');
+
+                const systemPrompt = `你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或重要信息，形成一个简洁、客观、第三人称的记忆存档。摘要应以“你和${state.role.roleName || '角色'}...”开头。`;
+                const messages = [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: `请总结以下对话:\n${chatContent}` }
+                ];
+
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.3 })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
+                }
+
+                const data = await response.json();
+                let summaryText = data.choices?.[0]?.message?.content;
+
+                if (summaryText) {
+                    state.memories.unshift({ id: Date.now(), content: summaryText });
+                    await saveState();
+                    renderMemoryList();
+                    showToast('记忆已成功存档！');
+                } else {
+                    throw new Error("API响应为空或格式错误。");
+                }
+            } catch (error) {
+                console.error("API请求失败:", error);
+                showDialog('API请求失败', `总结记忆时发生错误: ${error.message}`);
+            } finally {
+                summarizeMemoryBtn.disabled = false;
+            }
         });
 
-        confirmBatchDeleteChatBtn.addEventListener('click', async () => {
-            const indicesToDelete = Array.from(chatHistory.querySelectorAll('.batch-delete-checkbox:checked')).map(cb => {
-                const bubble = cb.closest('.flex.w-full > div').querySelector('[data-index]');
-                return parseInt(bubble.dataset.index);
+        const renderMemoryList = () => {
+            memoryListEl.innerHTML = '';
+            if (state.memories.length === 0) {
+                memoryListEl.innerHTML = '<p class="text-center opacity-50">还没有任何记忆存档。</p>';
+                return;
+            }
+            // 核心修正：按ID降序排序，确保最新的在最前面
+            const sortedMemories = [...state.memories].sort((a, b) => b.id - a.id);
+
+            sortedMemories.forEach(memory => {
+                const item = document.createElement('div');
+                item.className = 'memory-item p-4 flex items-start justify-between space-x-4';
+                
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'flex-grow';
+
+                if (isMemoryBatchDeleteMode) {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'form-checkbox h-5 w-5 mr-4 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                    checkbox.dataset.id = memory.id;
+                    contentWrapper.appendChild(checkbox);
+                }
+
+                const content = document.createElement('p');
+                content.textContent = memory.content;
+                contentWrapper.appendChild(content);
+
+                const actions = document.createElement('div');
+                actions.className = 'flex-shrink-0 flex space-x-2';
+
+                if (!isMemoryBatchDeleteMode) {
+                    const editBtn = document.createElement('button');
+                    editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+                    editBtn.className = 'p-2 hover:text-blue-400';
+                    editBtn.onclick = async () => {
+                        const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: memory.content });
+                        if (newContent) {
+                            // 修正：通过ID查找并更新，而不是不稳定的索引
+                            const memoryToUpdate = state.memories.find(m => m.id === memory.id);
+                            if (memoryToUpdate) {
+                                memoryToUpdate.content = newContent;
+                            }
+                            await saveState();
+                            renderMemoryList();
+                        }
+                    };
+                    actions.appendChild(editBtn);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    deleteBtn.className = 'p-2 hover:text-red-400';
+                    deleteBtn.onclick = async () => {
+                        const confirmed = await showDialog('删除记忆', '确定要删除这条记忆吗？');
+                        if (confirmed) {
+                            // 修正：通过ID过滤数组，而不是不稳定的索引
+                            state.memories = state.memories.filter(m => m.id !== memory.id);
+                            await saveState();
+                            renderMemoryList();
+                        }
+                    };
+                    actions.appendChild(deleteBtn);
+                }
+
+                item.appendChild(contentWrapper);
+                item.appendChild(actions);
+                memoryListEl.appendChild(item);
             });
-            if (indicesToDelete.length === 0) { showToast('没有选中任何消息'); return; }
-            const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 条消息吗？`);
-            if (confirmed) {
-                indicesToDelete.sort((a, b) => b - a).forEach(index => state.chat.history.splice(index, 1));
+        };
+
+        addMemoryBtn.addEventListener('click', async () => {
+            const content = await showDialog('手动添加记忆', '请输入记忆内容：', { input: true });
+            if (content) {
+                state.memories.push({ id: Date.now(), content: content });
                 await saveState();
-                isChatBatchDeleteMode = false;
-                UILock.lock();
-                renderChatHistory({ autoScroll: false });
-                showToast('消息已删除');
+                renderMemoryList();
+            }
+        });
+
+        batchDeleteMemoriesBtn.addEventListener('click', () => {
+            isMemoryBatchDeleteMode = true;
+            memoryBatchActions.classList.remove('hidden');
+            addMemoryBtn.classList.add('hidden');
+            batchDeleteMemoriesBtn.classList.add('hidden');
+            renderMemoryList();
+        });
+
+        cancelBatchDeleteMemoriesBtn.addEventListener('click', () => {
+            isMemoryBatchDeleteMode = false;
+            memoryBatchActions.classList.add('hidden');
+            addMemoryBtn.classList.remove('hidden');
+            batchDeleteMemoriesBtn.classList.remove('hidden');
+            renderMemoryList();
+        });
+
+        confirmBatchDeleteMemoriesBtn.addEventListener('click', async () => {
+            const idsToDelete = Array.from(memoryListEl.querySelectorAll('input[type="checkbox"]:checked')).map(cb => parseInt(cb.dataset.id));
+            if (idsToDelete.length > 0) {
+                state.memories = state.memories.filter(m => !idsToDelete.includes(m.id));
+                await saveState();
+                isMemoryBatchDeleteMode = false;
+                memoryBatchActions.classList.add('hidden');
+                addMemoryBtn.classList.remove('hidden');
+                batchDeleteMemoriesBtn.classList.remove('hidden');
+                renderMemoryList();
+                showToast(`已删除 ${idsToDelete.length} 条记忆`);
             }
         });
         
+        // --- NEW: Chat Batch Delete Listeners ---
         cancelBatchDeleteChatBtn.addEventListener('click', () => {
             isChatBatchDeleteMode = false;
-            UILock.lock();
+            // 重新渲染聊天记录，但不自动滚动，以保持当前视图位置
             renderChatHistory({ autoScroll: false });
         });
 
-        multifunctionToggleBtn.addEventListener('click', () => {
-            if (UILock.isLocked()) return;
-            multifunctionMenu.classList.toggle('hidden');
-            stickerDrawer.classList.remove('open');
+        confirmBatchDeleteChatBtn.addEventListener('click', async () => {
+            // 1. 找到所有被选中的复选框
+            const checkedBoxes = chatHistory.querySelectorAll('input[type="checkbox"]:checked');
+            
+            // 2. 从这些复选框旁边的消息气泡中提取出要删除的消息ID
+            const idsToDelete = Array.from(checkedBoxes).map(checkbox => {
+                // 复选框和消息气泡在同一个父容器内，通过父元素找到对应的消息气泡
+                const bubble = checkbox.parentElement.querySelector('.message-bubble, .story-block');
+                // 解析并返回消息的ID
+                return bubble ? parseInt(bubble.dataset.id, 10) : null;
+            }).filter(id => id !== null); // 过滤掉无效的ID
+
+            if (idsToDelete.length > 0) {
+                // 3. 从聊天历史记录中过滤掉需要删除的消息
+                state.chat.history = state.chat.history.filter(msg => !idsToDelete.includes(msg.id));
+                
+                // 4. 保存状态
+                await saveState();
+                
+                showToast(`已删除 ${idsToDelete.length} 条消息`);
+            }
+
+            // 5. 退出批量删除模式并重新渲染界面
+            isChatBatchDeleteMode = false;
+            renderChatHistory({ autoScroll: false });
+        });
+        // --- 新代码到此结束 ---
+
+        const renderDiaryList = () => {
+            diaryListContainer.innerHTML = '';
+            if (state.diaries.length === 0) {
+                diaryListContainer.innerHTML = '<p class="text-center opacity-50">TA 还没有写过日记。</p>';
+                return;
+            }
+            const sortedDiaries = [...state.diaries].sort((a, b) => b.id - a.id);
+            sortedDiaries.forEach(entry => {
+                const item = document.createElement('div');
+                item.className = 'diary-entry';
+                
+                const header = document.createElement('div');
+                header.className = 'flex justify-between items-center mb-2 border-b border-white/20 pb-2';
+                const date = new Date(entry.id);
+                header.innerHTML = `<span class="font-bold text-lg">${date.toLocaleDateString('zh-CN')}</span><span class="text-sm opacity-70">${date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})}</span>`;
+
+                const content = document.createElement('div');
+                content.className = 'diary-content prose prose-invert max-w-none';
+                let formattedContent = entry.content
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/~~(.*?)~~/g, '<del>$1</del>')
+                    .replace(/\n/g, '<br>');
+                content.innerHTML = formattedContent;
+
+                if (isDiaryBatchDeleteMode) {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                    checkbox.dataset.id = entry.id;
+                    item.appendChild(checkbox);
+                    item.classList.add('pl-12');
+                } else {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    deleteBtn.className = 'diary-delete-btn';
+                    deleteBtn.onclick = async () => {
+                        const confirmed = await showDialog('删除日记', '确定要删除这篇日记吗？');
+                        if (confirmed) {
+                            state.diaries = state.diaries.filter(d => d.id !== entry.id);
+                            await saveState();
+                            renderDiaryList();
+                        }
+                    };
+                    item.appendChild(deleteBtn);
+                }
+
+                item.appendChild(header);
+                item.appendChild(content);
+                diaryListContainer.appendChild(item);
+            });
+        };
+
+        async function generateDiaryEntry() {
+            try {
+                // 1. 检查基本条件
+                if (state.chat.history.length === 0) {
+                    showDialog('无法生成', '还没有任何对话记录。');
+                    return;
+                }
+                if (!state.config.api.baseUrl || !state.config.api.key || !state.config.api.model) {
+                    showDialog('API错误', '请在设置中完整配置API参数（地址、密钥、模型名称）！').then(() => { showView('settings'); });
+                    return;
+                }
+
+                showToast('正在准备日记内容...');
+                generateDiaryBtn.disabled = true;
+
+                // 2. 构建你的提示词
+                const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题、禁止日期开头。`;
+
+                // 3. 【回归OpenAI格式】根据服务器最新的要求，使用 'messages' 格式
+                const requestBody = {
+                    model: state.config.api.model,
+                    messages: [{ role: 'system', content: systemPrompt }],
+                    temperature: 0.8
+                };
+
+                // 4. 发送API请求
+                showToast('TA正在提笔写日记...');
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.error?.message || errorData.message || '未知';
+                    throw new Error(`API响应错误: ${response.status}. 信息: ${errorMessage}`);
+                }
+
+                const data = await response.json();
+                
+                // 5. 【回归OpenAI格式】从 'choices' 中解析响应
+                const diaryContent = data.choices?.[0]?.message?.content;
+
+                // 6. 处理结果并更新UI
+                if (diaryContent) {
+                    state.diaries.unshift({ id: Date.now(), content: diaryContent });
+                    await saveState();
+                    renderDiaryList();
+                    showToast('一篇新的日记已生成！');
+                } else {
+                    throw new Error("API响应为空或格式不正确，无法解析出日记内容。");
+                }
+            } catch (error) {
+                console.error("生成日记失败:", error);
+                showDialog('生成失败', `在执行过程中发生错误: ${error.message}`);
+            } finally {
+                generateDiaryBtn.disabled = false;
+            }
+        }
+
+        generateDiaryBtn.addEventListener('click', generateDiaryEntry);
+
+        batchDeleteDiariesBtn.addEventListener('click', () => {
+            isDiaryBatchDeleteMode = true;
+            diaryBatchActions.classList.remove('hidden');
+            generateDiaryBtn.classList.add('hidden');
+            batchDeleteDiariesBtn.classList.add('hidden');
+            renderDiaryList();
+        });
+
+        cancelBatchDeleteBtn.addEventListener('click', () => {
+            isDiaryBatchDeleteMode = false;
+            diaryBatchActions.classList.add('hidden');
+            generateDiaryBtn.classList.remove('hidden');
+            batchDeleteDiariesBtn.classList.remove('hidden');
+            renderDiaryList();
+        });
+
+        confirmBatchDeleteBtn.addEventListener('click', async () => {
+            const idsToDelete = Array.from(diaryListContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => parseInt(cb.dataset.id));
+            if (idsToDelete.length > 0) {
+                state.diaries = state.diaries.filter(d => !idsToDelete.includes(d.id));
+                await saveState();
+                isDiaryBatchDeleteMode = false;
+                diaryBatchActions.classList.add('hidden');
+                generateDiaryBtn.classList.remove('hidden');
+                batchDeleteDiariesBtn.classList.remove('hidden');
+                renderDiaryList();
+                showToast(`已删除 ${idsToDelete.length} 篇日记`);
+            }
         });
         
-        aiReplyBtn.addEventListener('click', getAiReply);
-        sendBtn.addEventListener('click', handleSend);
+        // --- SUI Page Logic ---
+        const renderSuiPage = () => {
+            if (!state.sui) state.sui = { balance: 0, transactions: [], otherChats: [], browsingHistory: [] };
+            suiBalanceEl.textContent = state.sui.balance.toFixed(2);
+            renderSuiTransactions();
+            renderSuiOtherChats();
+            renderSuiBrowsingHistory();
+        };
 
-        voiceModeBtn.addEventListener('click', () => {
-            if (UILock.isLocked()) return;
-            state.chat.sendMode = state.chat.sendMode === 'text' ? 'voice' : 'text';
-            const icon = sendBtn.querySelector('i');
-            if (state.chat.sendMode === 'voice') {
-                voiceModeBtn.classList.add('text-blue-400');
-                icon.className = 'fas fa-microphone';
-                userInput.placeholder = '输入语音文字...';
-                showToast('已切换到语音模式');
-            } else {
-                voiceModeBtn.classList.remove('text-blue-400');
-                icon.className = 'fas fa-heart';
-                userInput.placeholder = '请输入消息...';
-                showToast('已切换到文本模式');
+        const renderSuiTransactions = () => {
+            suiTransactionsListEl.innerHTML = '';
+            if (!state.sui.transactions || state.sui.transactions.length === 0) {
+                suiTransactionsListEl.innerHTML = '<p class="opacity-70 text-center">暂无记录</p>'; return;
             }
-            multifunctionMenu.classList.add('hidden');
+            state.sui.transactions.forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'sui-list-item transaction-item';
+                const amountClass = t.amount > 0 ? 'amount-positive' : 'amount-negative';
+                item.innerHTML = `
+                    <div class="sui-item-actions">
+                        <button class="sui-action-btn" data-action="add-to-memory" data-type="transactions" data-id="${t.id}" title="存为记忆"><i class="fas fa-bookmark"></i></button>
+                        <button class="sui-action-btn" data-action="delete" data-type="transactions" data-id="${t.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    <span class="timestamp">${t.timestamp}</span>
+                    <p>${t.description}</p>
+                    <div class="amount-display">
+                        <span class="${amountClass} font-mono">${t.amount.toFixed(2)}</span>
+                    </div>
+                `;
+                suiTransactionsListEl.appendChild(item);
+            });
+        };
+
+        const renderSuiOtherChats = () => {
+            suiOtherChatsListEl.innerHTML = '';
+            if (!state.sui.otherChats || state.sui.otherChats.length === 0) {
+                suiOtherChatsListEl.innerHTML = '<p class="opacity-70 text-center">暂无记录</p>'; return;
+            }
+            state.sui.otherChats.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'sui-list-item';
+
+                // 检查 c.log 是否为有效数组，如果不是，则提供一个提示，防止程序崩溃
+                const logHtml = Array.isArray(c.log)
+                    ? c.log.map(l => `<p><strong>${l.sender || '未知'}:</strong> ${l.text || ''}</p>`).join('')
+                    : '<p class="opacity-50">[数据不完整，无法显示对话]</p>';
+                
+                item.innerHTML = `
+                    <div class="sui-item-actions">
+                        <button class="sui-action-btn" data-action="add-to-memory" data-type="otherChats" data-id="${c.id}" title="存为记忆"><i class="fas fa-bookmark"></i></button>
+                        <button class="sui-action-btn" data-action="delete" data-type="otherChats" data-id="${c.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    <span class="timestamp">${c.timestamp}</span>
+                    <p>与 <span class="chat-with">${c.with}</span> 的对话</p>
+                    <div class="sui-chat-log">${logHtml}</div>
+                `;
+                suiOtherChatsListEl.appendChild(item);
+            });
+        };
+
+        const renderSuiBrowsingHistory = () => {
+            suiBrowsingHistoryListEl.innerHTML = '';
+            if (!state.sui.browsingHistory || state.sui.browsingHistory.length === 0) {
+                suiBrowsingHistoryListEl.innerHTML = '<p class="opacity-70 text-center">暂无记录</p>'; return;
+            }
+            state.sui.browsingHistory.forEach(h => {
+                const item = document.createElement('div');
+                item.className = 'sui-list-item';
+                const sessionHtml = h.session.map(p => `<p>${p.title}<br><span class="url">${p.url}</span></p>`).join('');
+                item.innerHTML = `
+                    <div class="sui-item-actions">
+                        <button class="sui-action-btn" data-action="add-to-memory" data-type="browsingHistory" data-id="${h.id}" title="存为记忆"><i class="fas fa-bookmark"></i></button>
+                        <button class="sui-action-btn" data-action="delete" data-type="browsingHistory" data-id="${h.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    <span class="timestamp">${h.timestamp}</span>
+                    <p>浏览会话</p>
+                    <div class="sui-browsing-session">${sessionHtml}</div>
+                `;
+                suiBrowsingHistoryListEl.appendChild(item);
+            });
+        };
+
+        suiNav.addEventListener('click', (e) => {
+            const targetBtn = e.target.closest('.sui-nav-btn');
+            if (!targetBtn) return;
+            
+            suiNavBtns.forEach(btn => btn.classList.remove('active'));
+            targetBtn.classList.add('active');
+            
+            const targetSectionId = targetBtn.dataset.target;
+            suiContentSections.forEach(section => {
+                section.classList.toggle('hidden', section.id !== targetSectionId);
+            });
+        });
+
+        const clearSuiSection = async (sectionKey, sectionName, renderFunc) => {
+            const confirmed = await showDialog('确认清空', `确定要清空所有“${sectionName}”记录吗？此操作不可撤销。`);
+            if (confirmed) {
+                if (sectionKey === 'transactions') {
+                    state.sui.transactions = [];
+                } else if (sectionKey === 'otherChats') {
+                    state.sui.otherChats = [];
+                } else if (sectionKey === 'browsingHistory') {
+                    state.sui.browsingHistory = [];
+                }
+                await saveState();
+                renderFunc();
+                showToast(`已清空${sectionName}记录`);
+            }
+        };
+
+        suiClearAccountBtn.addEventListener('click', () => clearSuiSection('transactions', '交易', renderSuiTransactions));
+        suiClearCommsBtn.addEventListener('click', () => clearSuiSection('otherChats', '外部通讯', renderSuiOtherChats));
+        suiClearBrowsingBtn.addEventListener('click', () => clearSuiSection('browsingHistory', '浏览', renderSuiBrowsingHistory));
+        
+         // --- NEW: SUI Item Interaction Handler (ULTRA-SAFE FIX) ---
+        suiContentContainer.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.sui-action-btn');
+            if (!btn || btn.disabled) return;
+
+            const action = btn.dataset.action;
+            const type = btn.dataset.type;
+            const idFromButton = btn.dataset.id; // 从按钮获取ID，保持为字符串
+
+            if (!action || !type || !idFromButton) return;
+
+            // 【核心修正】: 将数据中的ID和按钮的ID都强制转换为字符串再进行严格比较 (===)
+            // 这是最安全、最明确的比较方式，可以彻底避免类型问题。
+            const itemData = state.sui[type].find(item => String(item.id) === idFromButton);
+
+            if (!itemData) {
+                showDialog('内部错误', `无法在数据中找到ID为 ${idFromButton} 的项目。`);
+                return;
+            }
+
+            if (action === 'delete') {
+                const confirmed = await showDialog('确认删除', '确定要删除这条记录吗？');
+                if (confirmed) {
+                    // 同样使用安全的字符串比较来进行过滤
+                    state.sui[type] = state.sui[type].filter(item => String(item.id) !== idFromButton);
+                    await saveState();
+                    if (type === 'transactions') renderSuiTransactions();
+                    else if (type === 'otherChats') renderSuiOtherChats();
+                    else if (type === 'browsingHistory') renderSuiBrowsingHistory();
+                    showToast('记录已删除');
+                }
+            } else if (action === 'add-to-memory') {
+                btn.disabled = true;
+
+                try {
+                    let memoryContent = '';
+                    const roleName = state.role.roleName || 'TA';
+
+                    switch (type) {
+                        case 'transactions':
+                            memoryContent = `在SUI监控中发现一条交易记录：\n时间: ${itemData.timestamp}\n描述: ${itemData.description}\n金额: ${itemData.amount.toFixed(2)}`;
+                            break;
+                        case 'otherChats':
+                            const chatLog = Array.isArray(itemData.log) ? itemData.log.map(l => `${l.sender}: ${l.text}`).join('\n') : '[数据不完整]';
+                            memoryContent = `在SUI监控中发现一段通讯记录 (与 ${itemData.with}, 时间: ${itemData.timestamp})：\n${chatLog}`;
+                            break;
+                        case 'browsingHistory':
+                            const pageTitles = Array.isArray(itemData.session) ? itemData.session.map((p, index) => `${index + 1}. ${p.title}`).join('\n') : '[数据不完整]';
+                            memoryContent = `在SUI监控中发现一段浏览记录 (时间: ${itemData.timestamp})，${roleName} 浏览了以下页面：\n${pageTitles}`;
+                            break;
+                    }
+
+                    if (!memoryContent) {
+                        throw new Error('生成的记忆内容为空，无法添加。');
+                    }
+
+                    const isDuplicate = state.memories.some(mem => mem.content === memoryContent);
+                    if (isDuplicate) {
+                        showToast('该记忆已存在');
+                        btn.innerHTML = '<i class="fas fa-check-double"></i>';
+                        btn.title = '已存在';
+                        return;
+                    }
+
+                    state.memories.unshift({ id: Date.now(), content: memoryContent });
+                    await saveState();
+                    renderMemoryList();
+
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.title = '已添加';
+                    showToast('已成功存为记忆！');
+
+                } catch (error) {
+                    console.error('在 "存为记忆" 过程中发生错误:', error);
+                    showDialog('操作失败', `在添加记忆时发生错误：<br><br><strong>${error.message}</strong><br><br>请检查控制台获取详细信息。`);
+                    btn.disabled = false;
+                }
+            }
+        });
+
+
+        // --- Multifunction Menu & Chat Features ---
+        multifunctionToggleBtn.addEventListener('click', () => {
+            multifunctionMenu.classList.toggle('hidden');
+            if (!multifunctionMenu.classList.contains('hidden')) {
+                stickerDrawer.classList.remove('open');
+            }
         });
 
         transferBtn.addEventListener('click', async () => {
-            if (UILock.isLocked()) return;
-            multifunctionMenu.classList.add('hidden');
-            const result = await showDialog('发起转账', '', {
+            const result = await showDialog('转账', '', {
                 complexInput: `
                     <div class="space-y-2">
-                        <input type="number" id="transfer-amount-input" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="转账金额">
-                        <input type="text" id="transfer-message-input" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="留言 (可选)">
+                        <input type="number" id="transfer-amount" class="w-full p-2 border-none rounded-md bg-white/20" placeholder="金额">
+                        <input type="text" id="transfer-message" class="w-full p-2 border-none rounded-md bg-white/20" placeholder="留言 (可选)">
                     </div>
                 `,
                 getValues: () => ({
-                    amount: parseFloat(get('transfer-amount-input').value) || 0,
-                    message: get('transfer-message-input').value || '转账给你'
+                    amount: parseFloat(get('transfer-amount').value) || 0,
+                    message: get('transfer-message').value
                 })
             });
 
             if (result && result.amount > 0) {
                 await sendMessage({
                     id: Date.now(), sender: 'user', type: 'transfer',
-                    amount: result.amount, message: result.message, status: 'pending'
+                    amount: result.amount, message: result.message || '转账给你', status: 'pending'
                 });
-            } else if (result) {
-                showToast('转账金额必须大于0');
             }
+        });
+        
+        voiceModeBtn.addEventListener('click', () => {
+            state.chat.sendMode = state.chat.sendMode === 'voice' ? 'text' : 'voice';
+            const isVoiceMode = state.chat.sendMode === 'voice';
+            voiceModeBtn.classList.toggle('text-blue-400', isVoiceMode);
+            userInput.placeholder = isVoiceMode ? '输入语音文字...' : '请输入消息...';
+            showToast(isVoiceMode ? '已切换到语音模式' : '已切换到文本模式');
+        });
+
+         storyModeBtn.addEventListener('click', async () => {
+            const isEnteringStoryMode = state.chat.mode === 'phone';
+            state.chat.mode = isEnteringStoryMode ? 'story' : 'phone';
+            
+            const systemMessageText = isEnteringStoryMode ? '--- 切换到剧情模式 ---' : '--- 切换到手机模式 ---';
+            // 使用 sendMessage 函数来添加消息，它会自动处理渲染和保存
+            await sendMessage({ id: Date.now(), sender: 'system', type: 'system', text: systemMessageText });
+            
+            showToast(state.chat.mode === 'story' ? '已进入剧情模式' : '已返回手机模式');
         });
 
         stickerPanelBtn.addEventListener('click', () => {
-            if (UILock.isLocked()) return;
             stickerDrawer.classList.toggle('open');
-            multifunctionMenu.classList.add('hidden');
+            if (stickerDrawer.classList.contains('open')) {
+                multifunctionMenu.classList.add('hidden');
+            }
         });
+
         closeStickerDrawerBtn.addEventListener('click', () => stickerDrawer.classList.remove('open'));
 
         const renderStickerDrawer = () => {
             stickerGrid.innerHTML = '';
             if (state.stickers.length === 0) {
-                stickerGrid.innerHTML = `<p class="text-center opacity-70 col-span-full">还没有表情包，快去添加吧！</p>`;
-            } else {
-                state.stickers.forEach(sticker => {
-                    const item = document.createElement('div');
-                    item.className = 'sticker-item';
-                    item.innerHTML = `
-                        <img src="${sticker.imageDataUrl}" alt="${sticker.meaning}">
-                        <button class="sticker-item-delete" data-id="${sticker.id}"><i class="fas fa-times"></i></button>
-                    `;
-                    item.querySelector('img').addEventListener('click', async () => {
-                        await sendMessage({
-                            id: Date.now(), sender: 'user', type: 'sticker',
-                            stickerId: sticker.id, meaning: sticker.meaning
-                        });
-                        stickerDrawer.classList.remove('open');
-                    });
-                    item.querySelector('.sticker-item-delete').addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        const confirmed = await showDialog('删除表情', `确定要删除这个表情吗？`);
-                        if (confirmed) {
-                            state.stickers = state.stickers.filter(s => s.id !== sticker.id);
-                            await db.delete('stickers', sticker.id);
-                            await saveState();
-                            renderStickerDrawer();
-                            showToast('表情已删除');
-                        }
-                    });
-                    stickerGrid.appendChild(item);
-                });
+                stickerGrid.innerHTML = '<p class="opacity-50 text-center col-span-full">还没有表情包，快去添加吧！</p>';
             }
+            state.stickers.forEach(sticker => {
+                const item = document.createElement('div');
+                item.className = 'sticker-item';
+                item.innerHTML = `
+                    <img src="${sticker.imageDataUrl}" alt="${sticker.meaning}">
+                    <button class="sticker-item-delete" data-id="${sticker.id}"><i class="fas fa-times"></i></button>
+                `;
+                item.querySelector('img').addEventListener('click', async () => {
+                    await sendMessage({ id: Date.now(), sender: 'user', type: 'sticker', stickerId: sticker.id, meaning: sticker.meaning });
+                    stickerDrawer.classList.remove('open');
+                });
+                item.querySelector('.sticker-item-delete').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const confirmed = await showDialog('删除表情', `确定要删除这个含义为“${sticker.meaning}”的表情吗？`);
+                    if (confirmed) {
+                        state.stickers = state.stickers.filter(s => s.id !== sticker.id);
+                        await db.delete('stickers', sticker.id);
+                        await saveState();
+                        renderStickerDrawer();
+                    }
+                });
+                stickerGrid.appendChild(item);
+            });
         };
 
         addStickerBtn.addEventListener('click', () => stickerUploadInput.click());
+
         stickerUploadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const meaning = await showDialog('添加表情', '给这个表情添加一个简单的含义描述，方便AI理解和使用。', { input: true, placeholder: '例如：开心、哭泣、疑惑' });
-            if (!meaning) { showToast('已取消添加'); return; }
+
+            const meaning = await showDialog('添加表情', '这个表情代表什么意思？', { input: true, placeholder: '例如：开心、疑惑、抱抱' });
+            if (!meaning) return;
 
             const reader = new FileReader();
             reader.onload = async (event) => {
                 const newSticker = {
                     id: Date.now(),
-                    imageDataUrl: event.target.result,
-                    meaning: meaning
+                    meaning: meaning,
+                    imageDataUrl: event.target.result
                 };
                 state.stickers.push(newSticker);
                 await db.set('stickers', newSticker.id, newSticker);
@@ -2509,389 +3407,55 @@
                 showToast('表情已添加');
             };
             reader.readAsDataURL(file);
-            stickerUploadInput.value = '';
         });
 
-        chatHistory.addEventListener('click', async (e) => {
-            const bubble = e.target.closest('.message-bubble, .transfer-bubble, .voice-bubble');
-            if (!bubble) return;
-
-            const index = parseInt(bubble.dataset.index);
-            const msg = state.chat.history[index];
-            if (!msg) return;
-
-            if (msg.type === 'voice') {
-                const scrollContainer = chatHistory;
-                const oldScrollHeight = scrollContainer.scrollHeight;
-                const oldScrollTop = scrollContainer.scrollTop;
-
-                msg.isExpanded = !msg.isExpanded;
-                await saveState();
-
-                renderChatHistory({ autoScroll: false }); 
-
-                requestAnimationFrame(() => {
-                    const newScrollHeight = scrollContainer.scrollHeight;
-                    const heightDifference = newScrollHeight - oldScrollHeight;
-                    scrollContainer.scrollTop = oldScrollTop + heightDifference;
-                });
-            } else if (msg.type === 'transfer' && msg.sender === 'ai' && msg.status === 'pending') {
-                const confirmed = await showDialog('确认收款', `确定要接收这笔 ${msg.amount} 元的转账吗？`, {
-                    buttons: [
-                        { text: '忽略', value: 'ignore', class: 'bg-gray-500/50' },
-                        { text: '接收', value: 'receive', class: 'bg-green-500' }
-                    ]
-                });
-                if (confirmed === 'receive') {
-                    msg.status = 'received';
-                    state.sui.balance += msg.amount;
-                    state.sui.transactions.unshift({
-                        id: Date.now(),
-                        timestamp: new Date().toLocaleString('zh-CN'),
-                        description: `收到来自 ${state.role.roleName || '角色'} 的转账`,
-                        amount: msg.amount
-                    });
-                    await saveState();
-                    renderChatHistory({ autoScroll: false });
-                    showToast(`已收款 ${msg.amount} 元`);
-                }
-            }
-        });
-
-        const renderMemoryList = () => {
-            memoryListEl.innerHTML = '';
-            if (!state.memories || state.memories.length === 0) {
-                memoryListEl.innerHTML = `<p class="text-center opacity-70">还没有任何记忆存档。</p>`;
-                return;
-            }
-            state.memories.forEach((mem, index) => {
-                const item = document.createElement('div');
-                item.className = 'memory-item p-4';
-                item.innerHTML = `
-                    ${isMemoryBatchDeleteMode ? `<input type="checkbox" data-index="${index}" class="batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0 absolute top-4 left-4">` : ''}
-                    <p class="text-sm ${isMemoryBatchDeleteMode ? 'pl-8' : ''}">${mem.content}</p>
-                    <div class="text-xs opacity-50 mt-2 text-right ${isMemoryBatchDeleteMode ? 'pl-8' : ''}">${mem.timestamp}</div>
-                `;
-                if (!isMemoryBatchDeleteMode) {
-                    let pressTimer;
-                    const startPress = () => { pressTimer = setTimeout(() => manageMemory(index), 750); };
-                    const cancelPress = () => clearTimeout(pressTimer);
-                    item.addEventListener('mousedown', startPress);
-                    item.addEventListener('mouseup', cancelPress);
-                    item.addEventListener('mouseleave', cancelPress);
-                    item.addEventListener('touchstart', startPress, { passive: true });
-                    item.addEventListener('touchend', cancelPress);
-                }
-                memoryListEl.appendChild(item);
-            });
-            memoryBatchActions.style.display = isMemoryBatchDeleteMode ? 'flex' : 'none';
-        };
-
-        const manageMemory = (index) => {
-            const mem = state.memories[index];
-            if (!mem) return;
-            showDialog('管理记忆', `"${mem.content}"`, {
-                buttons: [
-                    {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
-                    {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'},
-                    {text: '删除', value: 'delete', class: 'bg-red-500/80'},
-                    {text: '编辑', value: 'edit', class: 'bg-blue-500'}
-                ]
-            }).then(async action => {
-                if (action === 'edit') {
-                    const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: mem.content });
-                    if (newContent) {
-                        state.memories[index].content = newContent;
-                        await saveState();
-                        renderMemoryList();
-                        showToast('记忆已更新');
-                    }
-                } else if (action === 'delete') {
-                    const confirmed = await showDialog('确认删除', '确定要删除这条记忆吗？');
-                    if (confirmed) {
-                        state.memories.splice(index, 1);
-                        await saveState();
-                        renderMemoryList();
-                        showToast('记忆已删除');
-                    }
-                } else if (action === 'batch-delete') {
-                    isMemoryBatchDeleteMode = true;
-                    renderMemoryList();
-                }
-            });
-        };
-
-        addMemoryBtn.addEventListener('click', async () => {
-            const content = await showDialog('添加新记忆', '', { input: true, placeholder: '输入记忆内容...' });
-            if (content) {
-                state.memories.unshift({ id: Date.now(), content, timestamp: new Date().toLocaleString() });
-                await saveState();
-                renderMemoryList();
-                showToast('记忆已添加');
-            }
-        });
-        batchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = !isMemoryBatchDeleteMode; renderMemoryList(); });
-        cancelBatchDeleteMemoriesBtn.addEventListener('click', () => { isMemoryBatchDeleteMode = false; renderMemoryList(); });
-        confirmBatchDeleteMemoriesBtn.addEventListener('click', async () => {
-            const indicesToDelete = Array.from(memoryListEl.querySelectorAll('.batch-delete-checkbox:checked')).map(cb => parseInt(cb.dataset.index));
-            if (indicesToDelete.length === 0) { showToast('未选择任何记忆'); return; }
-            const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 条记忆吗？`);
-            if (confirmed) {
-                indicesToDelete.sort((a, b) => b - a).forEach(index => state.memories.splice(index, 1));
-                await saveState();
-                isMemoryBatchDeleteMode = false;
-                renderMemoryList();
-                showToast('记忆已删除');
-            }
-        });
-
-        const renderDiaryList = () => {
-            diaryListContainer.innerHTML = '';
-            if (!state.diaries || state.diaries.length === 0) { diaryListContainer.innerHTML = `<p class="text-center opacity-70">TA还没有写过日记。</p>`; return; }
-            state.diaries.forEach((diary, index) => {
-                const entryEl = document.createElement('div');
-                entryEl.className = 'diary-entry';
-                const contentHtml = diary.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/~~(.*?)~~/g, '<del>$1</del>').replace(/\n/g, '<br>');
-                entryEl.innerHTML = `
-                    <div class="text-sm text-right opacity-60 mb-2">${diary.timestamp}</div>
-                    <div class="diary-content text-base leading-relaxed ${isDiaryBatchDeleteMode ? 'pl-8' : ''}">${contentHtml}</div>
-                `;
-                if (isDiaryBatchDeleteMode) {
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.dataset.index = index;
-                    checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
-                    entryEl.prepend(checkbox);
-                } else {
-                    const deleteBtn = document.createElement('button'); deleteBtn.className = 'diary-delete-btn'; deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                    deleteBtn.onclick = async () => {
-                        const confirmed = await showDialog('确认删除', '确定要删除这篇日记吗？');
-                        if (confirmed) {
-                            state.diaries.splice(index, 1);
-                            await saveState();
-                            renderDiaryList();
-                            showToast('日记已删除');
-                        }
-                    };
-                    entryEl.appendChild(deleteBtn);
-                }
-                diaryListContainer.appendChild(entryEl);
-            });
-            diaryBatchActions.style.display = isDiaryBatchDeleteMode ? 'flex' : 'none';
-        };
-
-        generateDiaryBtn.addEventListener('click', async () => {
-            if (!state.config.api.baseUrl || !state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！').then(() => { showView('settings'); }); return; }
-            showToast('正在生成新日记...'); generateDiaryBtn.disabled = true;
-            try {
-                const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : state.role.roleName || '角色'}: ${msg.text}`).join('\n');
-                const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题。`
-                const messages = [{ role: 'system', content: systemPrompt }];
-                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` }, body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 }) });
-                if (!response.ok) { throw new Error('API request failed'); }
-                const data = await response.json(); const diaryContent = data.choices?.[0]?.message?.content;
-                if (diaryContent) {
-                    state.diaries.unshift({ id: Date.now(), content: diaryContent, timestamp: new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) });
-                    await saveState(); renderDiaryList(); showToast('新日记已生成');
-                } else { throw new Error('API response was empty.'); }
-            } catch (error) { console.error("日记生成失败:", error); showDialog('生成失败', `生成日记时发生错误: ${error.message}`); } finally { generateDiaryBtn.disabled = false; }
-        });
-
-        batchDeleteDiariesBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = !isDiaryBatchDeleteMode; renderDiaryList(); });
-        cancelBatchDeleteBtn.addEventListener('click', () => { isDiaryBatchDeleteMode = false; renderDiaryList(); });
-        confirmBatchDeleteBtn.addEventListener('click', async () => {
-            const indicesToDelete = Array.from(diaryListContainer.querySelectorAll('.batch-delete-checkbox:checked')).map(cb => parseInt(cb.dataset.index));
-            if (indicesToDelete.length === 0) { showToast('未选择任何日记'); return; }
-            const confirmed = await showDialog('批量删除', `确定要删除选中的 ${indicesToDelete.length} 篇日记吗？`);
-            if (confirmed) {
-                indicesToDelete.sort((a, b) => b - a).forEach(index => state.diaries.splice(index, 1));
-                await saveState(); isDiaryBatchDeleteMode = false; renderDiaryList(); showToast('日记已删除');
-            }
-        });
-
-        suiNav.addEventListener('click', (e) => {
-            const targetBtn = e.target.closest('.sui-nav-btn');
-            if (!targetBtn) return;
-            const targetSectionId = targetBtn.dataset.target;
-            suiNavBtns.forEach(btn => btn.classList.remove('active'));
-            targetBtn.classList.add('active');
-            suiContentSections.forEach(section => section.classList.add('hidden'));
-            const targetSection = get(targetSectionId);
-            if (targetSection) targetSection.classList.remove('hidden');
-        });
-
-        const renderSuiPage = () => {
-            suiBalanceEl.textContent = state.sui.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            
-            if (state.sui.transactions.length === 0) { suiTransactionsListEl.innerHTML = `<p class="opacity-70 text-center">暂无记录</p>`; } 
-            else {
-                suiTransactionsListEl.innerHTML = '';
-                state.sui.transactions.forEach(item => {
-                    const el = document.createElement('div');
-                    el.className = 'sui-list-item transaction-item'; 
-                    el.innerHTML = `
-                        <div class="flex-grow flex flex-col">
-                            <span class="timestamp">${item.timestamp}</span>
-                            <span>${item.description}</span>
-                            <span class="amount-${item.amount > 0 ? 'positive' : 'negative'} font-mono text-lg mt-1">${item.amount > 0 ? '+' : ''}${item.amount.toFixed(2)}</span>
-                        </div>
-                        <div class="sui-item-actions">
-                            <button class="sui-action-btn" title="存为记忆" data-type="transactions" data-id="${item.id}" data-action="save"><i class="fas fa-save"></i></button>
-                            <button class="sui-action-btn" title="删除" data-type="transactions" data-id="${item.id}" data-action="delete"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    `;
-                    suiTransactionsListEl.appendChild(el);
-                });
-            }
-
-            if (state.sui.otherChats.length === 0) { suiOtherChatsListEl.innerHTML = `<p class="opacity-70 text-center">暂无记录</p>`; } 
-            else {
-                suiOtherChatsListEl.innerHTML = '';
-                state.sui.otherChats.forEach(item => {
-                    const el = document.createElement('div'); el.className = 'sui-list-item';
-                    const chatLogHtml = item.log.map(log => `<p><strong>${log.sender}:</strong> ${log.text}</p>`).join('');
-                    el.innerHTML = `
-                        <div>
-                            <span class="timestamp">${item.timestamp}</span>
-                            与 <span class="chat-with">${item.with}</span> 的对话
-                            <div class="sui-chat-log">${chatLogHtml}</div>
-                        </div>
-                        <div class="sui-item-actions">
-                            <button class="sui-action-btn" title="存为记忆" data-type="otherChats" data-id="${item.id}" data-action="save"><i class="fas fa-save"></i></button>
-                            <button class="sui-action-btn" title="删除" data-type="otherChats" data-id="${item.id}" data-action="delete"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    `;
-                    suiOtherChatsListEl.appendChild(el);
-                });
-            }
-            
-            if (state.sui.browsingHistory.length === 0) { suiBrowsingHistoryListEl.innerHTML = `<p class="opacity-70 text-center">暂无记录</p>`; } 
-            else {
-                suiBrowsingHistoryListEl.innerHTML = '';
-                state.sui.browsingHistory.forEach(item => {
-                    const el = document.createElement('div'); el.className = 'sui-list-item';
-                    const sessionHtml = item.session.map(page => `<p><strong>${page.title}</strong><br><span class="url">${page.url}</span></p>`).join('');
-                    el.innerHTML = `
-                        <div>
-                            <span class="timestamp">${item.timestamp}</span>
-                            浏览会话
-                            <div class="sui-browsing-session">${sessionHtml}</div>
-                        </div>
-                        <div class="sui-item-actions">
-                            <button class="sui-action-btn" title="存为记忆" data-type="browsingHistory" data-id="${item.id}" data-action="save"><i class="fas fa-save"></i></button>
-                            <button class="sui-action-btn" title="删除" data-type="browsingHistory" data-id="${item.id}" data-action="delete"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    `;
-                    suiBrowsingHistoryListEl.appendChild(el);
-                });
-            }
-        };
-        
-        async function deleteSuiItem(type, id) {
-            const confirmed = await showDialog('确认删除', '确定要删除这条记录吗？此操作无法撤销。');
-            if (confirmed) {
-                state.sui[type] = state.sui[type].filter(item => item.id !== id);
-                await saveState();
-                renderSuiPage();
-                showToast('记录已删除');
-            }
-        }
-
-        async function saveSuiItemToMemory(type, id) {
-            const item = state.sui[type].find(i => i.id === id);
-            if (!item) return;
-
-            let memoryContent = '';
-            switch (type) {
-                case 'transactions':
-                    memoryContent = `[SUI记录] 发生了一笔交易：${item.description}，金额 ${item.amount.toFixed(2)}。`;
-                    break;
-                case 'otherChats':
-                    const chatSummary = item.log.map(l => `${l.sender}: ${l.text}`).join('; ');
-                    memoryContent = `[SUI记录] ${state.role.roleName} 与 ${item.with} 进行了交谈，内容摘要: ${chatSummary}`;
-                    break;
-                case 'browsingHistory':
-                    const pageTitles = item.session.map(p => p.title).join(', ');
-                    memoryContent = `[SUI记录] ${state.role.roleName} 浏览了关于 "${pageTitles}" 的网页。`;
-                    break;
-            }
-
-            if (memoryContent) {
-                state.memories.unshift({ id: Date.now(), content: memoryContent, timestamp: new Date().toLocaleString() });
-                await saveState();
-                showToast('SUI记录已存为记忆');
-            }
-        }
-
-        suiContentContainer.addEventListener('click', e => {
-            const actionBtn = e.target.closest('.sui-action-btn');
-            if (actionBtn) {
-                const type = actionBtn.dataset.type;
-                const id = parseFloat(actionBtn.dataset.id);
-                const action = actionBtn.dataset.action;
-                if (type && id) {
-                    if (action === 'delete') {
-                        deleteSuiItem(type, id);
-                    } else if (action === 'save') {
-                        saveSuiItemToMemory(type, id);
-                    }
-                }
-            }
-        });
-
-        const clearSuiSection = async (type, name) => {
-            if (state.sui[type].length === 0) { showToast(`【${name}】记录已为空`); return; }
-            const confirmed = await showDialog('清空确认', `确定要清空所有【${name}】记录吗？此操作不可逆。`);
-            if (confirmed) {
-                state.sui[type] = [];
-                if (type === 'transactions') {
-                    state.sui.balance = 0;
-                    state.sui.isInitialized = false;
-                }
-                await saveState();
-                renderSuiPage();
-                showToast(`【${name}】记录已清空`);
-            }
-        };
-
-        suiClearAccountBtn.addEventListener('click', () => clearSuiSection('transactions', '账户'));
-        suiClearCommsBtn.addEventListener('click', () => clearSuiSection('otherChats', '通讯'));
-        suiClearBrowsingBtn.addEventListener('click', () => clearSuiSection('browsingHistory', '浏览'));
-
+        // --- Data Management ---
         exportDataBtn.addEventListener('click', async () => {
-            await saveState();
-            const stateToExport = localStorage.getItem('game_state_v5');
-            if (!stateToExport) { showDialog('导出失败', '没有可导出的数据。'); return; }
-            const blob = new Blob([stateToExport], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'game_data.json';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-            showToast('数据已导出');
+            try {
+                const stateToExport = JSON.parse(localStorage.getItem('game_state_v5') || '{}');
+                stateToExport.version = APP_VERSION;
+                const dataStr = JSON.stringify(stateToExport);
+                const dataBlob = new Blob([dataStr], {type: "application/json"});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.download = `攻略计划_存档_${new Date().toISOString().slice(0,10)}.json`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+                showToast('数据已导出');
+            } catch (e) {
+                showDialog('导出失败', '无法导出数据，详情请查看控制台。');
+                console.error('Export failed:', e);
+            }
         });
-        
+
         importDataBtn.addEventListener('click', () => importFileInput.click());
+
         importFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0]; if (!file) return;
+            const file = e.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
-                    const importedData = JSON.parse(event.target.result);
-                    const confirmed = await showDialog('导入确认', '这将覆盖你当前的所有设置和进度。确定要导入吗？');
+                    const importedState = JSON.parse(event.target.result);
+                    const confirmed = await showDialog('导入数据', '这将覆盖你当前的所有进度和设置，确定要导入吗？导入后页面将自动刷新。');
                     if (confirmed) {
-                        localStorage.setItem('game_state_v5', JSON.stringify(importedData));
-                        showToast('正在应用数据...');
-                        location.reload();
+                        localStorage.setItem('game_state_v5', JSON.stringify(importedState));
+                        showToast('导入成功，正在刷新...');
+                        setTimeout(() => window.location.reload(), 1500);
                     }
-                } catch (error) { showDialog('导入失败', `文件格式错误或已损坏: ${error.message}`); }
+                } catch (error) {
+                    showDialog('导入失败', '文件格式错误或已损坏。');
+                }
             };
             reader.readAsText(file);
-            importFileInput.value = '';
         });
 
+        // Initial Load
         await loadState();
         initTouchEffects();
 
     })();
-    </script>
+</script>
 </body>
 </html>
