@@ -913,6 +913,7 @@
                                 <input type="text" id="api-baseurl" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="API Base URL (例如: https://api.openai.com/v1)">
                                 <input type="text" id="api-key" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="API 密钥">
                                 <input type="text" id="api-model" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="模型名称 (例如: gpt-3.5-turbo)">
+                                <input type="number" id="api-max-context" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="最大上下文消息数 (建议 20)">
                             </div>
                             <div class="mt-6 pt-6 border-t border-white/20">
                                 <h2 class="text-xl font-bold mb-4">数据管理</h2>
@@ -1771,7 +1772,7 @@
         manageFontsBtn.addEventListener('click', showFontManager);
 
         saveSettingsBtn.addEventListener('click', async () => {
-            state.config.signature = get('signature-input').value; state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;
+            state.config.signature = get('signature-input').value; state.config.api.baseUrl = apiBaseUrl.value; state.config.api.key = apiKey.value; state.config.api.model = apiModel.value;state.config.api.maxContext = parseInt(get('api-max-context').value) || 20;
             state.config.colors.bgColor = themeBgColor.value; state.config.colors.textColor = themeTextColor.value; state.config.colors.glassBg = hexToRgba(themeGlassBg.value, 0.15); state.config.colors.userBubble = hexToRgba(themeUserBubble.value, 0.7);
             state.config.colors.userText = themeUserText.value; state.config.colors.aiBubble = hexToRgba(themeAiBubble.value, 0.8); state.config.colors.aiText = themeAiText.value;
             applyColors(state.config.colors); signatureDisplay.textContent = state.config.signature;
