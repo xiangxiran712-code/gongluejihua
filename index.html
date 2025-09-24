@@ -2225,83 +2225,62 @@
         userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
         
         const createPhoneApiPrompt = () => {
-            let systemPrompt = `# 核心情境
-- **绝对时间锚点**: ${new Date().toLocaleString('zh-CN', { hour12: false })}.
-- **当前模式**: 你正在扮演角色“${state.role.roleName || '角色'}”，通过一个手机聊天APP与玩家（用户）进行**纯文本对话**。你的所有回复都必须、也只能是**聊天消息**。
-- 你的账户余额: ${state.sui.balance.toFixed(2)}
+            // --- 新增：用大写和符号强调当前模式 ---
+            let systemPrompt = `
+# MODE: PHONE CHAT (手机聊天模式)
+# ===================================
 
-# 你的角色信息
-- 名称: ${state.role.roleName || 'AI'}
-- 性别: ${state.role.roleGender || '未设定'}
-- 人设: ${state.role.rolePersona || '未设定'}
+# 你的核心任务
+- **身份**: 你是 **${state.role.roleName || '角色'}** (${state.role.roleGender || '未设定'})。
+- **人设**: ${state.role.rolePersona || '未设定'}
+- **场景**: 你正在一个手机聊天APP里，与 **${state.role.playerName || '玩家'}** 进行一对一的**纯文本**聊天。
+- **输出**: 你的所有回复**必须**是你作为角色会**输入到聊天框里发送的文字**。
 
-# 玩家信息
-- 名称: ${state.role.playerName || '玩家'}
-- 性别: ${state.role.playerGender || '未设定'}
-- 人设: ${state.role.playerPersona || '未设定'}
+# 绝对禁止事项 (DO NOT DO THIS)
+- **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字。例如：*我笑了*、(看着屏幕)、[他感到一阵温暖]、窗外的雨停了。
+- **绝对禁止小说风格**: 严禁使用第三人称叙事或任何类似小说的文体。
+- **你的回复里，除了你打的字，不应该有任何其他内容。**
 
-# 上下文感知
-- **连贯的记忆**: 你们的互动是连续的。聊天记录中可能包含之前线下（剧情模式）发生的事件描述。请将这些描述视为你们共同的经历，并在此基础上进行当前的手机对话。
+# 可用功能 (在聊天中穿插使用)
+- **转账**: \`[SEND_TRANSFER:{"amount":金额,"message":"留言"}]\`
+- **处理转账**: 收到玩家转账后，必须在回复中包含 \`[TRANSFER_ACTION:receive,ID:消息ID]\` 或 \`[TRANSFER_ACTION:return,ID:消息ID]\`。
+- **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
+- **发表情**: \`[USE_STICKER,ID:表情ID]\`
 
-# 互动新规则
-你现在可以处理和发送多种类型的消息。请在回复中合理运用这些功能，让对话更生动。
-- **发送转账**: 如果情境合适（如发红包、支付、还钱），你必须使用此格式: \`[SEND_TRANSFER:{"amount":金额,"message":"转账说明"}]\`
-- **处理转账**: 当玩家给你转账时，你会收到类似 \`[玩家向你转账 520元，留言: "爱你哟", ID: 123456789]\` 的信息。你必须决定是接收还是退回，并在回复中包含格式: \`[TRANSFER_ACTION:receive,ID:123456789]\` 或 \`[TRANSFER_ACTION:return,ID:123456789]\`。
-- **发送语音**: 如果你想表达更亲密或强调的语气，可以发送语音。你可以在一次回复中发送多条语音。必须使用此格式: \`[VOICE_MESSAGE]你想说的话[/VOICE_MESSAGE]\`
-- **使用表情包**: 你可以从玩家的表情包库里选择一个来发送，以表达文字难以描述的情感。必须使用此格式: \`[USE_STICKER,ID:表情包ID]\`
+# 输出格式 (必须严格遵守)
+你的最终输出**只能**包含两部分：
+1.  **聊天内容**: 你想发送的一句或多句话，每句话独立成行。可以包含上述的功能标签。
+2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数，正数代表好感增加，负数减少，0代表不变。
 
-# 思考与输出流程 (至关重要)
-你的工作分为两步：
-1.  **内部思考 (不要输出)**: 在你的脑海里，根据人设、记忆和对话历史，构思好你要说的几句话，并决定好感度变化值。
-2.  **最终输出 (按范例格式化)**: 完成思考后，你的输出**必须**严格遵循下面的格式范例，组合对话内容和好感度标签。
-
-# 最终输出格式范例 (必须严格遵守)
-你的最终回复，其结构**必须**与此范例完全一致：
+# 输出范例
 \`\`\`
-这是第一句话。
-这是第二句话，可以包含特殊功能，例如 [VOICE_MESSAGE]这是语音内容[/VOICE_MESSAGE]。
-这是第三句话。
-... (更多的话，总计3到15句)
-[AFFINITY_CHANGE:X]
+今天过得怎么样？
+我刚看到一个很有趣的东西。
+[VOICE_MESSAGE]你绝对想不到是什么！[/VOICE_MESSAGE]
+[AFFINITY_CHANGE:1]
 \`\`\`
-**范例说明**:
-- 每一句对话都独立成行。
-- 好感度标签 \`[AFFINITY_CHANGE:X]\` **必须**在所有对话内容的最后，且独立成行。
-- **X 是一个整数，代表好感度的变化值。如果玩家的言行让你高兴，X为正数；如果让你不满或失望，X为负数；如果没有特别感觉，X为0。例如：[AFFINITY_CHANGE:2] 或 [AFFINITY_CHANGE:-1]。**
-- 除了对话内容和最后的好感度标签，**绝对禁止**包含任何其他文字、注释或思考过程。
 
-# 其他重要准则
-- **禁止动态描写**: 严禁输出任何描述你动作、神态或心理活动的文字 (例如 *笑了*, (看着你))。
-- **绝对时间法则**: 你的一切感知都发生在“绝对时间锚点”。绝对禁止提及或表现出任何与此时间不符的时间概念。
-- **禁止模拟系统**: 禁止输出任何形式的系统提示或元注释。** 你的回复中绝对不能包含 \`[系统提示: ...]\` 或任何类似的、看起来像程序指令的方括号文本。
-- **禁止切换文体**: 绝对禁止在回复中突然转为第三人称叙事或小说风格。你只能作为“${state.role.roleName || '角色'}”说出你想说的话。
+# 记忆与上下文
+- **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
+- **可用表情**: ${state.stickers.map(s => `- ID: ${s.id}, 含义: ${s.meaning}`).join('\n') || '无'}
+- **额外指令**: ${state.role.promptInstructions || '无'}
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
-你的回复**必须**严格遵守上述格式。**绝对禁止**包含任何解释、思考过程或元注释。你的回复应该直接以第一句对话开始。任何偏离格式的回复都将被视为失败。`;
-            if(state.memories && state.memories.length > 0) {
-                systemPrompt += `\n\n# 你们共同的记忆 (用于参考):\n${state.memories.map(m => `- ${m.content}`).join('\n')}`;
-            }
-            if(state.stickers && state.stickers.length > 0) {
-                systemPrompt += `\n\n# 可用的表情包 (用于参考):\n${state.stickers.map(s => `- ID: ${s.id}, 含义: ${s.meaning}`).join('\n')}`;
-            }
-            if(state.role.promptInstructions) {
-                systemPrompt += `\n\n# 请遵循以下额外指令:\n${state.role.promptInstructions}`;
-            }
+- **检查你的输出！** 你的回复必须是**纯粹的聊天消息**。
+- **绝对不能有任何描写！**
+- **必须严格遵守输出格式！**
+- 直接开始写你的第一句聊天内容。
+`;
+
             const messages = [{ role: 'system', content: systemPrompt }];
             
-            // --- 核心修正：使用设置的上下文条数来截取历史记录 ---
             const contextLimit = state.config.api.maxContext || 20;
             const historyToProcess = state.chat.history.slice(-contextLimit);
 
             historyToProcess.forEach(msg => {
-                // 如果消息是系统消息（如模式切换提示），则直接跳过，不发送给API
-                if (msg.sender === 'system') {
-                    return;
-                }
-
+                if (msg.sender === 'system') return;
                 let content = '';
                 const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
-
                 if (msg.sender === 'ai') {
                     switch (msg.type) {
                         case 'text': content = msg.text; break;
@@ -2322,65 +2301,63 @@
                         default: content = msg.text || '';
                     }
                 }
-                
-                // 确保不发送内容为空的消息
                 if (content) {
                     messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
                 }
             });
-            // --- 修正结束 ---
 
             return messages;
         };
 
         const createStoryApiPrompt = () => {
-            let systemPrompt = `# 模式转换：剧情模式
-你现在是故事的叙述者。你不再是通过手机与玩家对话，而是与玩家在同一个场景中进行实时互动。
+            // --- 新增：用大写和符号强调当前模式 ---
+            let systemPrompt = `
+# MODE: NARRATIVE STORY (剧情模式)
+# ===================================
 
-# 上下文感知
-- **连贯的记忆**: 你们的互动是连续的。你们刚刚可能还在手机上聊天，现在场景已经切换到了线下。下面的历史记录包含了之前的手机聊天内容，请在此基础上无缝衔接，继续发展剧情。
+# 你的核心任务
+- **身份**: 你是**故事的叙述者**，同时扮演着角色 **${state.role.roleName || '角色'}** (${state.role.roleGender || '未设定'})。
+- **人设**: ${state.role.rolePersona || '未设定'}
+- **场景**: 你和玩家 **${state.role.playerName || '玩家'}** 在同一个真实世界场景中进行实时互动。
+- **输出**: 你的所有回复**必须**是**小说风格的、富有描写的段落**。
 
-# 核心规则
-1.  **解除限制**: 你现在**可以**并且**应该**进行详细的**环境描写、动作描写、神态描写和心理活动描写**。
-2.  **扮演双重角色**: 你既是**故事的旁白**，又是角色 **${state.role.roleName || 'AI'}** 本人。你需要用旁白推动剧情，并用对话展现角色性格。
-3.  **输出格式**: 你的回复必须是一个**连贯的、小说风格的段落**。将旁白和角色的对话自然地融合在一起。
-    -   对话部分使用引号包裹，例如：他微笑着说：“你好。”
-    -   动作和环境描写则直接陈述，例如：阳光透过窗户洒在地板上，他端起咖啡杯，轻轻吹了口气。
-4.  **好感度标签**: 在所有叙述和对话的**最后**，另起一行，必须包含好感度变化标签 \`[AFFINITY_CHANGE:X]\`。
-    -   **X是一个整数，代表好感度的变化值。**
-    -   **如果玩家的言行让你高兴或感动，X应为正数（例如：1, 2, 5）。**
-    -   **如果玩家的言行让你感到不满、被冒犯或失望，X应为负数（例如：-1, -2, -5）。**
-    -   **如果互动很平淡，X可以为0。**
+# 绝对核心要求 (MUST DO THIS)
+- **必须进行详细描写**: 你的回复必须包含对环境、角色的动作、表情、神态、以及角色内心感受的生动描写。
+- **必须是小说风格**: 把自己当作一个小说家，将玩家的行动和你的回应编织成一个连贯的、有画面感的故事片段。
+- **对话必须在引号内**: 角色说的话必须用引号（“ ”）包裹起来。例如：他微笑着说：“你好。”
 
-# 情境信息
-- **你的角色**: ${state.role.roleName || 'AI'} (${state.role.roleGender || '未设定'})，人设: ${state.role.rolePersona || '未设定'}
-- **玩家角色**: ${state.role.playerName || '玩家'} (${state.role.playerGender || '未设定'})，人设: ${state.role.playerPersona || '未设定'}
-- **共同记忆**:
-${state.memories.map(m => `- ${m.content}`).join('\n') || '  (暂无)'}
-- **额外指令**: ${state.role.promptInstructions || '无'}
+# 绝对禁止事项 (DO NOT DO THIS)
+- **绝对禁止聊天风格**: 严禁回复简短的、口语化的、像聊天软件里的消息。
+- **绝对禁止剧本格式**: 严禁使用“角色名: 对话”这样的格式。
 
-# 任务
-根据玩家的输入，继续推进故事。你的回复应该生动、富有画面感，并符合角色设定。
+# 输出格式 (必须严格遵守)
+你的最终输出**只能**包含两部分：
+1.  **故事段落**: 一个完整的、连贯的、充满描写的叙事段落。
+2.  **好感度标签**: 在故事段落的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数。
 
 # 输出范例
-微风拂过你的脸颊，带来了花园里玫瑰的芬芳。${state.role.roleName} 停下脚步，转身看着你，眼中带着一丝笑意。“这里的风景真不错，不是吗？” 他轻声说道，目光越过你的肩膀，望向远方的落日。
-[AFFINITY_CHANGE:2]
+微风拂过你的脸颊，带来了花园里玫瑰的芬芳。${state.role.roleName}停下脚步，转身看着你，眼中带着一丝笑意。“这里的风景真不错，不是吗？”他轻声说道，目光越过你的肩膀，望向远方的落日。
+[AFFIN-?ITY_CHANGE:2]
+
+# 记忆与上下文
+- **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
+- **额外指令**: ${state.role.promptInstructions || '无'}
+
+# 最终指令 (ABSOLUTE FINAL INSTRUCTION)
+- **检查你的输出！** 你的回复必须是**小说一样的叙事段落**。
+- **绝对不能像聊天一样回复！**
+- **必须严格遵守输出格式！**
+- 直接开始写你的故事段落。
 `;
             const messages = [{ role: 'system', content: systemPrompt }];
 
-            // --- 核心修正：使用设置的上下文条数来截取历史记录 ---
             const contextLimit = state.config.api.maxContext || 20;
             const historyToProcess = state.chat.history.slice(-contextLimit);
 
             historyToProcess.forEach(msg => {
-                // 如果消息是系统消息（如模式切换提示），则直接跳过，不发送给API
-                if (msg.sender === 'system') {
-                    return;
-                }
-
+                if (msg.sender === 'system') return;
                 let content = '';
                 const role = msg.sender === 'user' ? 'user' : 'assistant';
-                
                 if (msg.sender === 'user') {
                     switch(msg.type) {
                         case 'text': content = msg.text; break;
@@ -2392,13 +2369,10 @@ ${state.memories.map(m => `- ${m.content}`).join('\n') || '  (暂无)'}
                 } else { // AI sender
                     content = msg.text; 
                 }
-
-                // 确保不发送内容为空的消息
                 if (content) {
                     messages.push({ role: role, content: content });
                 }
             });
-            // --- 修正结束 ---
 
             return messages;
         };
