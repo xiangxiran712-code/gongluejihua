@@ -2618,7 +2618,7 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                     let processedParts = [];
                     for (const part of mixedParts) {
                         if (!part.match(tagRegex)) {
-                            const sentences = part.split(/(?<=[。！？…”])\s*/).filter(s => s.trim());
+                            const sentences = part.split(/(?<=[。！？])\s*/).filter(s => s.trim());
                             processedParts.push(...sentences);
                         } else {
                             processedParts.push(part);
