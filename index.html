@@ -2023,7 +2023,7 @@ padding: 12px 16px;
             // (批量删除UI和滚动逻辑保持不变)
             chatFooter.style.display = isChatBatchDeleteMode ? 'none' : 'flex';
             chatBatchActions.style.display = isChatBatchDeleteMode ? 'flex' : 'none';
-            if (isChatBatchDeleteMode) stickerDrawer.style.display = 'none';
+            
             
             if (checkIndex !== null) {
                 const targetEl = chatHistory.querySelector(`[data-index="${checkIndex}"]`);
