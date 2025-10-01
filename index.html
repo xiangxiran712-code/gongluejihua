@@ -2279,10 +2279,11 @@ padding: 12px 16px;
                         showToast('消息已删除');
                     }
                 } else if (action === 'batch-delete') {
-                    multifunctionMenu.classList.add('hidden');
-                    stickerDrawer.classList.remove('open');
-                    isChatBatchDeleteMode = true;
-                    renderChatHistory({ checkIndex: index });
+    multifunctionMenu.classList.add('hidden');
+    stickerDrawer.classList.remove('open'); // 保持状态干净
+    stickerDrawer.classList.add('hidden');    // <--- 核心更改：强制隐藏，避免布局冲突
+    isChatBatchDeleteMode = true;
+    renderChatHistory({ checkIndex: index });
                 }
             });
         };
@@ -3108,10 +3109,10 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         
         // --- NEW: Chat Batch Delete Listeners ---
         cancelBatchDeleteChatBtn.addEventListener('click', () => {
-            isChatBatchDeleteMode = false;
-            // 重新渲染聊天记录，但不自动滚动，以保持当前视图位置
-            renderChatHistory({ autoScroll: false });
-        });
+    isChatBatchDeleteMode = false;
+    stickerDrawer.classList.remove('hidden'); // <--- 核心更改：恢复面板的可渲染状态
+    renderChatHistory({ autoScroll: false });
+});
 
         confirmBatchDeleteChatBtn.addEventListener('click', async () => {
             // 1. 找到所有被选中的复选框
@@ -3136,9 +3137,10 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
             }
 
             // 5. 退出批量删除模式并重新渲染界面
-            isChatBatchDeleteMode = false;
-            renderChatHistory({ autoScroll: false });
-        });
+              isChatBatchDeleteMode = false;
+    stickerDrawer.classList.remove('hidden'); // <--- 核心更改：恢复表情包面板的可渲染状态
+    renderChatHistory({ autoScroll: false });
+});
         // --- 新代码到此结束 ---
 
         const renderDiaryList = () => {
