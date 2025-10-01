@@ -670,6 +670,32 @@
             padding: 0.2rem 0.6rem;
             border-radius: 9999px;
         }
+        /* --- NEW: Story Mode Active Styling --- */
+        .story-block {
+padding: 12px 16px;
+    width: 100%;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-color); /* 修正：使用全局文字颜色变量 */
+    border-left: 3px solid rgba(75, 85, 99, 0.7); 
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+        .story-block:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        .story-block p {
+            margin: 0;
+            padding: 0;
+        }
+        .story-block strong {
+            color: #000000; /* 玩家名字高亮 */
+        }
+        .story-mode-active {
+            /* 剧情模式激活时，整个聊天背景可以变得更暗或不同 */
+            /* background-color: #1a1a1b; */ /* 可选：改变背景色 */
+        }
     </style>
 </head>
 <body>
@@ -785,11 +811,11 @@
                             <div class="flex items-center space-x-2">
                                 <button id="ai-reply-btn" class="px-4 py-3 rounded-xl glass-container font-bold hover:bg-white/20 transition-colors">角色回复</button>
                                 <button id="multifunction-toggle-btn" class="p-3 rounded-full glass-container hover:bg-white/20 transition-colors"><i class="fas fa-plus"></i></button>
-                                <div class="flex-1 relative">
-                                    <input type="text" id="user-input" class="w-full p-4 pr-14 rounded-full glass-container border-none outline-none placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-shadow duration-300" placeholder="请输入消息...">
-                                     <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 text-pink-300 hover:text-pink-400 transition-colors duration-300">
-                                         <i class="fas fa-heart"></i>
-                                    </button>
+                                <div class="flex-1 relative flex items-end">
+                                    <textarea id="user-input" class="w-full p-3 pr-12 rounded-2xl glass-container border-none outline-none placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-all duration-300 resize-none" placeholder="请输入消息..." rows="1" style="max-height: 120px;"></textarea>
+                                     <button id="send-btn" class="absolute right-2 bottom-2 p-2.5 text-pink-300 hover:text-pink-400 transition-colors duration-300 flex items-center justify-center">
+    <i class="fas fa-heart"></i>
+</button>
                                 </div>
                             </div>
                         </div>
@@ -1402,13 +1428,57 @@
             });
         };
 
-        const showToast = (message) => {
+        // --- 新的Toast通知队列系统 ---
+        
+        // 1. 定义队列和状态锁
+        let toastQueue = [];
+        let isToastActive = false;
+
+        // 2. 创建一个处理器函数，负责按顺序显示队列中的通知
+        const processToastQueue = () => {
+            // 如果当前已有通知在显示，或者队列为空，则不执行任何操作
+            if (isToastActive || toastQueue.length === 0) {
+                return;
+            }
+
+            // 锁定状态，表示即将显示一个通知
+            isToastActive = true;
+
+            // 从队列头部取出第一条消息
+            const message = toastQueue.shift();
+
             const toast = document.createElement('div');
             toast.textContent = message;
-            toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 z-50 opacity-0';
+            toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 z-[10001] opacity-0';
             document.body.appendChild(toast);
+
+            // Fade-in
             setTimeout(() => toast.classList.remove('opacity-0'), 10);
-            setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 2000);
+
+            // 设置通知显示的总时长
+            const displayDuration = 2000; // 显示2秒
+            const fadeOutDuration = 300;   // 渐隐动画0.3秒
+
+            // 在显示时间结束后，开始渐隐
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                
+                // 在渐隐动画结束后，移除元素并处理下一条通知
+                setTimeout(() => {
+                    toast.remove();
+                    isToastActive = false; // 解除锁定
+                    processToastQueue();   // 尝试处理队列中的下一条通知
+                }, fadeOutDuration);
+
+            }, displayDuration);
+        };
+
+        // 3. 改造原始的 showToast 函数，使其只负责将消息推入队列
+        const showToast = (message) => {
+            // 将新消息添加到队列尾部
+            toastQueue.push(message);
+            // 每次添加后都尝试启动处理器
+            processToastQueue();
         };
         
         const updateDateTime = () => {
@@ -1837,53 +1907,57 @@
             const { autoScroll = true, checkIndex = null } = options;
             const isStoryMode = state.chat.mode === 'story';
 
+            // --- UI清理与模式切换 ---
             multifunctionMenu.classList.add('hidden');
             stickerDrawer.classList.remove('open');
-
             chatHistory.innerHTML = '';
-            chatPage.classList.toggle('story-mode', isStoryMode);
-            chatHistory.classList.toggle('story-mode', isStoryMode);
+            // 根据当前是否是剧情模式，添加/移除专用class
+            chatPage.classList.toggle('story-mode-active', isStoryMode);
             
             if (!state.chat.history) state.chat.history = [];
 
+            let inStorySegment = false;
+            // 如果不在剧情模式，则最后一个“剧情开始”标记无效
+            const lastStoryStartIndex = isStoryMode ? state.chat.history.findLastIndex(msg => msg.type === 'story_start') : -1;
+
             state.chat.history.forEach((msg, index) => {
-                if (msg.sender === 'system') {
-                    chatHistory.appendChild(createSystemMessage(msg));
+                // 标记当前是否在活跃的剧情段落中
+                if (lastStoryStartIndex !== -1 && index > lastStoryStartIndex) {
+                    inStorySegment = true;
+                } else {
+                    inStorySegment = false;
+                }
+                
+                // 1. 系统消息处理
+                if (msg.sender === 'system' || msg.type === 'story_start') {
+                    if (msg.storyContent) {
+                        chatHistory.appendChild(createStoryAnchor(msg));
+                    } else {
+                        chatHistory.appendChild(createSystemMessage(msg));
+                    }
                     return;
                 }
 
-                if (isStoryMode) {
-                    // --- Story Mode Rendering ---
+                // 2. 根据是否在活跃剧情段落中，决定渲染方式
+                if (inStorySegment) {
+                    // --- 渲染为“叙事文本块” ---
                     const block = document.createElement('div');
-                    block.className = 'story-block';
+                    block.className = 'story-block'; // 使用这个class来获得剧本风格
                     block.dataset.index = index;
                     block.dataset.id = msg.id;
 
                     const content = document.createElement('p');
                     let narrativeText = '';
 
-                    // Convert phone messages to narrative for display
                     if (msg.sender === 'user') {
-                        narrativeText = `<strong>${state.role.playerName || '你'}:</strong> `;
-                        switch(msg.type) {
-                            case 'text': narrativeText += msg.text; break;
-                            case 'voice': narrativeText += `(发送了一段语音) "${msg.text}"`; break;
-                            case 'transfer': narrativeText += `(向${state.role.roleName || '对方'}转账 ${msg.amount}元) "${msg.message}"`; break;
-                            case 'sticker': narrativeText += `(发送了一个表示“${msg.meaning}”的表情)`; break;
-                            default: narrativeText += msg.text;
-                        }
+                        narrativeText = `<strong>${state.role.playerName || '你'}:</strong> ${msg.text.replace(/\n/g, '<br>')}`;
                     } else { // AI sender
-                        switch(msg.type) {
-                            case 'text': narrativeText = msg.text.replace(/\n/g, '<br>'); break;
-                            case 'voice': narrativeText = `<strong>${state.role.roleName || 'AI'}:</strong> (语音) "${msg.text}"`; break;
-                            case 'transfer': narrativeText = `(一则转账消息出现在屏幕上，金额 ${msg.amount}元，留言: "${msg.message}")`; break;
-                            case 'sticker': narrativeText = `<strong>${state.role.roleName || 'AI'}:</strong> (发来一个表示“${msg.meaning}”的表情)`; break;
-                            default: narrativeText = msg.text.replace(/\n/g, '<br>');
-                        }
+                        narrativeText = msg.text.replace(/\n/g, '<br>');
                     }
                     content.innerHTML = narrativeText;
                     block.appendChild(content);
 
+                    // 为叙事块添加长按/右键事件，以便管理
                     let pressTimer;
                     block.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
                     block.addEventListener('mouseup', () => clearTimeout(pressTimer));
@@ -1892,16 +1966,12 @@
                     block.addEventListener('touchend', () => clearTimeout(pressTimer));
 
                     chatHistory.appendChild(block);
+
                 } else {
-                    // --- Phone (Bubble) Mode Rendering ---
+                    // --- 渲染为“手机聊天气泡” ---
                     const bubbleWrapper = document.createElement('div');
                     bubbleWrapper.className = `flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`;
                     
-                    // Convert story messages to simple text bubbles for display
-                    if (msg.type === 'story' || (msg.text && (msg.type !== 'text' && msg.type !== 'transfer' && msg.type !== 'voice' && msg.type !== 'sticker'))) {
-                        msg.type = 'text';
-                    }
-
                     let bubble;
                     switch (msg.type) {
                         case 'transfer': bubble = createTransferBubble(msg); break;
@@ -1909,22 +1979,19 @@
                         case 'sticker': bubble = createStickerBubble(msg); break;
                         default: bubble = createTextBubble(msg);
                     }
-                    
                     bubble.dataset.index = index;
                     bubble.dataset.id = msg.id;
-
+                    
+                    // (批量删除逻辑保持不变)
                     if(isChatBatchDeleteMode) {
+                        // ... (批量删除代码无需修改)
                         const container = document.createElement('div');
                         container.className = 'relative';
                         bubble.classList.add('pl-12');
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
                         checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
-                        
-                        if (index === checkIndex) {
-                            checkbox.checked = true;
-                        }
-
+                        if (index === checkIndex) checkbox.checked = true;
                         container.appendChild(bubble);
                         container.appendChild(checkbox);
                         bubbleWrapper.appendChild(container);
@@ -1935,51 +2002,156 @@
                         bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
                         bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
                         bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
-                        
                         bubbleWrapper.appendChild(bubble);
                     }
                     chatHistory.appendChild(bubbleWrapper);
                 }
             });
             
-            // --- UI Updates based on mode ---
+            // --- UI状态更新 ---
             storyModeBtn.classList.toggle('text-blue-400', isStoryMode);
-            [transferBtn, voiceModeBtn, stickerPanelBtn].forEach(btn => {
-                btn.disabled = isStoryMode;
-            });
+            [transferBtn, voiceModeBtn, stickerPanelBtn].forEach(btn => btn.disabled = isStoryMode);
             
             if (isStoryMode) {
                 aiReplyBtn.textContent = '继续剧情';
-                userInput.placeholder = '输入你的行动或对话...';
+                userInput.placeholder = '输入你的行动或对话';
             } else {
                 aiReplyBtn.textContent = '角色回复';
                 userInput.placeholder = state.chat.sendMode === 'voice' ? '输入语音文字...' : '请输入消息...';
             }
 
-            if (isChatBatchDeleteMode) {
-                chatFooter.style.display = 'none';
-                chatBatchActions.style.display = 'flex';
-                stickerDrawer.style.display = 'none';
-            } else {
-                chatFooter.style.display = 'flex';
-                chatBatchActions.style.display = 'none';
-                stickerDrawer.style.display = '';
-            }
+            // (批量删除UI和滚动逻辑保持不变)
+            chatFooter.style.display = isChatBatchDeleteMode ? 'none' : 'flex';
+            chatBatchActions.style.display = isChatBatchDeleteMode ? 'flex' : 'none';
+            if (isChatBatchDeleteMode) stickerDrawer.style.display = 'none';
             
             if (checkIndex !== null) {
                 const targetEl = chatHistory.querySelector(`[data-index="${checkIndex}"]`);
-                if (targetEl) {
-                    requestAnimationFrame(() => {
-                        targetEl.scrollIntoView({ behavior: 'auto', block: 'center' });
-                    });
-                }
+                if (targetEl) targetEl.scrollIntoView({ behavior: 'auto', block: 'center' });
             } else if (autoScroll && !isChatBatchDeleteMode) { 
                 chatHistory.scrollTop = chatHistory.scrollHeight; 
             }
 
             affinityDisplay.textContent = `好感度：${state.chat.affinity}/100`;
         };
+        const createStoryAnchor = (msg) => {
+            const wrapper = document.createElement('div');
+            // 添加一个特殊的类名和 data-id 以便点击时识别
+            wrapper.className = 'system-message-wrapper story-block-anchor cursor-pointer hover:bg-white/20 transition-colors duration-200';
+            wrapper.dataset.storyBlockId = msg.id;
 
+            const content = msg.storyContent.length > 0
+                ? `--- 剧情回顾 (共 ${msg.storyContent.length} 条内容) ---`
+                : '--- 进入剧情模式 ---';
+            
+            wrapper.innerHTML = `<span class="system-message-text"><i class="fas fa-book-open mr-2"></i>${content}</span>`;
+            return wrapper;
+        };
+
+        chatHistory.addEventListener('click', async (e) => {
+            // --- 新增：处理剧情锚点点击 ---
+            const storyAnchor = e.target.closest('.story-block-anchor');
+            if (storyAnchor) {
+                const blockId = parseInt(storyAnchor.dataset.storyBlockId, 10);
+                const storyBlock = state.chat.history.find(m => m.id === blockId);
+
+                if (storyBlock && storyBlock.storyContent) {
+                    // 创建一个容器来展示剧情日志
+                    const storyLogContainer = document.createElement('div');
+                    storyLogContainer.className = 'space-y-4 max-h-[60vh] overflow-y-auto scrollable-content p-2 -m-2';
+                    storyLogContainer.style.fontFamily = 'var(--custom-font)'; // 继承字体
+
+                    storyBlock.storyContent.forEach(entry => {
+                        const storyEntry = document.createElement('div');
+                        let narrativeText = '';
+
+                        if (entry.sender === 'user') {
+                            // 核心：处理用户输入换行
+                            narrativeText = `<strong>${state.role.playerName || '你'}:</strong><br>${entry.text.replace(/\n/g, '<br>')}`;
+                        } else { // AI sender
+                            // 核心：处理AI回复换行
+                            narrativeText = entry.text.replace(/\n/g, '<br>');
+                        }
+                        
+                        storyEntry.innerHTML = narrativeText;
+                        storyLogContainer.appendChild(storyEntry);
+                    });
+                    
+                    if(storyBlock.storyContent.length === 0){
+                        storyLogContainer.innerHTML = `<p class="text-center opacity-60">暂无剧情内容</p>`;
+                    }
+
+                    showDialog('剧情回顾', storyLogContainer, {
+                        buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }]
+                    });
+                }
+                return; // 阻止事件冒泡到下面的旧逻辑
+            }
+
+            // --- 原有的事件处理逻辑 ---
+            const msgContainer = e.target.closest('.message-bubble'); // 不再检查 .story-block
+            if (!msgContainer) return;
+
+            const msgId = parseInt(msgContainer.dataset.id, 10);
+            const msg = state.chat.history.find(m => m.id === msgId);
+            if (!msg) return;
+
+            // --- 语音消息点击处理 ---
+            if (e.target.closest('.voice-bubble') && msg.type === 'voice') {
+                msg.isExpanded = !msg.isExpanded;
+                
+                const scrollPosition = chatHistory.scrollHeight - chatHistory.scrollTop;
+                renderChatHistory({ autoScroll: false });
+                chatHistory.scrollTop = chatHistory.scrollHeight - scrollPosition;
+                
+                await saveState();
+                return;
+            }
+
+            // --- 转账消息点击处理 (增加退回功能) ---
+            if (e.target.closest('.transfer-bubble.pending') && msg.type === 'transfer' && msg.sender === 'ai') {
+                const action = await showDialog(
+                    '处理转账',
+                    `你收到一笔来自 ${state.role.roleName || '对方'} 的转账，金额 ${msg.amount.toFixed(2)} 元。`,
+                    {
+                        buttons: [
+                            { text: '取消', value: false, class: 'bg-gray-500/50' },
+                            { text: '退回', value: 'return', class: 'bg-yellow-600/80' },
+                            { text: '收取', value: 'receive', class: 'bg-blue-500' }
+                        ]
+                    }
+                );
+
+                if (action === 'receive') {
+                    msg.status = 'received';
+                    state.sui.balance += msg.amount;
+                    state.sui.transactions.unshift({
+                        id: Date.now(),
+                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                        description: `收到来自 ${state.role.roleName || '对方'} 的转账`,
+                        amount: msg.amount,
+                        relatedChatId: msg.id
+                    });
+                    showToast(`收款成功，余额增加 ${msg.amount.toFixed(2)}`);
+                    await saveState();
+                    renderChatHistory({ autoScroll: false });
+                } else if (action === 'return') {
+                    msg.status = 'returned';
+                    state.sui.balance += msg.amount; // 修正：退回给自己，余额应该增加
+                    state.sui.transactions.unshift({
+                        id: Date.now(),
+                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                        description: `${state.role.playerName || '你'} 退回了一笔转账`,
+                        amount: msg.amount,
+                        relatedChatId: msg.id
+                    });
+                    showToast(`已退回该笔转账，资金已返还`);
+                    await saveState();
+                    renderChatHistory({ autoScroll: false });
+                }
+                return;
+            }
+        });
         const createSystemMessage = (msg) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'system-message-wrapper';
@@ -2115,88 +2287,26 @@
             });
         };
 
-        // --- 唯一且正确的事件监听器 ---
-        chatHistory.addEventListener('click', async (e) => {
-            // 首先，找到被点击消息的容器 (气泡或剧情块)
-            const msgContainer = e.target.closest('.message-bubble, .story-block');
-            if (!msgContainer) return;
-
-            const msgId = parseInt(msgContainer.dataset.id, 10);
-            const msg = state.chat.history.find(m => m.id === msgId);
-            if (!msg) return;
-
-            // --- 语音消息点击处理 ---
-            if (e.target.closest('.voice-bubble') && msg.type === 'voice') {
-                msg.isExpanded = !msg.isExpanded;
-                
-                const scrollPosition = chatHistory.scrollHeight - chatHistory.scrollTop;
-                renderChatHistory({ autoScroll: false });
-                chatHistory.scrollTop = chatHistory.scrollHeight - scrollPosition;
-                
-                await saveState();
-                return;
-            }
-
-            // --- 转账消息点击处理 (增加退回功能) ---
-            if (e.target.closest('.transfer-bubble.pending') && msg.type === 'transfer' && msg.sender === 'ai') {
-                const action = await showDialog(
-                    '处理转账',
-                    `你收到一笔来自 ${state.role.roleName || '对方'} 的转账，金额 ${msg.amount.toFixed(2)} 元。`,
-                    {
-                        buttons: [
-                            { text: '取消', value: false, class: 'bg-gray-500/50' },
-                            { text: '退回', value: 'return', class: 'bg-yellow-600/80' },
-                            { text: '收取', value: 'receive', class: 'bg-blue-500' }
-                        ]
-                    }
-                );
-
-                if (action === 'receive') {
-                    msg.status = 'received';
-                    // 更新SUI账户余额
-                    state.sui.balance += msg.amount;
-                    // 在SUI中添加一条交易记录
-                    state.sui.transactions.unshift({
-                        id: Date.now(),
-                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                        description: `收到来自 ${state.role.roleName || '对方'} 的转账`,
-                        amount: msg.amount,
-                        relatedChatId: msg.id
-                    });
-                    showToast(`收款成功，余额增加 ${msg.amount.toFixed(2)}`);
-                    await saveState();
-                    renderChatHistory({ autoScroll: false });
-                } else if (action === 'return') {
-                    msg.status = 'returned';
-                    
-                    // --- 核心修正 1: 将金额返还给AI的余额 ---
-                    state.sui.balance += msg.amount;
-
-                    // --- 核心修正 2: 添加一笔退款的收入记录到SUI ---
-                    state.sui.transactions.unshift({
-                        id: Date.now(),
-                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                        description: `${state.role.playerName || '你'} 退回了一笔转账`,
-                        amount: msg.amount, // 金额为正，代表收入
-                        relatedChatId: msg.id
-                    });
-
-                    showToast(`已退回该笔转账，资金已返还`);
-                    await saveState();
-                    renderChatHistory({ autoScroll: false });
-                }
-                // 如果 action 为 false (点击了取消)，则不执行任何操作
-                return;
-            }
-        });
+        
 
         const sendMessage = async (messageObject) => {
+            // 基础校验
             if (!messageObject.text && messageObject.sender !== 'system' && messageObject.type !== 'sticker' && messageObject.type !== 'transfer') return;
             if (messageObject.sender !== 'system' && (!messageObject.text || !messageObject.text.trim()) && (messageObject.type === 'text' || messageObject.type === 'voice')) return;
             
+            // 不论何种模式，都直接将消息推入主历史记录
             state.chat.history.push(messageObject);
-            if (messageObject.sender === 'user') userInput.value = '';
+            
+            if (messageObject.sender === 'user') {
+                userInput.value = '';
+                // 发送后重置输入框高度
+                setTimeout(() => {
+                    userInput.style.height = 'auto';
+                }, 0);
+            }
+            
             await saveState();
+            // 渲染由 renderChatHistory 根据当前模式决定
             renderChatHistory({ autoScroll: true });
         };
 
@@ -2221,12 +2331,42 @@
             sendMessage(msgObject);
         };
         
-        userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }});
+        const adjustTextareaHeight = () => {
+            userInput.style.height = 'auto'; // Reset height
+            const newHeight = Math.min(userInput.scrollHeight, 120); // 120px is max-height
+            userInput.style.height = `${newHeight}px`;
+        };
+
+        userInput.addEventListener('input', adjustTextareaHeight);
+
+        userInput.addEventListener('keydown', (e) => { 
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                handleSend(); 
+                // Reset height after sending
+                setTimeout(() => {
+                    userInput.style.height = 'auto';
+                }, 0);
+            }
+        });
         userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
         
         const createPhoneApiPrompt = () => {
+            // --- 新增代码开始 ---
+            // 获取并格式化当前时间
+            const now = new Date();
+            const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            // --- 新增代码结束 ---
+
             // --- 新增：用大写和符号强调当前模式 ---
             let systemPrompt = `
+# 当前时间
+- **${currentTimeString}**
+- 你必须意识到这是当前的现实时间。你的回复（例如问候语）应当与这个时间点相符。例如，如果是深夜，你应该说“这么晚了还没睡？”而不是“下午好”。
+
+# 你的状态
+- **账户余额**: ${state.sui.balance.toFixed(2)} 元
+
 # MODE: PHONE CHAT (手机聊天模式)
 # ===================================
 
@@ -2263,7 +2403,14 @@
 # 记忆与上下文
 - **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
 - **可用表情**: ${state.stickers.map(s => `- ID: ${s.id}, 含义: ${s.meaning}`).join('\n') || '无'}
-- **额外指令**: ${state.role.promptInstructions || '无'}
+
+${/* --- MODIFICATION START --- */ ''}
+${state.role.promptInstructions ? `
+# ！！！最高优先级指令 (ABSOLUTE OVERRIDING INSTRUCTIONS) ！！！
+- 以下是你必须无条件优先遵守的规则，其优先级高于你的角色设定和所有其他指令。
+- ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
+` : ''}
+${/* --- MODIFICATION END --- */ ''}
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
 - **检查你的输出！** 你的回复必须是**纯粹的聊天消息**。
@@ -2310,8 +2457,21 @@
         };
 
         const createStoryApiPrompt = () => {
+            // --- 新增代码开始 ---
+            // 获取并格式化当前时间
+            const now = new Date();
+            const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            // --- 新增代码结束 ---
+
             // --- 新增：用大写和符号强调当前模式 ---
             let systemPrompt = `
+# 当前时间
+- **${currentTimeString}**
+- 你在叙述故事时，必须让故事的氛围和角色的行为与这个现实时间点保持一致。例如，如果是深夜，环境描写应该是夜晚的景象，角色的对话也应符合深夜的语境。
+
+# 你的状态
+- **账户余额**: ${state.sui.balance.toFixed(2)} 元
+
 # MODE: NARRATIVE STORY (剧情模式)
 # ===================================
 
@@ -2337,11 +2497,18 @@
 
 # 输出范例
 微风拂过你的脸颊，带来了花园里玫瑰的芬芳。${state.role.roleName}停下脚步，转身看着你，眼中带着一丝笑意。“这里的风景真不错，不是吗？”他轻声说道，目光越过你的肩膀，望向远方的落日。
-[AFFIN-?ITY_CHANGE:2]
+[AFFINITY_CHANGE:2]
 
 # 记忆与上下文
 - **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
-- **额外指令**: ${state.role.promptInstructions || '无'}
+
+${/* --- MODIFICATION START --- */ ''}
+${state.role.promptInstructions ? `
+# ！！！最高优先级指令 (ABSOLUTE OVERRIDING INSTRUCTIONS) ！！！
+- 以下是你必须无条件优先遵守的规则，其优先级高于你的角色设定和所有其他指令。
+- ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
+` : ''}
+${/* --- MODIFICATION END --- */ ''}
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
 - **检查你的输出！** 你的回复必须是**小说一样的叙事段落**。
@@ -2366,7 +2533,7 @@
                         case 'sticker': content = `[玩家发送了一个表示“${msg.meaning}”的表情]`; break;
                         default: content = msg.text;
                     }
-                } else { // AI sender
+                } else if (msg.sender === 'ai') { // <<< 核心修正：将 else 更改为 else if
                     content = msg.text; 
                 }
                 if (content) {
@@ -2458,8 +2625,9 @@ ${recentHistory}
 
             const result = await callSuiApi(systemPrompt);
             
-            if (result && Array.isArray(result)) {
+            if (result && Array.isArray(result) && result.length > 0) { // 确保结果有效且不为空
                 let totalAmount = 0;
+                let addedCount = 0; // 计数器，记录成功添加的交易数量
                 for (const transaction of result) {
                     if (typeof transaction.description === 'string' && typeof transaction.amount === 'number') {
                         const newTransaction = {
@@ -2470,10 +2638,16 @@ ${recentHistory}
                         };
                         state.sui.transactions.unshift(newTransaction);
                         totalAmount += transaction.amount;
-                        showToast(`【SUI：新交易 - ${transaction.description} ${transaction.amount.toFixed(2)}】`);
+                        addedCount++; // 每成功添加一笔，计数器加一
                     }
                 }
                 state.sui.balance += totalAmount;
+
+                // 核心修改：在循环外显示一条总结性通知
+                if (addedCount > 0) {
+                    showToast(`【SUI：已生成 ${addedCount} 笔新交易】`);
+                }
+
                 await saveState();
             }
         }
@@ -2496,7 +2670,8 @@ ${recentHistory}
                     log: result.log
                 };
                 state.sui.otherChats.unshift(newChat);
-                showToast(`【SUI：新通讯 - 与 ${result.with} 的对话】`);
+                // 核心修改：使用通用的类别通知
+                showToast('【SUI：新通讯记录已生成】');
                 await saveState();
             }
         }
@@ -2519,7 +2694,8 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                     session: result.session
                 };
                 state.sui.browsingHistory.unshift(newHistory);
-                showToast(`【SUI：新浏览记录 - 搜索了“${result.session[0].title}”】`);
+                // 核心修改：使用通用的类别通知
+                showToast('【SUI：新浏览记录已生成】');
                 await saveState();
             }
         }
@@ -2577,7 +2753,28 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                     throw new Error(`API request failed with status ${response.status}: ${errorText}`);
                 }
                 const data = await response.json();
-                const reply = data.choices[0].message.content.trim();
+                // [修正] 使用可选链安全地获取内容，并增加前置校验
+                const rawContent = data.choices?.[0]?.message?.content;
+                
+                if (!rawContent) {
+                    // [修正] 增强错误诊断逻辑
+                    console.error("捕获到API异常响应，原始数据如下:", data);
+
+                    // 尝试解析并抛出更具体的错误信息
+                    if (data.error) {
+                        throw new Error(`API返回错误: ${data.error.message}`);
+                    }
+                    
+                    const finishReason = data.choices?.[0]?.finish_reason;
+                    if (finishReason === 'content_filter') {
+                        throw new Error("发送或接收的内容触发了安全策略，已被拦截。");
+                    }
+
+                    // 如果没有更具体的信息，则使用通用错误
+                    throw new Error("API响应为空或格式不正确，无法解析出有效内容。请检查网络连接或API状态。");
+                }
+                
+                const reply = rawContent.trim();
                 
                 // 【核心升级】使用高容错的正则表达式优先处理好感度标签
                 let cleanReply = reply;
@@ -2606,11 +2803,13 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                 // 【升级结束】
                 
                 if (state.chat.mode === 'story') {
-                    await sendMessage({ id: Date.now(), sender: 'ai', type: 'story', text: cleanReply });
+                    // [修正] 确保有有效内容时才发送，并统一消息类型为'text'
+                    if (cleanReply) {
+                        await sendMessage({ id: Date.now(), sender: 'ai', type: 'text', text: cleanReply });
+                    }
                 } else {
                     // --- 容错解析与智能分句 (此部分逻辑不变) ---
                     const tagRegex = /(\[VO-?ICE_MESSAGE\].*?\[\/VO-?ICE_MESSAGE\]|\[SEND-?_TRANSFER:.*?\]|\[USE-?_STICKER,ID:\d+\]|\[TRANSFER-?_ACTION:(?:receive|return),ID:\d+\])/gis;
-
                     const mixedParts = cleanReply.split(tagRegex).filter(part => part && part.trim());
                     
                     let processedParts = [];
@@ -3323,14 +3522,65 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         });
 
          storyModeBtn.addEventListener('click', async () => {
-            const isEnteringStoryMode = state.chat.mode === 'phone';
-            state.chat.mode = isEnteringStoryMode ? 'story' : 'phone';
-            
-            const systemMessageText = isEnteringStoryMode ? '--- 切换到剧情模式 ---' : '--- 切换到手机模式 ---';
-            // 使用 sendMessage 函数来添加消息，它会自动处理渲染和保存
-            await sendMessage({ id: Date.now(), sender: 'system', type: 'system', text: systemMessageText });
-            
-            showToast(state.chat.mode === 'story' ? '已进入剧情模式' : '已返回手机模式');
+            const isCurrentlyStoryMode = state.chat.mode === 'story';
+
+            if (isCurrentlyStoryMode) {
+                // --- 核心：退出剧情模式，执行“收纳” ---
+                state.chat.mode = 'phone';
+
+                // 1. 找到最后一个“剧情开始”标记的索引
+                const storyStartIndex = state.chat.history.findLastIndex(msg => msg.type === 'story_start');
+
+                if (storyStartIndex !== -1) {
+                    // 2. 提取出这段剧情的所有内容
+                    const storyContent = state.chat.history.slice(storyStartIndex + 1);
+                    
+                    if (storyContent.length > 0) {
+                        // 3. 创建一个新的“剧情回顾”锚点
+                        const storyAnchor = {
+                            id: state.chat.history[storyStartIndex].id, // 使用开始标记的ID
+                            sender: 'system',
+                            type: 'system',
+                            text: '--- 剧情回顾 ---',
+                            storyContent: storyContent
+                        };
+
+                        // 4. 从历史记录中移除旧的剧情内容和开始标记
+                        state.chat.history.splice(storyStartIndex);
+
+                        // 5. 将新的“剧情回顾”锚点放回原位
+                        state.chat.history.push(storyAnchor);
+                    } else {
+                        // 如果没有内容，只移除开始标记
+                        state.chat.history.splice(storyStartIndex, 1);
+                    }
+                }
+                
+                // 6. 添加“切换回手机模式”的提示
+                state.chat.history.push({ 
+                    id: Date.now(), 
+                    sender: 'system', 
+                    type: 'system', 
+                    text: '--- 切换到手机模式 ---' 
+                });
+
+                showToast('已返回手机模式');
+
+            } else {
+                // --- 进入剧情模式 ---
+                state.chat.mode = 'story';
+                // 插入一个“剧情开始”的标记，用于后续的收纳操作
+                state.chat.history.push({ 
+                    id: Date.now(), 
+                    sender: 'system', 
+                    type: 'story_start', // 特殊类型
+                    text: '--- 切换到剧情模式 ---' 
+                });
+                showToast('已进入剧情模式');
+            }
+
+            await saveState();
+            renderChatHistory({ autoScroll: true });
         });
 
         stickerPanelBtn.addEventListener('click', () => {
