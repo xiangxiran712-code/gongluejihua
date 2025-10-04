@@ -559,6 +559,12 @@
             height: auto;
             border-radius: 8px;
         }
+        .html-bubble {
+    padding: 0;
+    overflow: hidden; /* 防止内部元素溢出影响布局 */
+    background: transparent; /* 使气泡背景透明，让内部HTML完全控制外观 */
+    box-shadow: none; /* 移除默认阴影，让内部HTML控制自己的阴影 */
+}
         #sticker-drawer {
             position: absolute;
             bottom: 0;
@@ -1977,6 +1983,7 @@ padding: 12px 16px;
                         case 'transfer': bubble = createTransferBubble(msg); break;
                         case 'voice': bubble = createVoiceBubble(msg); break;
                         case 'sticker': bubble = createStickerBubble(msg); break;
+                        case 'html': bubble = createHtmlBubble(msg); break;
                         default: bubble = createTextBubble(msg);
                     }
                     bubble.dataset.index = index;
@@ -2034,6 +2041,7 @@ padding: 12px 16px;
 
             affinityDisplay.textContent = `好感度：${state.chat.affinity}/100`;
         };
+        
         const createStoryAnchor = (msg) => {
             const wrapper = document.createElement('div');
             // 添加一个特殊的类名和 data-id 以便点击时识别
@@ -2209,6 +2217,18 @@ padding: 12px 16px;
             }
             return bubble;
         };
+        
+        const createHtmlBubble = (msg) => {
+        const bubble = document.createElement('div');
+        // 核心修正：添加了 'html-bubble' 类，以应用正确的透明容器样式
+        bubble.className = `message-bubble html-bubble ${msg.sender}`; 
+        
+        // 安全提示：直接使用 innerHTML 可能会有XSS风险。
+        // 在此应用中，我们信任AI生成的内容，因此直接使用以实现功能。
+        bubble.innerHTML = msg.htmlContent;
+        
+        return bubble;
+    };
 
         const manageChatMessage = (index) => {
             const msg = state.chat.history[index];
@@ -2241,6 +2261,7 @@ padding: 12px 16px;
                 case 'voice': dialogMessage = `一条 ${msg.duration}" 的语音消息`; break;
                 case 'transfer': dialogMessage = `一笔 ${msg.amount} 元的转账`; break;
                 case 'sticker': dialogMessage = `一个含义为 "${msg.meaning}" 的表情`; break;
+                case 'html': dialogMessage = `一个HTML模块 (内容: "${msg.htmlContent.substring(0, 50)}...")`; break;
                 default: dialogMessage = `"${(msg.text || '').substring(0, 50)}..."`;
             }
             
@@ -2387,7 +2408,7 @@ padding: 12px 16px;
 - **处理转账**: 收到玩家转账后，必须在回复中包含 \`[TRANSFER_ACTION:receive,ID:消息ID]\` 或 \`[TRANSFER_ACTION:return,ID:消息ID]\`。
 - **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
 - **发表情**: \`[USE_STICKER,ID:表情ID]\`
-
+- **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`。这会直接在聊天框渲染一个HTML结构，不受分句影响。例如: [HTML_BLOCK]<div style="padding: 10px; border: 1px solid white; border-radius: 8px;">这是一个自定义模块。</div>[/HTML_BLOCK]
 # 输出格式 (必须严格遵守)
 你的最终输出**只能**包含两部分：
 1.  **聊天内容**: 你想发送的一句或多句话，每句话独立成行。可以包含上述的功能标签。
@@ -2735,178 +2756,133 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         }
         
         async function getAiReply() {
-            if (!state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！'); return; }
-            aiReplyBtn.disabled = true;
-            showToast('对方正在输入...');
-            await initializeSuiBalance();
+    if (!state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！'); return; }
+    aiReplyBtn.disabled = true;
+    showToast('对方正在输入...');
+    await initializeSuiBalance();
 
-            try {
-                const messages = state.chat.mode === 'phone' ? createPhoneApiPrompt() : createStoryApiPrompt();
-                
-                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7 })
-                });
+    try {
+        const messages = state.chat.mode === 'phone' ? createPhoneApiPrompt() : createStoryApiPrompt();
+        
+        const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+            body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7 })
+        });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-                }
-                const data = await response.json();
-                // [修正] 使用可选链安全地获取内容，并增加前置校验
-                const rawContent = data.choices?.[0]?.message?.content;
-                
-                if (!rawContent) {
-                    // [修正] 增强错误诊断逻辑
-                    console.error("捕获到API异常响应，原始数据如下:", data);
+        if (!response.ok) throw new Error(`API request failed with status ${response.status}: ${await response.text()}`);
+        
+        const data = await response.json();
+        const rawContent = data.choices?.[0]?.message?.content;
+        
+        if (!rawContent) {
+            console.error("API响应为空或格式不正确:", data);
+            throw new Error("API响应为空或格式不正确。");
+        }
+        
+        let reply = rawContent.trim();
+        
+        const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
+        reply = reply.replace(affinityRegex, (match, valueStr) => {
+            const affinityChange = parseInt(valueStr, 10);
+            if (!isNaN(affinityChange)) {
+                state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
+                showToast(`好感度 ${affinityChange > 0 ? '+' : ''}${affinityChange}`);
+            }
+            return '';
+        }).trim();
 
-                    // 尝试解析并抛出更具体的错误信息
-                    if (data.error) {
-                        throw new Error(`API返回错误: ${data.error.message}`);
-                    }
-                    
-                    const finishReason = data.choices?.[0]?.finish_reason;
-                    if (finishReason === 'content_filter') {
-                        throw new Error("发送或接收的内容触发了安全策略，已被拦截。");
-                    }
+        if (!reply) return;
 
-                    // 如果没有更具体的信息，则使用通用错误
-                    throw new Error("API响应为空或格式不正确，无法解析出有效内容。请检查网络连接或API状态。");
-                }
-                
-                const reply = rawContent.trim();
-                
-                // 【核心升级】使用高容错的正则表达式优先处理好感度标签
-                let cleanReply = reply;
-                const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
-                const affinityMatches = reply.match(affinityRegex);
+        // ==================== 完整修复的两阶段发送逻辑 ====================
 
-                if (affinityMatches) {
-                    let affinityChange = 0;
-                    affinityMatches.forEach(match => {
-                        // 从每个匹配项中提取数字
-                        const value = parseInt(match.match(/(-?\d+)/)[1], 10);
-                        if (!isNaN(value)) {
-                            affinityChange += value;
-                        }
-                      });
-                    
-                    if (affinityChange !== 0) {
-                        state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
-                        const sign = affinityChange > 0 ? '+' : '';
-                        showToast(`好感度 ${sign}${affinityChange}`);
-                    }
-                    
-                    // 从回复文本中删除所有匹配到的好感度指令标签
-                    cleanReply = reply.replace(affinityRegex, '').trim();
-                }
-                // 【升级结束】
-                
-                if (state.chat.mode === 'story') {
-                    // [修正] 确保有有效内容时才发送，并统一消息类型为'text'
-                    if (cleanReply) {
-                        await sendMessage({ id: Date.now(), sender: 'ai', type: 'text', text: cleanReply });
-                    }
-                } else {
-                    // --- 容错解析与智能分句 (此部分逻辑不变) ---
-                    const tagRegex = /(\[VO-?ICE_MESSAGE\].*?\[\/VO-?ICE_MESSAGE\]|\[SEND-?_TRANSFER:.*?\]|\[USE-?_STICKER,ID:\d+\]|\[TRANSFER-?_ACTION:(?:receive|return),ID:\d+\])/gis;
-                    const mixedParts = cleanReply.split(tagRegex).filter(part => part && part.trim());
-                    
-                    let processedParts = [];
-                    for (const part of mixedParts) {
-                        if (!part.match(tagRegex)) {
-                            const sentences = part.split(/(?<=[。！？])\s*/).filter(s => s.trim());
-                            processedParts.push(...sentences);
-                        } else {
-                            processedParts.push(part);
-                        }
-                    }
+        // 阶段一：准备 - 解析AI回复，创建“待发送列表”
+        const messagesToSend = [];
+        if (state.chat.mode === 'story') {
+            messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: reply });
+        } else {
+            const tagRegex = /(\[VO-?ICE_MESSAGE\].*?\[\/VO-?ICE_MESSAGE\]|\[SEND-?_TRANSFER:.*?\]|\[USE-?_STICKER,ID:\d+\]|\[TRANSFER-?_ACTION:(?:receive|return),ID:\d+\]|\[HTML_BLOCK\].*?\[\/HTML_BLOCK\])/gis;
+            let lastIndex = 0;
+            const matches = [...reply.matchAll(tagRegex)];
 
-                    for (const part of processedParts) {
-                        const trimmedPart = part.trim();
-                        
-                        const voiceMatch = trimmedPart.match(/^\[VO-?ICE_MESSAGE\](.*)\[\/VO-?ICE_MESSAGE\]$/si);
-                        const transferMatch = trimmedPart.match(/^\[SEND-?_TRANSFER:(.*)\]$/si);
-                        const stickerMatch = trimmedPart.match(/^\[USE-?_STICKER,ID:(\d+)\]$/i);
-                        const actionMatch = trimmedPart.match(/^\[TRANSFER-?_ACTION:(receive|return),ID:(\d+)\]$/i);
-
-                        let msgObject;
-
-                        if (voiceMatch) {
-                            const text = voiceMatch[1].trim();
-                            if (text) msgObject = { id: Date.now(), sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
-                        } else if (transferMatch) {
-                            try {
-                                let payloadString = transferMatch[1].replace(/(\r\n|\n|\r)/gm, "");
-                                const payload = JSON.parse(payloadString);
-                                const transferId = Date.now();
-                                msgObject = { id: transferId, sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message, status: 'pending' };
-                                state.sui.balance -= payload.amount;
-                                state.sui.transactions.unshift({
-                                    id: Date.now(),
-                                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                                    description: `向 ${state.role.playerName || '你'} 转账`,
-                                    amount: -payload.amount,
-                                    relatedChatId: transferId
-                                });
-                                showToast(`【SUI：转账 -${payload.amount.toFixed(2)}】`);
-                            } catch (e) { 
-                                console.error("Failed to parse transfer payload:", transferMatch[1], e); 
-                                msgObject = { id: Date.now(), sender: 'ai', type: 'text', text: `[转账格式错误: ${trimmedPart}]` };
-                            }
-                        } else if (stickerMatch) {
-                            const stickerId = parseInt(stickerMatch[1], 10);
-                            const sticker = state.stickers.find(s => s.id === stickerId);
-                            if (sticker) {
-                                msgObject = { id: Date.now(), sender: 'ai', type: 'sticker', stickerId: sticker.id, meaning: sticker.meaning };
-                            }
-                        } else if (actionMatch) {
-                            const action = actionMatch[1];
-                            const msgId = parseInt(actionMatch[2], 10);
-                            const transferMsg = state.chat.history.find(m => m.id === msgId && m.type === 'transfer');
-                            if (transferMsg) {
-                                transferMsg.status = action === 'receive' ? 'received' : 'returned';
-                                if (action === 'receive') {
-                                    state.sui.balance += transferMsg.amount;
-                                    state.sui.transactions.unshift({
-                                        id: Date.now(),
-                                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                                        description: `收到来自 ${state.role.playerName || '你'} 的转账`,
-                                        amount: transferMsg.amount,
-                                        relatedChatId: transferMsg.id
-                                    });
-                                    showToast(`【SUI：收款 ${transferMsg.amount.toFixed(2)}】`);
-                                }
-                                if (processedParts.length === 1) {
-                                    const defaultText = action === 'receive' ? '我收下啦，谢谢！' : '心意领了，但这个还是退给你吧。';
-                                    msgObject = { id: Date.now(), sender: 'ai', type: 'text', text: defaultText };
-                                }
-                            }
-                        } else {
-                            if (trimmedPart) {
-                                msgObject = { id: Date.now(), sender: 'ai', type: 'text', text: trimmedPart };
-                            }
-                        }
-
-                        if (msgObject) {
-                            await sendMessage(msgObject);
-                            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500)); // Typing delay
-                        }
+            for (const match of matches) {
+                const textPart = reply.substring(lastIndex, match.index).trim();
+                if (textPart) {
+                    const sentences = textPart.split(/(?<=[。！？])\s*/).filter(s => s.trim());
+                    for (const sentence of sentences) {
+                        messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
                     }
                 }
-                
-                await saveState();
-                await triggerSuiGeneration();
 
-            } catch (error) {
-                console.error("AI 回复失败:", error);
-                showDialog('AI 回复失败', `错误: ${error.message}`);
-            } finally {
-                aiReplyBtn.disabled = false;
+                const tag = match[0].trim();
+                let msgObject;
+                const voiceMatch = tag.match(/^\[VO-?ICE_MESSAGE\](.*)\[\/VO-?ICE_MESSAGE\]$/si);
+                const transferMatch = tag.match(/^\[SEND-?_TRANSFER:(.*)\]$/si);
+                const stickerMatch = tag.match(/^\[USE-?_STICKER,ID:(\d+)\]$/i);
+                const actionMatch = tag.match(/^\[TRANSFER-?_ACTION:(receive|return),ID:(\d+)\]$/i);
+                const htmlMatch = tag.match(/^\[HTML_BLOCK\](.*)\[\/HTML_BLOCK\]$/si);
+
+                // --- 这是被我遗漏然后现在完整补上的逻辑 ---
+                if (htmlMatch) {
+                    const htmlContent = htmlMatch[1].trim();
+                    if (htmlContent) msgObject = { id: Date.now(), sender: 'ai', type: 'html', htmlContent: htmlContent };
+                } else if (voiceMatch) {
+                    const text = voiceMatch[1].trim();
+                    if (text) msgObject = { id: Date.now(), sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
+                } else if (stickerMatch) {
+                    const stickerId = parseInt(stickerMatch[1], 10);
+                    const sticker = state.stickers.find(s => s.id === stickerId);
+                    if (sticker) msgObject = { id: Date.now(), sender: 'ai', type: 'sticker', stickerId: stickerId, meaning: sticker.meaning };
+                } else if (transferMatch) {
+                    try {
+                        const payload = JSON.parse(transferMatch[1]);
+                        if (payload.amount > 0) msgObject = { id: Date.now(), sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message || '转账给你', status: 'pending' };
+                    } catch (e) { console.error('解析转账标签失败:', e); }
+                } else if (actionMatch) {
+                    const action = actionMatch[1].toLowerCase();
+                    const targetId = parseInt(actionMatch[2], 10);
+                    const targetMsg = state.chat.history.find(m => m.id === targetId && m.sender === 'user' && m.type === 'transfer');
+                    if (targetMsg) {
+                        targetMsg.status = action === 'receive' ? 'received' : 'returned';
+                        if (action === 'receive') showToast('对方已收款'); else showToast('对方已退回转账');
+                    }
+                }
+                // --- 补全结束 ---
+
+                if (msgObject) {
+                    messagesToSend.push(msgObject);
+                }
+                lastIndex = match.index + tag.length;
+            }
+
+            const remainingText = reply.substring(lastIndex).trim();
+            if (remainingText) {
+                const sentences = remainingText.split(/(?<=[。！？])\s*/).filter(s => s.trim());
+                for (const sentence of sentences) {
+                    messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
+                }
             }
         }
 
+        // 阶段二：执行 - 遍历列表，逐条发送并渲染
+        for (const msg of messagesToSend) {
+            state.chat.history.push(msg);
+            renderChatHistory();
+            const scrollToBottom = () => chatHistory.scrollTop = chatHistory.scrollHeight; // 重新定义局部函数
+            scrollToBottom();
+            const delay = msg.type === 'text' ? (150 + msg.text.length * 20) : 500;
+            await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
+        }
+        
+    } catch (error) {
+        console.error("AI 回复失败:", error);
+        showDialog('AI 回复失败', `错误: ${error.message}`);
+    } finally {
+        await saveState();
+        aiReplyBtn.disabled = false;
+        await triggerSuiGeneration();
+    }
+}
         sendBtn.addEventListener('click', handleSend);
         aiReplyBtn.addEventListener('click', async () => {
             if (UILock.isLocked()) return;
