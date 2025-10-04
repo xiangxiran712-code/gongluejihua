@@ -2756,7 +2756,10 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         }
         
         async function getAiReply() {
-    if (!state.config.api.key) { showDialog('API错误', '请在设置中配置API参数！'); return; }
+    if (!state.config.api.key) {
+        showDialog('API错误', '请在设置中配置API参数！');
+        return;
+    }
     aiReplyBtn.disabled = true;
     showToast('对方正在输入...');
     await initializeSuiBalance();
@@ -2773,56 +2776,66 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         if (!response.ok) throw new Error(`API request failed with status ${response.status}: ${await response.text()}`);
         
         const data = await response.json();
-        const rawContent = data.choices?.[0]?.message?.content;
+        let rawContent = data.choices?.[0]?.message?.content;
         
         if (!rawContent) {
-            console.error("API响应为空或格式不正确:", data);
+            console.warn("API响应为空或格式不正确:", data);
             throw new Error("API响应为空或格式不正确。");
         }
         
-        let reply = rawContent.trim();
+        rawContent = rawContent.trim();
         
+        // [核心修正] 1. 好感度处理被提前，并且不再修改原始回复字符串
         const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
-        reply = reply.replace(affinityRegex, (match, valueStr) => {
-            const affinityChange = parseInt(valueStr, 10);
+        const affinityMatch = [...rawContent.matchAll(affinityRegex)];
+        affinityMatch.forEach(match => {
+            const affinityChange = parseInt(match[1], 10);
             if (!isNaN(affinityChange)) {
                 state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
                 showToast(`好感度 ${affinityChange > 0 ? '+' : ''}${affinityChange}`);
             }
-            return '';
-        }).trim();
+        });
+        
+        // 从原始回复中移除好感度标签，得到一个干净的、用于内容解析的字符串
+        const contentForParsing = rawContent.replace(affinityRegex, '').trim();
 
-        if (!reply) return;
+        // [核心修正] 2. 如果清理后没有任何内容，则直接返回，避免后续处理
+        if (!contentForParsing) {
+             // 即使内容为空，也需要保存可能变化的好感度
+            await saveState();
+            return;
+        }
 
-        // ==================== 完整修复的两阶段发送逻辑 ====================
-
-        // 阶段一：准备 - 解析AI回复，创建“待发送列表”
         const messagesToSend = [];
+
+        // 剧情模式的逻辑保持不变
         if (state.chat.mode === 'story') {
-            messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: reply });
+            messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
         } else {
+            // 手机模式的解析逻辑被重构
             const tagRegex = /(\[VO-?ICE_MESSAGE\].*?\[\/VO-?ICE_MESSAGE\]|\[SEND-?_TRANSFER:.*?\]|\[USE-?_STICKER,ID:\d+\]|\[TRANSFER-?_ACTION:(?:receive|return),ID:\d+\]|\[HTML_BLOCK\].*?\[\/HTML_BLOCK\])/gis;
             let lastIndex = 0;
-            const matches = [...reply.matchAll(tagRegex)];
+            const matches = [...contentForParsing.matchAll(tagRegex)];
 
             for (const match of matches) {
-                const textPart = reply.substring(lastIndex, match.index).trim();
+                // 处理标签前的纯文本
+                const textPart = contentForParsing.substring(lastIndex, match.index).trim();
                 if (textPart) {
-                    const sentences = textPart.split(/(?<=[。！？])\s*/).filter(s => s.trim());
-                    for (const sentence of sentences) {
+                    textPart.split(/(?<=[。！？])\s*/).filter(s => s.trim()).forEach(sentence => {
                         messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
-                    }
+                    });
                 }
 
+                // 处理标签本身
                 const tag = match[0].trim();
-                let msgObject;
                 const voiceMatch = tag.match(/^\[VO-?ICE_MESSAGE\](.*)\[\/VO-?ICE_MESSAGE\]$/si);
                 const transferMatch = tag.match(/^\[SEND-?_TRANSFER:(.*)\]$/si);
                 const stickerMatch = tag.match(/^\[USE-?_STICKER,ID:(\d+)\]$/i);
                 const actionMatch = tag.match(/^\[TRANSFER-?_ACTION:(receive|return),ID:(\d+)\]$/i);
                 const htmlMatch = tag.match(/^\[HTML_BLOCK\](.*)\[\/HTML_BLOCK\]$/si);
+                
+                let msgObject = null;
 
-                // --- 这是被我遗漏然后现在完整补上的逻辑 ---
                 if (htmlMatch) {
                     const htmlContent = htmlMatch[1].trim();
                     if (htmlContent) msgObject = { id: Date.now(), sender: 'ai', type: 'html', htmlContent: htmlContent };
@@ -2844,34 +2857,31 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                     const targetMsg = state.chat.history.find(m => m.id === targetId && m.sender === 'user' && m.type === 'transfer');
                     if (targetMsg) {
                         targetMsg.status = action === 'receive' ? 'received' : 'returned';
-                        if (action === 'receive') showToast('对方已收款'); else showToast('对方已退回转账');
+                        showToast(action === 'receive' ? '对方已收款' : '对方已退回转账');
                     }
                 }
-                // --- 补全结束 ---
-
-                if (msgObject) {
-                    messagesToSend.push(msgObject);
-                }
+                
+                if (msgObject) messagesToSend.push(msgObject);
                 lastIndex = match.index + tag.length;
             }
 
-            const remainingText = reply.substring(lastIndex).trim();
+            // 处理所有标签后的剩余纯文本
+            const remainingText = contentForParsing.substring(lastIndex).trim();
             if (remainingText) {
-                const sentences = remainingText.split(/(?<=[。！？])\s*/).filter(s => s.trim());
-                for (const sentence of sentences) {
+                remainingText.split(/(?<=[。！？])\s*/).filter(s => s.trim()).forEach(sentence => {
                     messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
-                }
+                });
             }
         }
-
-        // 阶段二：执行 - 遍历列表，逐条发送并渲染
-        for (const msg of messagesToSend) {
-            state.chat.history.push(msg);
-            renderChatHistory();
-            const scrollToBottom = () => chatHistory.scrollTop = chatHistory.scrollHeight; // 重新定义局部函数
-            scrollToBottom();
-            const delay = msg.type === 'text' ? (150 + msg.text.length * 20) : 500;
-            await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
+        
+        // [核心修正] 3. 只有在确实有消息需要发送时才进行后续操作
+        if (messagesToSend.length > 0) {
+            for (const msg of messagesToSend) {
+                state.chat.history.push(msg);
+                renderChatHistory(); // 每次都渲染，以实现逐条发送的效果
+                const delay = msg.type === 'text' ? (150 + (msg.text || '').length * 20) : 500;
+                await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
+            }
         }
         
     } catch (error) {
@@ -3099,7 +3109,7 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                 // 复选框和消息气泡在同一个父容器内，通过父元素找到对应的消息气泡
                 const bubble = checkbox.parentElement.querySelector('.message-bubble, .story-block');
                 // 解析并返回消息的ID
-                return bubble ? parseInt(bubble.dataset.id, 10) : null;
+                return bubble ? Number(bubble.dataset.id) : null;
             }).filter(id => id !== null); // 过滤掉无效的ID
 
             if (idsToDelete.length > 0) {
