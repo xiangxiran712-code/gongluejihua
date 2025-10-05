@@ -2374,14 +2374,10 @@ padding: 12px 16px;
         userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
         
         const createPhoneApiPrompt = () => {
-            // --- 新增代码开始 ---
-            // 获取并格式化当前时间
-            const now = new Date();
-            const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            // --- 新增代码结束 ---
+    const now = new Date();
+    const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            // --- 新增：用大写和符号强调当前模式 ---
-            let systemPrompt = `
+    let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
 - 你必须意识到这是当前的现实时间。你的回复（例如问候语）应当与这个时间点相符。例如，如果是深夜，你应该说“这么晚了还没睡？”而不是“下午好”。
@@ -2401,83 +2397,96 @@ padding: 12px 16px;
 # 绝对禁止事项 (DO NOT DO THIS)
 - **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字。例如：*我笑了*、(看着屏幕)、[他感到一阵温暖]、窗外的雨停了。
 - **绝对禁止小说风格**: 严禁使用第三人称叙事或任何类似小说的文体。
-- **你的回复里，除了你打的字，不应该有任何其他内容。**
 
-# 可用功能 (在聊天中穿插使用)
+# 可用功能
 - **转账**: \`[SEND_TRANSFER:{"amount":金额,"message":"留言"}]\`
 - **处理转账**: 收到玩家转账后，必须在回复中包含 \`[TRANSFER_ACTION:receive,ID:消息ID]\` 或 \`[TRANSFER_ACTION:return,ID:消息ID]\`。
 - **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
 - **发表情**: \`[USE_STICKER,ID:表情ID]\`
-- **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`。这会直接在聊天框渲染一个HTML结构，不受分句影响。例如: [HTML_BLOCK]<div style="padding: 10px; border: 1px solid white; border-radius: 8px;">这是一个自定义模块。</div>[/HTML_BLOCK]
+- **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`
+
+# 【【【！！！最高优先级规则：回复构成！！！】】】
+- **你发送的任何特殊功能消息（语音、表情、HTML、转账等）都绝对不能单独存在！**
+- **每一次回复中，如果包含任何特殊功能标签，则必须至少包含3-15条纯文本消息。**
+- **严禁只回复一个表情，或只回复一条语音，或只回复一个HTML模块。这被视为严重错误。**
+
 # 输出格式 (必须严格遵守)
 你的最终输出**只能**包含两部分：
-1.  **聊天内容**: 你想发送的一句或多句话，每句话独立成行。可以包含上述的功能标签。
-2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数，正数代表好感增加，负数减少，0代表不变。
+1.  **聊天内容**: 你想发送的一句或多句话，每句话独立成行。可以包含上述的功能标签，但必须遵守【回复构成】规则。
+2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数。
 
-# 输出范例
+# 正确输出范例 (遵守了回复构成规则)
 \`\`\`
 今天过得怎么样？
 我刚看到一个很有趣的东西。
-[VOICE_MESSAGE]你绝对想不到是什么！[/VOICE_MESSAGE]
+[HTML_BLOCK]<div style="padding:10px; border:1px solid; border-radius:8px;">看这个！</div>[/HTML_BLOCK]
 [AFFINITY_CHANGE:1]
+\`\`\`
+\`\`\`
+真的吗？太好了！
+[USE_STICKER,ID:12345]
+[AFFINITY_CHANGE:2]
+\`\`\`
+
+# 错误输出范例 (违反了回复构成规则，绝对禁止！)
+\`\`\`
+[USE_STICKER,ID:12345]
+[AFFINITY_CHANGE:0]
 \`\`\`
 
 # 记忆与上下文
 - **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
 - **可用表情**: ${state.stickers.map(s => `- ID: ${s.id}, 含义: ${s.meaning}`).join('\n') || '无'}
 
-${/* --- MODIFICATION START --- */ ''}
 ${state.role.promptInstructions ? `
-# ！！！最高优先级指令 (ABSOLUTE OVERRIDING INSTRUCTIONS) ！！！
+# ！！！额外最高优先级指令 (ABSOLUTE OVERRIDING INSTRUCTIONS) ！！！
 - 以下是你必须无条件优先遵守的规则，其优先级高于你的角色设定和所有其他指令。
 - ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
 ` : ''}
-${/* --- MODIFICATION END --- */ ''}
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
-- **检查你的输出！** 你的回复必须是**纯粹的聊天消息**。
-- **绝对不能有任何描写！**
-- **必须严格遵守输出格式！**
+- **再次检查你的输出！** 你的回复必须是**纯粹的聊天消息**，并且**严格遵守【回复构成】规则**。
 - 直接开始写你的第一句聊天内容。
 `;
 
-            const messages = [{ role: 'system', content: systemPrompt }];
-            
-            const contextLimit = state.config.api.maxContext || 20;
-            const historyToProcess = state.chat.history.slice(-contextLimit);
+    const messages = [{ role: 'system', content: systemPrompt }];
+    
+    const contextLimit = state.config.api.maxContext || 20;
+    const historyToProcess = state.chat.history.slice(-contextLimit);
 
-            historyToProcess.forEach(msg => {
-                if (msg.sender === 'system') return;
-                let content = '';
-                const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
-                if (msg.sender === 'ai') {
-                    switch (msg.type) {
-                        case 'text': content = msg.text; break;
-                        case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
-                        case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
-                        case 'transfer':
-                            const transferPayload = { amount: msg.amount, message: msg.message };
-                            content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
-                            break;
-                        default: content = msg.text || '';
-                    }
-                } else { // user
-                    switch (msg.type) {
-                        case 'text': content = msg.text; break;
-                        case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
-                        case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
-                        case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
-                        default: content = msg.text || '';
-                    }
-                }
-                if (content) {
-                    messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
-                }
-            });
+    historyToProcess.forEach(msg => {
+        if (msg.sender === 'system') return;
+        let content = '';
+        const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
+        if (msg.sender === 'ai') {
+            switch (msg.type) {
+                case 'text': content = msg.text; break;
+                case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
+                case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
+                case 'html': content = `[HTML_BLOCK]${msg.htmlContent}[/HTML_BLOCK]`; break;
+                case 'transfer':
+                    const transferPayload = { amount: msg.amount, message: msg.message };
+                    content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
+                    break;
+                default: content = msg.text || '';
+            }
+        } else { // user
+            switch (msg.type) {
+                case 'text': content = msg.text; break;
+                case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
+                case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
+                case 'html': content = `[${senderName}发送了一个自定义模块]`; break;
+                case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
+                default: content = msg.text || '';
+            }
+        }
+        if (content) {
+            messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
+        }
+    });
 
-            return messages;
-        };
-
+    return messages;
+};
         const createStoryApiPrompt = () => {
             // --- 新增代码开始 ---
             // 获取并格式化当前时间
@@ -2785,6 +2794,7 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         
         rawContent = rawContent.trim();
         
+        // 解析并处理好感度
         const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
         const affinityMatch = [...rawContent.matchAll(affinityRegex)];
         affinityMatch.forEach(match => {
@@ -2795,70 +2805,89 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
             }
         });
         
+        // 移除好感度标签，得到纯净的待解析内容
         let contentForParsing = rawContent.replace(affinityRegex, '').trim();
 
         if (!contentForParsing) {
-            await saveState();
+            await saveState(); // 即使没有内容，也要保存好感度变化
             return;
         }
 
         const messagesToSend = [];
 
+        // 不同的模式，不同的解析策略
         if (state.chat.mode === 'story') {
+            // 剧情模式下，所有内容作为一个整体的叙事文本块
             messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
         } else {
+            // 手机聊天模式下，进行逐句和标签的精细解析
             while (contentForParsing.length > 0) {
                 let tagStartIndex = contentForParsing.indexOf('[');
                 
+                // --- 情况A: 以标签开头 ---
                 if (tagStartIndex === 0) {
                     let tagEndIndex = -1;
                     let tagNameMatch = contentForParsing.match(/^\[([A-Z_-]+)/i);
                     let tagName = tagNameMatch ? tagNameMatch[1].toUpperCase().replace(/-/g, '_') : null;
 
+                    // 识别需要闭合标签的特殊标签
                     if (tagName === 'VOICE_MESSAGE' || tagName === 'HTML_BLOCK') {
-                        // [最终修正] 构建一个绝对健壮的、不信任任何格式的闭合标签正则表达式
-                        // 例如，对于 HTML_BLOCK，它会匹配 [/HTML_BLOCK], [/html-block], [/Html_Block] 等所有变体
                         const baseName = tagName.split('_').map(part => part.split('').join('[-_]?')).join('[-_]');
                         const closingRegex = new RegExp(`\\[\\/` + baseName + `\\]`, 'i');
                         const closingMatch = contentForParsing.match(closingRegex);
-                        
                         if (closingMatch) {
                            tagEndIndex = closingMatch.index + closingMatch[0].length - 1;
                         }
-
-                    } else if (tagName) {
+                    } else if (tagName) { // 其他单括号标签
                         tagEndIndex = contentForParsing.indexOf(']');
                     }
 
+                    // 如果找不到合法的标签结尾，则将剩余所有内容视为普通文本
                     if (tagEndIndex === -1) {
                         messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: contentForParsing });
-                        contentForParsing = '';
+                        contentForParsing = ''; // 清空，结束循环
                         continue;
                     }
 
+                    // 成功解析出标签
                     const tag = contentForParsing.substring(0, tagEndIndex + 1);
                     const msgObject = parseTagToMessage(tag);
                     if (msgObject) messagesToSend.push(msgObject);
                     
+                    // 更新待解析内容
                     contentForParsing = contentForParsing.substring(tagEndIndex + 1).trim();
 
                 } 
+                // --- 情况B: 以文本开头 (或没有标签了) ---
                 else {
-                    const textPart = (tagStartIndex === -1) ? contentForParsing : contentForParsing.substring(0, tagStartIndex);
-                    
-                    textPart.split(/(?<=[。！？])\s*/).filter(s => s.trim()).forEach(sentence => {
-                        messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
+                    // 确定要处理的文本范围：从开头到下一个标签，或全部剩余内容
+                    const textToProcess = (tagStartIndex === -1) 
+                        ? contentForParsing 
+                        : contentForParsing.substring(0, tagStartIndex);
+
+                    // 使用兼容性好的 `match` 方法按标点分割句子
+                    const sentences = textToProcess.match(/[^。！？]+[。！？]?/g) || [];
+
+                    // 将每个非空句子作为一个消息对象
+                    sentences.forEach(sentence => {
+                        if (sentence.trim()) {
+                            messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence.trim() });
+                        }
                     });
-                    
-                    contentForParsing = (tagStartIndex === -1) ? '' : contentForParsing.substring(tagStartIndex).trim();
+    
+                    // 更新待解析内容：如果后面还有标签，就从标签处截断，否则清空
+                    contentForParsing = (tagStartIndex === -1) 
+                        ? '' 
+                        : contentForParsing.substring(tagStartIndex).trim();
                 }
             }
         }
         
+        // 逐条延迟显示，模拟打字效果
         if (messagesToSend.length > 0) {
             for (const msg of messagesToSend) {
                 state.chat.history.push(msg);
-                renderChatHistory();
+                renderChatHistory(); // 每添加一条就渲染一次
                 const delay = msg.type === 'text' ? (150 + (msg.text || '').length * 20) : 500;
                 await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
             }
