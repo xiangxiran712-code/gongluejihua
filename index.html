@@ -2785,7 +2785,6 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         
         rawContent = rawContent.trim();
         
-        // [核心修正] 1. 好感度处理被提前，并且不再修改原始回复字符串
         const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
         const affinityMatch = [...rawContent.matchAll(affinityRegex)];
         affinityMatch.forEach(match => {
@@ -2796,89 +2795,70 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
             }
         });
         
-        // 从原始回复中移除好感度标签，得到一个干净的、用于内容解析的字符串
-        const contentForParsing = rawContent.replace(affinityRegex, '').trim();
+        let contentForParsing = rawContent.replace(affinityRegex, '').trim();
 
-        // [核心修正] 2. 如果清理后没有任何内容，则直接返回，避免后续处理
         if (!contentForParsing) {
-             // 即使内容为空，也需要保存可能变化的好感度
             await saveState();
             return;
         }
 
         const messagesToSend = [];
 
-        // 剧情模式的逻辑保持不变
         if (state.chat.mode === 'story') {
             messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
         } else {
-            // 手机模式的解析逻辑被重构
-            const tagRegex = /(\[VO-?ICE_MESSAGE\].*?\[\/VO-?ICE_MESSAGE\]|\[SEND-?_TRANSFER:.*?\]|\[USE-?_STICKER,ID:\d+\]|\[TRANSFER-?_ACTION:(?:receive|return),ID:\d+\]|\[HTML_BLOCK\].*?\[\/HTML_BLOCK\])/gis;
-            let lastIndex = 0;
-            const matches = [...contentForParsing.matchAll(tagRegex)];
+            while (contentForParsing.length > 0) {
+                let tagStartIndex = contentForParsing.indexOf('[');
+                
+                if (tagStartIndex === 0) {
+                    let tagEndIndex = -1;
+                    let tagNameMatch = contentForParsing.match(/^\[([A-Z_-]+)/i);
+                    let tagName = tagNameMatch ? tagNameMatch[1].toUpperCase().replace(/-/g, '_') : null;
 
-            for (const match of matches) {
-                // 处理标签前的纯文本
-                const textPart = contentForParsing.substring(lastIndex, match.index).trim();
-                if (textPart) {
+                    if (tagName === 'VOICE_MESSAGE' || tagName === 'HTML_BLOCK') {
+                        // [最终修正] 构建一个绝对健壮的、不信任任何格式的闭合标签正则表达式
+                        // 例如，对于 HTML_BLOCK，它会匹配 [/HTML_BLOCK], [/html-block], [/Html_Block] 等所有变体
+                        const baseName = tagName.split('_').map(part => part.split('').join('[-_]?')).join('[-_]');
+                        const closingRegex = new RegExp(`\\[\\/` + baseName + `\\]`, 'i');
+                        const closingMatch = contentForParsing.match(closingRegex);
+                        
+                        if (closingMatch) {
+                           tagEndIndex = closingMatch.index + closingMatch[0].length - 1;
+                        }
+
+                    } else if (tagName) {
+                        tagEndIndex = contentForParsing.indexOf(']');
+                    }
+
+                    if (tagEndIndex === -1) {
+                        messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: contentForParsing });
+                        contentForParsing = '';
+                        continue;
+                    }
+
+                    const tag = contentForParsing.substring(0, tagEndIndex + 1);
+                    const msgObject = parseTagToMessage(tag);
+                    if (msgObject) messagesToSend.push(msgObject);
+                    
+                    contentForParsing = contentForParsing.substring(tagEndIndex + 1).trim();
+
+                } 
+                else {
+                    const textPart = (tagStartIndex === -1) ? contentForParsing : contentForParsing.substring(0, tagStartIndex);
+                    
                     textPart.split(/(?<=[。！？])\s*/).filter(s => s.trim()).forEach(sentence => {
                         messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
                     });
+                    
+                    contentForParsing = (tagStartIndex === -1) ? '' : contentForParsing.substring(tagStartIndex).trim();
                 }
-
-                // 处理标签本身
-                const tag = match[0].trim();
-                const voiceMatch = tag.match(/^\[VO-?ICE_MESSAGE\](.*)\[\/VO-?ICE_MESSAGE\]$/si);
-                const transferMatch = tag.match(/^\[SEND-?_TRANSFER:(.*)\]$/si);
-                const stickerMatch = tag.match(/^\[USE-?_STICKER,ID:(\d+)\]$/i);
-                const actionMatch = tag.match(/^\[TRANSFER-?_ACTION:(receive|return),ID:(\d+)\]$/i);
-                const htmlMatch = tag.match(/^\[HTML_BLOCK\](.*)\[\/HTML_BLOCK\]$/si);
-                
-                let msgObject = null;
-
-                if (htmlMatch) {
-                    const htmlContent = htmlMatch[1].trim();
-                    if (htmlContent) msgObject = { id: Date.now(), sender: 'ai', type: 'html', htmlContent: htmlContent };
-                } else if (voiceMatch) {
-                    const text = voiceMatch[1].trim();
-                    if (text) msgObject = { id: Date.now(), sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
-                } else if (stickerMatch) {
-                    const stickerId = parseInt(stickerMatch[1], 10);
-                    const sticker = state.stickers.find(s => s.id === stickerId);
-                    if (sticker) msgObject = { id: Date.now(), sender: 'ai', type: 'sticker', stickerId: stickerId, meaning: sticker.meaning };
-                } else if (transferMatch) {
-                    try {
-                        const payload = JSON.parse(transferMatch[1]);
-                        if (payload.amount > 0) msgObject = { id: Date.now(), sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message || '转账给你', status: 'pending' };
-                    } catch (e) { console.error('解析转账标签失败:', e); }
-                } else if (actionMatch) {
-                    const action = actionMatch[1].toLowerCase();
-                    const targetId = parseInt(actionMatch[2], 10);
-                    const targetMsg = state.chat.history.find(m => m.id === targetId && m.sender === 'user' && m.type === 'transfer');
-                    if (targetMsg) {
-                        targetMsg.status = action === 'receive' ? 'received' : 'returned';
-                        showToast(action === 'receive' ? '对方已收款' : '对方已退回转账');
-                    }
-                }
-                
-                if (msgObject) messagesToSend.push(msgObject);
-                lastIndex = match.index + tag.length;
-            }
-
-            // 处理所有标签后的剩余纯文本
-            const remainingText = contentForParsing.substring(lastIndex).trim();
-            if (remainingText) {
-                remainingText.split(/(?<=[。！？])\s*/).filter(s => s.trim()).forEach(sentence => {
-                    messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
-                });
             }
         }
         
-        // [核心修正] 3. 只有在确实有消息需要发送时才进行后续操作
         if (messagesToSend.length > 0) {
             for (const msg of messagesToSend) {
                 state.chat.history.push(msg);
-                renderChatHistory(); // 每次都渲染，以实现逐条发送的效果
+                renderChatHistory();
                 const delay = msg.type === 'text' ? (150 + (msg.text || '').length * 20) : 500;
                 await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
             }
@@ -2892,6 +2872,40 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         aiReplyBtn.disabled = false;
         await triggerSuiGeneration();
     }
+}
+
+function parseTagToMessage(tag) {
+    const voiceMatch = tag.match(/^\[VOICE-?_MESSAGE\](.*)\[\/VOICE-?_MESSAGE\]$/si);
+    const transferMatch = tag.match(/^\[SEND-?_TRANSFER:(.*)\]$/si);
+    const stickerMatch = tag.match(/^\[USE-?_STICKER,.*?ID:(\d+).*?\]$/i);
+    const actionMatch = tag.match(/^\[TRANSFER-?_ACTION:(receive|return),ID:(\d+)\]$/i);
+    const htmlMatch = tag.match(/^\[HTML-?_BLOCK\](.*)\[\/HTML-?_BLOCK\]$/si);
+
+    if (htmlMatch) {
+        const htmlContent = htmlMatch[1].trim();
+        if (htmlContent) return { id: Date.now(), sender: 'ai', type: 'html', htmlContent: htmlContent };
+    } else if (voiceMatch) {
+        const text = voiceMatch[1].trim();
+        if (text) return { id: Date.now(), sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
+    } else if (stickerMatch) {
+        const stickerId = parseInt(stickerMatch[1], 10);
+        const sticker = state.stickers.find(s => s.id === stickerId);
+        if (sticker) return { id: Date.now(), sender: 'ai', type: 'sticker', stickerId: stickerId, meaning: sticker.meaning };
+    } else if (transferMatch) {
+        try {
+            const payload = JSON.parse(transferMatch[1]);
+            if (payload.amount > 0) return { id: Date.now(), sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message || '转账给你', status: 'pending' };
+        } catch (e) { console.error('解析转账标签失败:', e); }
+    } else if (actionMatch) {
+        const action = actionMatch[1].toLowerCase();
+        const targetId = parseInt(actionMatch[2], 10);
+        const targetMsg = state.chat.history.find(m => m.id === targetId && m.sender === 'user' && m.type === 'transfer');
+        if (targetMsg) {
+            targetMsg.status = action === 'receive' ? 'received' : 'returned';
+            showToast(action === 'receive' ? '对方已收款' : '对方已退回转账');
+        }
+    }
+    return null;
 }
         sendBtn.addEventListener('click', handleSend);
         aiReplyBtn.addEventListener('click', async () => {
