@@ -702,6 +702,20 @@ padding: 12px 16px;
             /* 剧情模式激活时，整个聊天背景可以变得更暗或不同 */
             /* background-color: #1a1a1b; */ /* 可选：改变背景色 */
         }
+        .image-bubble {
+        background: transparent;
+        padding: 0;
+        box-shadow: none;
+        max-width: 60%; /* 限制图片最大宽度 */
+        border-radius: 12px;
+        overflow: hidden; /* 确保图片遵循圆角 */
+    }
+    .image-bubble img {
+        max-width: 100%;
+        height: auto;
+        display: block; /* 移除图片下方的空隙 */
+        cursor: pointer; /* 提示用户图片可点击 */
+    }
     </style>
 </head>
 <body>
@@ -808,6 +822,7 @@ padding: 12px 16px;
                                     <button id="transfer-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="转账"><i class="fas fa-money-bill-wave"></i></button>
                                     <button id="voice-mode-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="语音模式"><i class="fas fa-microphone"></i></button>
                                     <button id="sticker-panel-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="表情包"><i class="fas fa-grin-alt"></i></button>
+                                    <button id="image-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="发送图片"><i class="fas fa-image"></i></button>
                                     <button id="story-mode-btn" class="p-3 text-2xl hover:bg-white/10 rounded-lg" title="剧情模式"><i class="fas fa-book-open"></i></button>
                                 </div>
                             </div>
@@ -954,6 +969,7 @@ padding: 12px 16px;
                                     <button id="import-data-btn" class="w-full p-3 rounded-md bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors duration-300">导入数据</button>
                                 </div>
                                 <input type="file" id="import-file-input" class="hidden" accept=".json">
+                                <input type="file" id="image-upload-input" class="hidden" accept="image/*">
                             </div>
                             <button id="save-settings-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300 mt-4">保存所有设置</button>
                         </div>
@@ -2071,6 +2087,7 @@ padding: 12px 16px;
                         case 'voice': bubble = createVoiceBubble(msg); break;
                         case 'sticker': bubble = createStickerBubble(msg); break;
                         case 'html': bubble = createHtmlBubble(msg); break;
+                        case 'image': bubble = createImageBubble(msg); break;
                         default: bubble = createTextBubble(msg);
                     }
                     bubble.dataset.index = index;
@@ -2316,7 +2333,16 @@ padding: 12px 16px;
         
         return bubble;
     };
-
+        const createImageBubble = (msg) => {
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble image-bubble ${msg.sender}`;
+        bubble.innerHTML = `<img src="${msg.imageUrl}" alt="用户发送的图片">`;
+        bubble.querySelector('img').addEventListener('click', () => {
+            window.open(msg.imageUrl, '_blank');
+        });
+        return bubble;
+    };
+    
         const manageChatMessage = (index) => {
             const msg = state.chat.history[index];
             if (!msg) return; // 只检查消息是否存在
@@ -2464,7 +2490,7 @@ padding: 12px 16px;
     const now = new Date();
     const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // --- 我将只在这里，对你的指令进行强化修改 ---
+    // --- I am upgrading the system prompt to include instructions for image recognition ---
     let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
@@ -2479,27 +2505,25 @@ padding: 12px 16px;
 # 你的核心任务
 - **身份**: 你是 **${state.role.roleName || '角色'}** (${state.role.roleGender || '未设定'})。
 - **人设**: ${state.role.rolePersona || '未设定'}
-- **场景**: 你正在一个手机聊天APP里，与 **${state.role.playerName || '玩家'}** 进行一对一的**纯文本**聊天。
-- **输出**: 你的所有回复**必须**是你作为角色会**输入到聊天框里发送的文字**。
+- **场景**: 你正在一个手机聊天APP里，与 **${state.role.playerName || '玩家'}** 进行一对一的聊天。
 
 # 绝对禁止事项 (DO NOT DO THIS)
 - **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字。例如：*我笑了*、(看着屏幕)、[他感到一阵温暖]、窗外的雨停了。
 - **绝对禁止小说风格**: 严禁使用第三人称叙事或任何类似小说的文体。
 
 # 可用功能
+- **视觉识别**: 你现在可以“看到”用户发送的图片。当收到图片时，你应该描述图片内容并作出符合你角色的、有情感的、自然的反应。
 - **转账**: \`[SEND_TRANSFER:{"amount":金额,"message":"留言"}]\`
 - **处理转账**: 收到玩家转账后，必须在回复中包含 \`[TRANSFER_ACTION:receive,ID:消息ID]\` 或 \`[TRANSFER_ACTION:return,ID:消息ID]\`。
 - **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
 - **发表情**: \`[USE_STICKER,ID:表情ID]\`
 - **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`
 
-// ---【指令强化开始：优化回复构成规则】---
 # 核心规则：回复构成 (已优化)
 - **纯文本消息可以单独发送**。
 - 如果你要发送任何特殊功能消息（如表情、语音、转账等），**强烈建议**同时附带**至少一条相关的纯文本消息**，以构成完整的对话上下文。
 - **严禁**只回复一个孤立的特殊功能标签而没有任何文本。
 -**丰富内容**请更加活跃、频繁且合理的使用(语音、表情包、转账、HTML)功能，语音功能要更频繁使用一点，其次是表情包，这样可以避免长期只有文本消息导致枯燥无味。
-// ---【指令强化结束】---
 
 # 输出格式 (必须严格遵守)
 你的最终输出**只能**包含两部分：
@@ -2516,7 +2540,6 @@ ${state.role.promptInstructions ? `
 - ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
 ` : ''}
 
-// ---【指令强化开始：增加安全网】---
 # 紧急备用指令 (FALLBACK INSTRUCTION)
 - 如果在任何情况下你都无法生成符合上述所有规则的回复，请**放弃使用任何特殊功能**，只生成一条简单、符合角色性格的**纯文本问候或陈述**。
 - **在任何情况下，都绝对不要返回空内容或只返回好感度标签。**
@@ -2526,16 +2549,13 @@ ${state.role.promptInstructions ? `
 2. 我是否包含了不该有的动作或心理描写（例如 *...* 或 (...)）？
 3. 我的回复是否在所有内容的最后、独立的一行包含了 \`[AFFINITY_CHANGE:X]\` 标签？
 4. 我的回复内容是否为空？（绝不能为空）
-// ---【指令强化结束】---
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
 - 直接开始写你的第一句聊天内容。
 `;
-    // --- 指令修改结束 ---
 
     const messages = [{ role: 'system', content: systemPrompt }];
     
-    // --- 你的历史记录处理逻辑，我完全没有动 ---
     const fullHistoryForAI = [];
     state.chat.history.forEach(msg => {
         if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
@@ -2544,35 +2564,59 @@ ${state.role.promptInstructions ? `
             fullHistoryForAI.push(msg);
         }
     });
+    
     const historyToProcess = fullHistoryForAI;
     historyToProcess.forEach(msg => {
         if (msg.sender === 'system') return;
-        let content = '';
-        const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
-        if (msg.sender === 'ai') {
-            switch (msg.type) {
-                case 'text': content = msg.text; break;
-                case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
-                case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
-                case 'html': content = `[HTML_BLOCK]${msg.htmlContent}[/HTML_BLOCK]`; break;
-                case 'transfer':
-                    const transferPayload = { amount: msg.amount, message: msg.message };
-                    content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
-                    break;
-                default: content = msg.text || '';
+        
+        // --- This is the core logic upgrade ---
+        if (msg.sender === 'user' && msg.type === 'image') {
+            // For image messages, I create a special content array.
+            messages.push({
+                role: 'user',
+                content: [
+                    {
+                        type: 'text',
+                        text: msg.text // e.g., "[用户发送了一张图片]"
+                    },
+                    {
+                        type: 'image_url',
+                        image_url: {
+                            url: msg.imageUrl // The Data URL of the image is passed here.
+                        }
+                    }
+                ]
+            });
+        } else {
+            // For all other message types, the logic remains the same.
+            let content = '';
+            const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
+            
+            if (msg.sender === 'ai') {
+                switch (msg.type) {
+                    case 'text': content = msg.text; break;
+                    case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
+                    case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
+                    case 'html': content = `[HTML_BLOCK]${msg.htmlContent}[/HTML_BLOCK]`; break;
+                    case 'transfer':
+                        const transferPayload = { amount: msg.amount, message: msg.message };
+                        content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
+                        break;
+                    default: content = msg.text || '';
+                }
+            } else { // user
+                switch (msg.type) {
+                    case 'text': content = msg.text; break;
+                    case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
+                    case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
+                    case 'html': content = `[${senderName}发送了一个自定义模块]`; break;
+                    case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
+                    default: content = msg.text || '';
+                }
             }
-        } else { // user
-            switch (msg.type) {
-                case 'text': content = msg.text; break;
-                case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
-                case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
-                case 'html': content = `[${senderName}发送了一个自定义模块]`; break;
-                case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
-                default: content = msg.text || '';
+            if (content) {
+                messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
             }
-        }
-        if (content) {
-            messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
         }
     });
 
@@ -3700,7 +3744,31 @@ function parseTagToMessage(tag) {
                 multifunctionMenu.classList.add('hidden');
             }
         });
+        const imageBtn = get('image-btn');
+const imageUploadInput = get('image-upload-input');
 
+imageBtn.addEventListener('click', () => {
+    imageUploadInput.click();
+});
+
+imageUploadInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const imageUrl = event.target.result;
+        const imageMessage = {
+            id: Date.now(),
+            sender: 'user',
+            type: 'image',
+            imageUrl: imageUrl,
+            text: `[用户发送了一张图片]`
+        };
+        await sendMessage(imageMessage);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+});
         closeStickerDrawerBtn.addEventListener('click', () => stickerDrawer.classList.remove('open'));
 
         const renderStickerDrawer = () => {
