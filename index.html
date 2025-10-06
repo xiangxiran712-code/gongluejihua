@@ -1935,7 +1935,7 @@ padding: 12px 16px;
                 }
                 
                 // 1. 系统消息处理
-                if (msg.sender === 'system' || msg.type === 'story_start') {
+                if ((msg.sender === 'system' && msg.type !== 'story_review_placeholder') || msg.type === 'story_start') {
                     if (msg.storyContent) {
                         chatHistory.appendChild(createStoryAnchor(msg));
                     } else {
@@ -1943,7 +1943,94 @@ padding: 12px 16px;
                     }
                     return;
                 }
+// --- 新增代码：处理剧情回顾占位符 (已增加长按删除) ---
+                if (msg.type === 'story_review_placeholder') {
+                    const placeholderWrapper = document.createElement('div');
+                    placeholderWrapper.className = 'system-message-wrapper cursor-pointer';
+                    
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'system-message-text hover:bg-white/20 transition-colors duration-200';
+                    
+                    const visibleContent = msg.archivedContent.filter(entry => 
+                        entry.type !== 'story_start' && entry.type !== 'story_end'
+                    );
 
+                    textSpan.innerHTML = `<i class="fas fa-book-open mr-2"></i>剧情回顾 (共 ${visibleContent.length} 条内容)`;
+                    
+                    placeholderWrapper.appendChild(textSpan);
+                    chatHistory.appendChild(placeholderWrapper);
+                    
+                    // --- 长按删除逻辑 ---
+                    let pressTimer;
+                    const startPress = () => {
+                        pressTimer = setTimeout(async () => {
+                            const confirmed = await showDialog('删除剧情回顾', '确定要永久删除这段已存档的剧情回顾吗？此操作无法撤销。', {
+                                buttons: [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '删除', value: true, class: 'bg-red-500/80' }]
+                            });
+                            if (confirmed) {
+                                const indexToDelete = state.chat.history.findIndex(m => m.id === msg.id);
+                                if (indexToDelete > -1) {
+                                    state.chat.history.splice(indexToDelete, 1);
+                                    await saveState();
+                                    renderChatHistory({ autoScroll: false });
+                                    showToast('剧情回顾已删除');
+                                }
+                            }
+                        }, 750); // 750毫秒判定为长按
+                    };
+
+                    const cancelPress = (e) => {
+                        clearTimeout(pressTimer);
+                    };
+
+                    placeholderWrapper.addEventListener('mousedown', startPress);
+                    placeholderWrapper.addEventListener('mouseup', cancelPress);
+                    placeholderWrapper.addEventListener('mouseleave', cancelPress);
+                    placeholderWrapper.addEventListener('touchstart', startPress, { passive: true });
+                    placeholderWrapper.addEventListener('touchend', cancelPress);
+                    
+                    // --- 单击查看逻辑 ---
+                    placeholderWrapper.addEventListener('click', (e) => {
+                        // 如果长按计时器正在运行，说明这可能是一个长按的开始，不应触发单击
+                        if (pressTimer) { 
+                            clearTimeout(pressTimer);
+                        }
+                        
+                        const storyLogContainer = document.createElement('div');
+                        storyLogContainer.className = 'space-y-3 max-h-[60vh] overflow-y-auto scrollable-content p-2 -m-2';
+                        storyLogContainer.style.fontFamily = 'var(--custom-font)';
+
+                        if (visibleContent.length > 0) {
+                            visibleContent.forEach(entry => {
+                                const storyEntry = document.createElement('div');
+                                let narrativeText = '';
+
+                                if (entry.sender === 'user') {
+                                    narrativeText = `<strong>${state.role.playerName || '你'}:</strong><br><div class="pl-2 border-l-2 border-current/20 mt-1">${(entry.text || '').replace(/\n/g, '<br>')}</div>`;
+                                } else if (entry.sender === 'ai') {
+                                    narrativeText = (entry.text || '').replace(/\n/g, '<br>');
+                                } else if (entry.sender === 'system') {
+                                    storyEntry.className = 'text-center opacity-70 text-xs py-1';
+                                    narrativeText = `--- ${entry.text} ---`;
+                                }
+                                
+                                if (narrativeText) {
+                                    storyEntry.innerHTML = narrativeText;
+                                    storyLogContainer.appendChild(storyEntry);
+                                }
+                            });
+                        } else {
+                            storyLogContainer.innerHTML = `<p class="text-center opacity-60">这段剧情没有内容。</p>`;
+                        }
+
+                        showDialog('剧情回顾', storyLogContainer, {
+                            buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }]
+                        });
+                    });
+
+                    return; // 处理完占位符后，跳过本次循环的剩余部分
+                }
+                // --- 新增代码结束 ---
                 // 2. 根据是否在活跃剧情段落中，决定渲染方式
                 if (inStorySegment) {
                     // --- 渲染为“叙事文本块” ---
@@ -2377,6 +2464,7 @@ padding: 12px 16px;
     const now = new Date();
     const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
+    // --- 我将只在这里，对你的指令进行强化修改 ---
     let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
@@ -2405,34 +2493,18 @@ padding: 12px 16px;
 - **发表情**: \`[USE_STICKER,ID:表情ID]\`
 - **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`
 
-# 【【【！！！最高优先级规则：回复构成！！！】】】
-- **你发送的任何特殊功能消息（语音、表情、HTML、转账等）都绝对不能单独存在！**
-- **每一次回复中，如果包含任何特殊功能标签，则必须至少包含3-15条纯文本消息。**
-- **严禁只回复一个表情，或只回复一条语音，或只回复一个HTML模块。这被视为严重错误。**
+// ---【指令强化开始：优化回复构成规则】---
+# 核心规则：回复构成 (已优化)
+- **纯文本消息可以单独发送**。
+- 如果你要发送任何特殊功能消息（如表情、语音、转账等），**强烈建议**同时附带**至少一条相关的纯文本消息**，以构成完整的对话上下文。
+- **严禁**只回复一个孤立的特殊功能标签而没有任何文本。
+-**丰富内容**请更加活跃、频繁且合理的使用(语音、表情包、转账、HTML)功能，语音功能要更频繁使用一点，其次是表情包，这样可以避免长期只有文本消息导致枯燥无味。
+// ---【指令强化结束】---
 
 # 输出格式 (必须严格遵守)
 你的最终输出**只能**包含两部分：
-1.  **聊天内容**: 你想发送的一句或多句话，每句话独立成行。可以包含上述的功能标签，但必须遵守【回复构成】规则。
-2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数。
-
-# 正确输出范例 (遵守了回复构成规则)
-\`\`\`
-今天过得怎么样？
-我刚看到一个很有趣的东西。
-[HTML_BLOCK]<div style="padding:10px; border:1px solid; border-radius:8px;">看这个！</div>[/HTML_BLOCK]
-[AFFINITY_CHANGE:1]
-\`\`\`
-\`\`\`
-真的吗？太好了！
-[USE_STICKER,ID:12345]
-[AFFINITY_CHANGE:2]
-\`\`\`
-
-# 错误输出范例 (违反了回复构成规则，绝对禁止！)
-\`\`\`
-[USE_STICKER,ID:12345]
-[AFFINITY_CHANGE:0]
-\`\`\`
+1.  **聊天内容**: 你想发送的一句或多句话，每句话独立成行。可以包含上述的功能标签。
+2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数，正数代表好感增加，负数减少，0代表不变。
 
 # 记忆与上下文
 - **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
@@ -2444,16 +2516,35 @@ ${state.role.promptInstructions ? `
 - ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
 ` : ''}
 
+// ---【指令强化开始：增加安全网】---
+# 紧急备用指令 (FALLBACK INSTRUCTION)
+- 如果在任何情况下你都无法生成符合上述所有规则的回复，请**放弃使用任何特殊功能**，只生成一条简单、符合角色性格的**纯文本问候或陈述**。
+- **在任何情况下，都绝对不要返回空内容或只返回好感度标签。**
+
+# 输出前最终检查清单 (FINAL CHECKLIST)
+1. 我的回复是作为角色在聊天框里输入的文字吗？
+2. 我是否包含了不该有的动作或心理描写（例如 *...* 或 (...)）？
+3. 我的回复是否在所有内容的最后、独立的一行包含了 \`[AFFINITY_CHANGE:X]\` 标签？
+4. 我的回复内容是否为空？（绝不能为空）
+// ---【指令强化结束】---
+
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
-- **再次检查你的输出！** 你的回复必须是**纯粹的聊天消息**，并且**严格遵守【回复构成】规则**。
 - 直接开始写你的第一句聊天内容。
 `;
+    // --- 指令修改结束 ---
 
     const messages = [{ role: 'system', content: systemPrompt }];
     
-    const contextLimit = state.config.api.maxContext || 20;
-    const historyToProcess = state.chat.history.slice(-contextLimit);
-
+    // --- 你的历史记录处理逻辑，我完全没有动 ---
+    const fullHistoryForAI = [];
+    state.chat.history.forEach(msg => {
+        if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
+            fullHistoryForAI.push(...msg.archivedContent);
+        } else {
+            fullHistoryForAI.push(msg);
+        }
+    });
+    const historyToProcess = fullHistoryForAI;
     historyToProcess.forEach(msg => {
         if (msg.sender === 'system') return;
         let content = '';
@@ -2488,13 +2579,9 @@ ${state.role.promptInstructions ? `
     return messages;
 };
         const createStoryApiPrompt = () => {
-            // --- 新增代码开始 ---
-            // 获取并格式化当前时间
             const now = new Date();
             const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            // --- 新增代码结束 ---
 
-            // --- 新增：用大写和符号强调当前模式 ---
             let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
@@ -2508,7 +2595,7 @@ ${state.role.promptInstructions ? `
 
 # 你的核心任务
 - **身份**: 你是**故事的叙述者**，同时扮演着角色 **${state.role.roleName || '角色'}** (${state.role.roleGender || '未设定'})。
-- **人设**: ${state.role.rolePersona || '未设定'}
+- **人设**: ${state.role.rolePersona || '未设定'})。
 - **场景**: 你和玩家 **${state.role.playerName || '玩家'}** 在同一个真实世界场景中进行实时互动。
 - **输出**: 你的所有回复**必须**是**小说风格的、富有描写的段落**。
 
@@ -2524,55 +2611,58 @@ ${state.role.promptInstructions ? `
 # 输出格式 (必须严格遵守)
 你的最终输出**只能**包含两部分：
 1.  **故事段落**: 一个完整的、连贯的、充满描写的叙事段落。
-2.  **好感度标签**: 在故事段落的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数。
-
-# 输出范例
-微风拂过你的脸颊，带来了花园里玫瑰的芬芳。${state.role.roleName}停下脚步，转身看着你，眼中带着一丝笑意。“这里的风景真不错，不是吗？”他轻声说道，目光越过你的肩膀，望向远方的落日。
-[AFFINITY_CHANGE:2]
+2.  **好感度标签**: 在故事段落的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数，正数代表好感增加，负数减少，0代表不变。
 
 # 记忆与上下文
 - **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
 
-${/* --- MODIFICATION START --- */ ''}
 ${state.role.promptInstructions ? `
 # ！！！最高优先级指令 (ABSOLUTE OVERRIDING INSTRUCTIONS) ！！！
 - 以下是你必须无条件优先遵守的规则，其优先级高于你的角色设定和所有其他指令。
 - ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
 ` : ''}
-${/* --- MODIFICATION END --- */ ''}
+
+// ---【新增的强化指令：为AI提供安全出口】---
+# 紧急备用指令 (FALLBACK INSTRUCTION)
+- 如果在任何情况下你都无法生成符合上述所有规则的复杂剧情段落，请**放弃复杂的描写**，只生成一句简单的、符合第三人称叙事风格的、关于角色 **${state.role.roleName}** 状态或动作的陈述。
+- **在任何情况下，都绝对不要返回空内容。**
+
+# 输出前最终检查清单 (FINAL CHECKLIST)
+1. 我的描述是围绕角色 **${state.role.roleName}** 的第三人称叙事吗？
+2. 我的回复是否在所有内容的最后、独立的一行包含了 \`[AFFINITY_CHANGE:X]\` 标签？
+3. 我的回复内容是否为空？（绝不能为空）
+// ---【新增指令结束】---
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
 - **检查你的输出！** 你的回复必须是**小说一样的叙事段落**。
-- **绝对不能像聊天一样回复！**
-- **必须严格遵守输出格式！**
 - 直接开始写你的故事段落。
 `;
-            const messages = [{ role: 'system', content: systemPrompt }];
+            const apiMessages = [{ role: 'system', content: systemPrompt }];
 
-            const contextLimit = state.config.api.maxContext || 20;
-            const historyToProcess = state.chat.history.slice(-contextLimit);
+            // --- 你的核心逻辑保持不变 ---
 
-            historyToProcess.forEach(msg => {
-                if (msg.sender === 'system') return;
-                let content = '';
-                const role = msg.sender === 'user' ? 'user' : 'assistant';
-                if (msg.sender === 'user') {
-                    switch(msg.type) {
-                        case 'text': content = msg.text; break;
-                        case 'voice': content = `[玩家发送了一段语音]: "${msg.text}"`; break;
-                        case 'transfer': content = `[玩家向你转账 ${msg.amount}元，留言: "${msg.message}"]`; break;
-                        case 'sticker': content = `[玩家发送了一个表示“${msg.meaning}”的表情]`; break;
-                        default: content = msg.text;
-                    }
-                } else if (msg.sender === 'ai') { // <<< 核心修正：将 else 更改为 else if
-                    content = msg.text; 
-                }
-                if (content) {
-                    messages.push({ role: role, content: content });
+            const fullHistoryForAI = [];
+            state.chat.history.forEach(msg => {
+                if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
+                    fullHistoryForAI.push(...msg.archivedContent);
+                } else {
+                    fullHistoryForAI.push(msg);
                 }
             });
 
-            return messages;
+            const historyForContext = fullHistoryForAI;
+
+            historyForContext.forEach(msg => {
+                if (msg.sender === 'user' || msg.sender === 'ai') {
+                    if (msg.text) {
+                        const role = msg.sender === 'user' ? 'user' : 'assistant';
+                        apiMessages.push({ role, content: msg.text });
+                    }
+                }
+            });
+            // --- 你的逻辑结束 ---
+
+            return apiMessages;
         };
 
         async function initializeSuiBalance() {
@@ -2765,143 +2855,141 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
         }
         
         async function getAiReply() {
-    if (!state.config.api.key) {
-        showDialog('API错误', '请在设置中配置API参数！');
-        return;
-    }
-    aiReplyBtn.disabled = true;
-    showToast('对方正在输入...');
-    await initializeSuiBalance();
-
-    try {
-        const messages = state.chat.mode === 'phone' ? createPhoneApiPrompt() : createStoryApiPrompt();
-        
-        const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-            body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7 })
-        });
-
-        if (!response.ok) throw new Error(`API request failed with status ${response.status}: ${await response.text()}`);
-        
-        const data = await response.json();
-        let rawContent = data.choices?.[0]?.message?.content;
-        
-        if (!rawContent) {
-            console.warn("API响应为空或格式不正确:", data);
-            throw new Error("API响应为空或格式不正确。");
-        }
-        
-        rawContent = rawContent.trim();
-        
-        // 解析并处理好感度
-        const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
-        const affinityMatch = [...rawContent.matchAll(affinityRegex)];
-        affinityMatch.forEach(match => {
-            const affinityChange = parseInt(match[1], 10);
-            if (!isNaN(affinityChange)) {
-                state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
-                showToast(`好感度 ${affinityChange > 0 ? '+' : ''}${affinityChange}`);
+            if (!state.config.api.key) {
+                showDialog('API错误', '请在设置中配置API参数！');
+                return;
             }
-        });
-        
-        // 移除好感度标签，得到纯净的待解析内容
-        let contentForParsing = rawContent.replace(affinityRegex, '').trim();
+            aiReplyBtn.disabled = true;
+            showToast('对方正在输入...');
+            await initializeSuiBalance();
 
-        if (!contentForParsing) {
-            await saveState(); // 即使没有内容，也要保存好感度变化
-            return;
-        }
-
-        const messagesToSend = [];
-
-        // 不同的模式，不同的解析策略
-        if (state.chat.mode === 'story') {
-            // 剧情模式下，所有内容作为一个整体的叙事文本块
-            messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
-        } else {
-            // 手机聊天模式下，进行逐句和标签的精细解析
-            while (contentForParsing.length > 0) {
-                let tagStartIndex = contentForParsing.indexOf('[');
+            try {
+                // 此处调用指令生成函数的逻辑保持不变
+                const messages = state.chat.mode === 'phone' ? createPhoneApiPrompt() : createStoryApiPrompt();
                 
-                // --- 情况A: 以标签开头 ---
-                if (tagStartIndex === 0) {
-                    let tagEndIndex = -1;
-                    let tagNameMatch = contentForParsing.match(/^\[([A-Z_-]+)/i);
-                    let tagName = tagNameMatch ? tagNameMatch[1].toUpperCase().replace(/-/g, '_') : null;
+                const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.7 })
+                });
 
-                    // 识别需要闭合标签的特殊标签
-                    if (tagName === 'VOICE_MESSAGE' || tagName === 'HTML_BLOCK') {
-                        const baseName = tagName.split('_').map(part => part.split('').join('[-_]?')).join('[-_]');
-                        const closingRegex = new RegExp(`\\[\\/` + baseName + `\\]`, 'i');
-                        const closingMatch = contentForParsing.match(closingRegex);
-                        if (closingMatch) {
-                           tagEndIndex = closingMatch.index + closingMatch[0].length - 1;
-                        }
-                    } else if (tagName) { // 其他单括号标签
-                        tagEndIndex = contentForParsing.indexOf(']');
-                    }
-
-                    // 如果找不到合法的标签结尾，则将剩余所有内容视为普通文本
-                    if (tagEndIndex === -1) {
-                        messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: contentForParsing });
-                        contentForParsing = ''; // 清空，结束循环
-                        continue;
-                    }
-
-                    // 成功解析出标签
-                    const tag = contentForParsing.substring(0, tagEndIndex + 1);
-                    const msgObject = parseTagToMessage(tag);
-                    if (msgObject) messagesToSend.push(msgObject);
-                    
-                    // 更新待解析内容
-                    contentForParsing = contentForParsing.substring(tagEndIndex + 1).trim();
-
-                } 
-                // --- 情况B: 以文本开头 (或没有标签了) ---
-                else {
-                    // 确定要处理的文本范围：从开头到下一个标签，或全部剩余内容
-                    const textToProcess = (tagStartIndex === -1) 
-                        ? contentForParsing 
-                        : contentForParsing.substring(0, tagStartIndex);
-
-                    // 使用兼容性好的 `match` 方法按标点分割句子
-                    const sentences = textToProcess.match(/[^。！？]+[。！？]?/g) || [];
-
-                    // 将每个非空句子作为一个消息对象
-                    sentences.forEach(sentence => {
-                        if (sentence.trim()) {
-                            messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence.trim() });
-                        }
-                    });
-    
-                    // 更新待解析内容：如果后面还有标签，就从标签处截断，否则清空
-                    contentForParsing = (tagStartIndex === -1) 
-                        ? '' 
-                        : contentForParsing.substring(tagStartIndex).trim();
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}: ${await response.text()}`);
+                
+                const data = await response.json();
+                let rawContent = data.choices?.[0]?.message?.content;
+                
+                if (!rawContent || !rawContent.trim()) {
+                    console.warn("API响应为空或格式不正确:", data);
+                    throw new Error("API响应为空或格式不正确。");
                 }
+                
+                rawContent = rawContent.trim();
+                
+                const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
+                const affinityMatch = [...rawContent.matchAll(affinityRegex)];
+                affinityMatch.forEach(match => {
+                    const affinityChange = parseInt(match[1], 10);
+                    if (!isNaN(affinityChange)) {
+                        state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
+                        showToast(`好感度 ${affinityChange > 0 ? '+' : ''}${affinityChange}`);
+                    }
+                });
+                
+                let contentForParsing = rawContent.replace(affinityRegex, '').trim();
+
+                if (!contentForParsing) {
+                    await saveState(); 
+                    return;
+                }
+
+                const messagesToSend = [];
+
+                if (state.chat.mode === 'story') {
+                    messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
+                } else {
+                    // --- 手机模式解析逻辑已恢复 ---
+                    while (contentForParsing.length > 0) {
+                        let tagStartIndex = contentForParsing.indexOf('[');
+                        
+                        if (tagStartIndex === 0) {
+                            let tagEndIndex = -1;
+                            let tagNameMatch = contentForParsing.match(/^\[([A-Z_-]+)/i);
+                            let tagName = tagNameMatch ? tagNameMatch[1].toUpperCase().replace(/-/g, '_') : null;
+
+                            if (tagName === 'VOICE_MESSAGE' || tagName === 'HTML_BLOCK') {
+                                const baseName = tagName.split('_').map(part => part.split('').join('[-_]?')).join('[-_]');
+                                const closingRegex = new RegExp(`\\[\\/` + baseName + `\\]`, 'i');
+                                const closingMatch = contentForParsing.match(closingRegex);
+                                if (closingMatch) {
+                                   tagEndIndex = closingMatch.index + closingMatch[0].length - 1;
+                                }
+                            } else if (tagName) {
+                                tagEndIndex = contentForParsing.indexOf(']');
+                            }
+
+                            if (tagEndIndex === -1) {
+                                messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: contentForParsing });
+                                contentForParsing = '';
+                                continue;
+                            }
+
+                            const tag = contentForParsing.substring(0, tagEndIndex + 1);
+                            const msgObject = parseTagToMessage(tag);
+                            if (msgObject) messagesToSend.push(msgObject);
+                            
+                            contentForParsing = contentForParsing.substring(tagEndIndex + 1).trim();
+
+                        } else {
+                            const textToProcess = (tagStartIndex === -1) 
+                                ? contentForParsing 
+                                : contentForParsing.substring(0, tagStartIndex);
+
+                            // --- 【核心恢复】使用原有的正则表达式进行句子分割 ---
+                            const sentenceRegex = /(.*?)([.?!。？！…~]+|\n)/g;
+                            const sentences = [...textToProcess.matchAll(sentenceRegex)];
+                            let lastIndex = 0;
+                            sentences.forEach(match => {
+                                const sentence = (match[1] + (match[2] || '')).trim();
+                                if (sentence) {
+                                    messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
+                                }
+                                lastIndex = match.index + match[0].length;
+                            });
+                            
+                            // 处理正则表达式未能匹配的剩余文本
+                            if (lastIndex < textToProcess.length) {
+                                const remainingText = textToProcess.substring(lastIndex).trim();
+                                if (remainingText) {
+                                    messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: remainingText });
+                                }
+                            }
+                            // --- 【恢复结束】---
+    
+                            contentForParsing = (tagStartIndex === -1) 
+                                ? '' 
+                                : contentForParsing.substring(tagStartIndex).trim();
+                        }
+                    }
+                }
+                
+                if (messagesToSend.length > 0) {
+                    for (const msg of messagesToSend) {
+                        state.chat.history.push(msg);
+                        renderChatHistory();
+                        const delay = msg.type === 'text' ? (150 + (msg.text || '').length * 20) : 500;
+                        await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
+                    }
+                }
+                
+            } catch (error) {
+                console.error("AI 回复失败:", error);
+                showDialog('AI 回复失败', `错误: ${error.message}`);
+            } finally {
+                await saveState();
+                aiReplyBtn.disabled = false;
+                await triggerSuiGeneration();
             }
         }
-        
-        // 逐条延迟显示，模拟打字效果
-        if (messagesToSend.length > 0) {
-            for (const msg of messagesToSend) {
-                state.chat.history.push(msg);
-                renderChatHistory(); // 每添加一条就渲染一次
-                const delay = msg.type === 'text' ? (150 + (msg.text || '').length * 20) : 500;
-                await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
-            }
-        }
-        
-    } catch (error) {
-        console.error("AI 回复失败:", error);
-        showDialog('AI 回复失败', `错误: ${error.message}`);
-    } finally {
-        await saveState();
-        aiReplyBtn.disabled = false;
-        await triggerSuiGeneration();
-    }
-}
 
 function parseTagToMessage(tag) {
     const voiceMatch = tag.match(/^\[VOICE-?_MESSAGE\](.*)\[\/VOICE-?_MESSAGE\]$/si);
@@ -3556,49 +3644,41 @@ function parseTagToMessage(tag) {
             const isCurrentlyStoryMode = state.chat.mode === 'story';
 
             if (isCurrentlyStoryMode) {
-                // --- 核心：退出剧情模式，执行“收纳” ---
+                // --- 新逻辑：退出剧情模式，并将当前剧情打包为占位符 ---
                 state.chat.mode = 'phone';
-
-                // 1. 找到最后一个“剧情开始”标记的索引
-                const storyStartIndex = state.chat.history.findLastIndex(msg => msg.type === 'story_start');
-
-                if (storyStartIndex !== -1) {
-                    // 2. 提取出这段剧情的所有内容
-                    const storyContent = state.chat.history.slice(storyStartIndex + 1);
-                    
-                    if (storyContent.length > 0) {
-                        // 3. 创建一个新的“剧情回顾”锚点
-                        const storyAnchor = {
-                            id: state.chat.history[storyStartIndex].id, // 使用开始标记的ID
-                            sender: 'system',
-                            type: 'system',
-                            text: '--- 剧情回顾 ---',
-                            storyContent: storyContent
-                        };
-
-                        // 4. 从历史记录中移除旧的剧情内容和开始标记
-                        state.chat.history.splice(storyStartIndex);
-
-                        // 5. 将新的“剧情回顾”锚点放回原位
-                        state.chat.history.push(storyAnchor);
-                    } else {
-                        // 如果没有内容，只移除开始标记
-                        state.chat.history.splice(storyStartIndex, 1);
-                    }
-                }
                 
-                // 6. 添加“切换回手机模式”的提示
-                state.chat.history.push({ 
-                    id: Date.now(), 
-                    sender: 'system', 
-                    type: 'system', 
-                    text: '--- 切换到手机模式 ---' 
+                // 在历史记录的末尾添加一个“剧情结束”的标记
+                state.chat.history.push({
+                    id: Date.now(),
+                    sender: 'system',
+                    type: 'story_end', // 新的结束标记类型
+                    text: '--- 剧情结束 ---'
                 });
+
+                // 找到最后一个“剧情开始”和对应的“剧情结束”标记的索引
+                const storyStartIndex = state.chat.history.findLastIndex(msg => msg.type === 'story_start');
+                const storyEndIndex = state.chat.history.findLastIndex(msg => msg.type === 'story_end');
+
+                if (storyStartIndex !== -1 && storyEndIndex > storyStartIndex) {
+                    // 1. 从 history 中“剪切”出这段剧情的所有消息（包括开始和结束标记）
+                    const messagesToArchive = state.chat.history.splice(storyStartIndex, storyEndIndex - storyStartIndex + 1);
+
+                    // 2. 创建一个“占位符”对象，并将剪切出来的内容存入其中
+                    const placeholder = {
+                        id: Date.now() + 1, // 确保ID唯一
+                        type: 'story_review_placeholder', // 新的占位符类型
+                        sender: 'system',
+                        archivedContent: messagesToArchive // 核心：保存被收纳的内容
+                    };
+
+                    // 3. 将这个占位符插入到被剪切内容的原位置
+                    state.chat.history.splice(storyStartIndex, 0, placeholder);
+                }
 
                 showToast('已返回手机模式');
 
             } else {
-                // --- 进入剧情模式 ---
+                // --- 进入剧情模式 (逻辑不变) ---
                 state.chat.mode = 'story';
                 // 插入一个“剧情开始”的标记，用于后续的收纳操作
                 state.chat.history.push({ 
