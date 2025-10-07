@@ -1116,20 +1116,21 @@ padding: 12px 16px;
         const db = {
             _db: null,
             init: function(dbName, storeNames) {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(dbName, 2); // DB version increased for new store
-                    request.onerror = () => reject("IndexedDB error: " + request.error);
-                    request.onsuccess = (event) => { this._db = event.target.result; resolve(this); };
-                    request.onupgradeneeded = (event) => {
-                        const db = event.target.result;
-                        storeNames.forEach(storeName => {
-                            if (!db.objectStoreNames.contains(storeName)) {
-                                db.createObjectStore(storeName);
-                            }
-                        });
-                    };
+        return new Promise((resolve, reject) => {
+            // 版本号从 2 升级到 3，以触发数据库结构更新
+            const request = indexedDB.open(dbName, 3);
+            request.onerror = () => reject("IndexedDB error: " + request.error);
+            request.onsuccess = (event) => { this._db = event.target.result; resolve(this); };
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                storeNames.forEach(storeName => {
+                    if (!db.objectStoreNames.contains(storeName)) {
+                        db.createObjectStore(storeName);
+                    }
                 });
-            },
+            };
+        });
+    },
             set: function(storeName, key, value) {
                 return new Promise((resolve, reject) => {
                     if (!this._db) return reject("DB not initialized");
@@ -1173,7 +1174,7 @@ padding: 12px 16px;
                 });
             }
         };
-        await db.init('GameDataStore', ['assets', 'stickers']);
+        await db.init('GameDataStore', ['assets', 'stickers', 'chatHistory', 'memories', 'diaries', 'suiData']);
 
         let loadedFontFaces = new Set();
 
@@ -1298,106 +1299,134 @@ padding: 12px 16px;
         };
 
         async function saveState() {
-            try {
-                state.version = APP_VERSION;
-                const stateToSave = JSON.parse(JSON.stringify(state));
+        try {
+            state.version = APP_VERSION;
+            const stateToSave = JSON.parse(JSON.stringify(state));
 
-                for (const key in ASSET_KEYS) {
-                    const assetData = ASSET_KEYS[key](stateToSave);
-                    if (assetData && assetData.startsWith('data:')) {
-                        await db.set('assets', key, assetData);
-                        setAssetValue(stateToSave, key, 'indexed');
-                    } else if (!assetData) {
-                        await db.delete('assets', key).catch(e => console.warn(`Could not delete ${key} from DB`, e));
-                    }
-                }
+            // --- 将大型数据数组存入 IndexedDB ---
+            // 我们使用固定的 'main' 作为键，因为每个仓库只存一个完整的数据数组
+            await db.set('chatHistory', 'main', state.chat.history);
+            await db.set('memories', 'main', state.memories);
+            await db.set('diaries', 'main', state.diaries);
+            await db.set('suiData', 'main', state.sui);
+            
+            // --- 从即将存入 localStorage 的对象中删除这些大型数据 ---
+            delete stateToSave.chat.history; // 只删除 history，保留 affinity 等其他 chat 配置
+            delete stateToSave.memories;
+            delete stateToSave.diaries;
+            delete stateToSave.sui;
 
-                for (const fontName in stateToSave.config.customFonts) {
-                    const fontData = stateToSave.config.customFonts[fontName];
-                    if (fontData && fontData.startsWith('data:')) {
-                        await db.set('assets', `font-${fontName}`, fontData);
-                        stateToSave.config.customFonts[fontName] = 'indexed';
-                    }
+            for (const key in ASSET_KEYS) {
+                const assetData = ASSET_KEYS[key](stateToSave);
+                if (assetData && assetData.startsWith('data:')) {
+                    await db.set('assets', key, assetData);
+                    setAssetValue(stateToSave, key, 'indexed');
+                } else if (!assetData) {
+                    await db.delete('assets', key).catch(e => console.warn(`Could not delete ${key} from DB`, e));
                 }
-                
-                for (const sticker of state.stickers) {
-                    await db.set('stickers', sticker.id, sticker);
-                }
-                delete stateToSave.stickers;
-
-                if (stateToSave.music && stateToSave.music.playlist) {
-                    stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
-                }
-                localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
-            } catch (e) {
-                console.error("Failed to save state.", e);
-                showDialog("保存失败", "数据无法保存，可能是浏览器存储空间已满。");
             }
-        };
+
+            for (const fontName in stateToSave.config.customFonts) {
+                const fontData = stateToSave.config.customFonts[fontName];
+                if (fontData && fontData.startsWith('data:')) {
+                    await db.set('assets', `font-${fontName}`, fontData);
+                    stateToSave.config.customFonts[fontName] = 'indexed';
+                }
+            }
+            
+            for (const sticker of state.stickers) {
+                await db.set('stickers', sticker.id, sticker);
+            }
+            delete stateToSave.stickers;
+
+            if (stateToSave.music && stateToSave.music.playlist) {
+                stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
+            }
+            localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
+        } catch (e) {
+            console.error("Failed to save state.", e);
+            showDialog("保存失败", "数据无法保存，可能是浏览器存储空间已满。");
+        }
+    };
 
         async function loadState() {
-            let savedState = null;
-            try {
-                const rawState = localStorage.getItem('game_state_v5');
-                if(rawState) savedState = JSON.parse(rawState);
-            } catch (e) { 
-                console.error("Failed to parse state from localStorage, possibly corrupt data.", e);
-                localStorage.removeItem('game_state_v5');
+        let savedState = null;
+        try {
+            const rawState = localStorage.getItem('game_state_v5');
+            if(rawState) savedState = JSON.parse(rawState);
+        } catch (e) { 
+            console.error("Failed to parse state from localStorage, possibly corrupt data.", e);
+            localStorage.removeItem('game_state_v5');
+        }
+
+        if (savedState) {
+            // Compatibility check for story mode transition
+            if (!savedState.chat || typeof savedState.chat.mode === 'undefined') {
+                if (savedState.chat) savedState.chat.mode = 'phone';
+                else savedState.chat = { history: [], affinity: 0, sendMode: 'text', mode: 'phone' };
             }
 
-            if (savedState) {
-                // Compatibility check for story mode transition
-                if (!savedState.chat || typeof savedState.chat.mode === 'undefined') {
-                    if (savedState.chat) savedState.chat.mode = 'phone';
-                    else savedState.chat = { history: [], affinity: 0, sendMode: 'text', mode: 'phone' };
-                }
+            const defaultState = JSON.parse(JSON.stringify(state));
+            const mergedState = { ...defaultState, ...savedState };
+            mergedState.config = { ...defaultState.config, ...(savedState.config || {}) };
+            mergedState.config.colors = { ...defaultState.config.colors, ...(savedState.config?.colors || {}) };
+            mergedState.role = { ...defaultState.role, ...(savedState.role || {}) };
+            // 注意：不再从 localStorage 合并 sui, memories, diaries, chat.history
+            mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
+            mergedState.chat = { ...defaultState.chat, ...(savedState.chat || {}) };
+            mergedState.ui = { ...defaultState.ui, ...(savedState.ui || {}) };
 
-                const defaultState = JSON.parse(JSON.stringify(state));
-                const mergedState = { ...defaultState, ...savedState };
-                mergedState.config = { ...defaultState.config, ...(savedState.config || {}) };
-                mergedState.config.colors = { ...defaultState.config.colors, ...(savedState.config?.colors || {}) };
-                mergedState.role = { ...defaultState.role, ...(savedState.role || {}) };
-                mergedState.sui = { ...defaultState.sui, ...(savedState.sui || {}) };
-                mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
-                mergedState.chat = { ...defaultState.chat, ...(savedState.chat || {}) };
-                mergedState.ui = { ...defaultState.ui, ...(savedState.ui || {}) };
+            Object.assign(state, mergedState);
+        }
+        
+        // --- 从 IndexedDB 加载大型数据 ---
+        // 这样可以确保即使 localStorage 中没有这些数据，也能从 IndexedDB 恢复
+        const [chatHistoryData, memoriesData, diariesData, suiData, stickersData] = await Promise.all([
+            db.get('chatHistory', 'main'),
+            db.get('memories', 'main'),
+            db.get('diaries', 'main'),
+            db.get('suiData', 'main'),
+            db.getAll('stickers')
+        ]);
+        
+        if (chatHistoryData) state.chat.history = chatHistoryData;
+        if (memoriesData) state.memories = memoriesData;
+        if (diariesData) state.diaries = diariesData;
+        if (suiData) state.sui = suiData;
+        state.stickers = stickersData || [];
 
-                Object.assign(state, mergedState);
+
+        for (const key in ASSET_KEYS) {
+            if (ASSET_KEYS[key](state) === 'indexed') {
+                const data = await db.get('assets', key);
+                if (data) setAssetValue(state, key, data);
             }
-            
-            for (const key in ASSET_KEYS) {
-                if (ASSET_KEYS[key](state) === 'indexed') {
-                    const data = await db.get('assets', key);
-                    if (data) setAssetValue(state, key, data);
-                }
-            }
-            
-            state.stickers = await db.getAll('stickers');
+        }
+        
+        if (state.config.bgImage) phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
+        if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
+        if (state.config.avatarFrameImage) avatarFrame.src = state.config.avatarFrameImage;
+        
+        signatureDisplay.textContent = state.config.signature;
+        applyColors(state.config.colors);
+        renderFontOptions();
+        await applyFont(state.config.fontFamily);
+        
+        if (state.ui.isFullscreen) {
+            document.body.classList.add('fullscreen-mode');
+            const icon = fullscreenBtn.querySelector('i');
+            const text = fullscreenBtn.querySelector('span');
+            icon.className = 'fas fa-compress';
+            text.textContent = '退出全屏';
+        }
 
-            if (state.config.bgImage) phoneScreen.style.backgroundImage = `url(${state.config.bgImage})`;
-            if (state.config.avatarImage) avatarImg.src = state.config.avatarImage;
-            if (state.config.avatarFrameImage) avatarFrame.src = state.config.avatarFrameImage;
-            
-            signatureDisplay.textContent = state.config.signature;
-            applyColors(state.config.colors);
-            renderFontOptions();
-            await applyFont(state.config.fontFamily);
-            
-            if (state.ui.isFullscreen) {
-                document.body.classList.add('fullscreen-mode');
-                const icon = fullscreenBtn.querySelector('i');
-                const text = fullscreenBtn.querySelector('span');
-                icon.className = 'fas fa-compress';
-                text.textContent = '退出全屏';
-            }
-
-            await initMusicPlayer();
-            renderChatHistory({ autoScroll: true });
-            renderMemoryList();
-            renderDiaryList();
-            renderSuiPage();
-            renderStickerDrawer();
-        };
+        await initMusicPlayer();
+        renderChatHistory({ autoScroll: true });
+        renderMemoryList();
+        renderDiaryList();
+        renderSuiPage();
+        renderStickerDrawer();
+    };
 
         const showView = (view) => {
             Object.values(pages).forEach(p => p.classList.add('hidden'));
