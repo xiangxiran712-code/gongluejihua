@@ -716,6 +716,46 @@ padding: 12px 16px;
         display: block; /* 移除图片下方的空隙 */
         cursor: pointer; /* 提示用户图片可点击 */
     }
+    /* --- NEW: Quick Action Menu Styles --- */
+#quick-action-menu {
+    position: absolute;
+    z-index: 30;
+    background: #4a5568; /* bg-slate-600 */
+    border-radius: 9999px; /* rounded-full */
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    pointer-events: none; /* Initially not clickable */
+}
+
+#quick-action-menu.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto; /* Clickable when visible */
+}
+
+.quick-action-button {
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.quick-action-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
     </style>
 </head>
 <body>
@@ -846,7 +886,12 @@ padding: 12px 16px;
                                 <button id="cancel-batch-delete-chat-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
                             </div>
                         </div>
-
+                        
+                        <!-- NEW: Quick Action Menu -->
+                        <div id="quick-action-menu">
+                            <!-- Buttons will be populated by JavaScript -->
+                        </div>
+                        
                         <!-- NEW: Sticker Drawer -->
                         <div id="sticker-drawer" class="scrollable-content">
                             <div class="flex justify-between items-center mb-2">
@@ -1223,6 +1268,7 @@ padding: 12px 16px;
         const dialog = get('custom-dialog'), dialogTitle = get('dialog-title'), dialogMessage = get('dialog-message');
         const dialogInputContainer = get('dialog-input-container'), dialogInput = get('dialog-input'), dialogButtons = get('dialog-buttons');
         const dialogComplexInputContainer = get('dialog-complex-input-container');
+        const quickActionMenu = get('quick-action-menu');
         
         // Settings Elements
         const themeBgColor = get('theme-bg-color'), themeTextColor = get('theme-text-color'), themeGlassBg = get('theme-glass-bg'), themeUserBubble = get('theme-user-bubble');
@@ -2108,8 +2154,9 @@ padding: 12px 16px;
                 } else {
                     // --- 渲染为“手机聊天气泡” ---
                     const bubbleWrapper = document.createElement('div');
-                    bubbleWrapper.className = `flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`;
-                    
+                    // 更改为垂直布局，并根据发送者对齐
+                    bubbleWrapper.className = `flex w-full flex-col mb-2 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`;
+
                     let bubble;
                     switch (msg.type) {
                         case 'transfer': bubble = createTransferBubble(msg); break;
@@ -2121,20 +2168,28 @@ padding: 12px 16px;
                     }
                     bubble.dataset.index = index;
                     bubble.dataset.id = msg.id;
-                    
-                    // (批量删除逻辑保持不变)
-                    if(isChatBatchDeleteMode) {
-                        // ... (批量删除代码无需修改)
+
+                    let bubbleContainerForLayout;
+
+                    if (isChatBatchDeleteMode) {
                         const container = document.createElement('div');
-                        container.className = 'relative';
-                        bubble.classList.add('pl-12');
+                        container.className = 'relative flex items-center'; // 使用flex来对齐复选框和气泡
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
-                        checkbox.className = 'batch-delete-checkbox form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
+                        checkbox.className = 'form-checkbox h-5 w-5 rounded text-indigo-500 border-gray-600 bg-gray-700 focus:ring-indigo-500 mr-2';
                         if (index === checkIndex) checkbox.checked = true;
-                        container.appendChild(bubble);
-                        container.appendChild(checkbox);
-                        bubbleWrapper.appendChild(container);
+                        
+                        // 根据发送者决定复选框和气泡的顺序
+                        if (msg.sender === 'user') {
+                            container.appendChild(bubble);
+                            container.appendChild(checkbox);
+                            bubble.classList.add('mr-2'); // 气泡和复选框的间距
+                        } else {
+                            container.appendChild(checkbox);
+                            container.appendChild(bubble);
+                            bubble.classList.add('ml-2');
+                        }
+                        bubbleContainerForLayout = container;
                     } else {
                         let pressTimer;
                         bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
@@ -2142,8 +2197,22 @@ padding: 12px 16px;
                         bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
                         bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
                         bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
-                        bubbleWrapper.appendChild(bubble);
+                        bubbleContainerForLayout = bubble;
                     }
+                    
+                    // 1. 将气泡（或其容器）添加到垂直布局中
+                    bubbleWrapper.appendChild(bubbleContainerForLayout);
+
+                    // 2. 创建并添加时间戳元素
+                    const time = new Date(msg.id);
+                    if (!isNaN(time.getTime())) { // 确保ID是有效的时间戳
+                        const timeString = time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                        const timeEl = document.createElement('div');
+                        timeEl.className = 'text-[10px] opacity-50 mt-1 px-2'; // 样式：小字号、半透明、上边距、水平内边距
+                        timeEl.textContent = timeString;
+                        bubbleWrapper.appendChild(timeEl);
+                    }
+                    
                     chatHistory.appendChild(bubbleWrapper);
                 }
             });
@@ -2264,29 +2333,23 @@ padding: 12px 16px;
                 );
 
                 if (action === 'receive') {
+                    // 你收款，AI支出
                     msg.status = 'received';
-                    state.sui.balance += msg.amount;
+                    state.sui.balance -= msg.amount; // AI的余额减少
                     state.sui.transactions.unshift({
                         id: Date.now(),
                         timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                        description: `收到来自 ${state.role.roleName || '对方'} 的转账`,
-                        amount: msg.amount,
+                        description: `向 ${state.role.playerName || '你'} 转账`, // 从AI视角记录
+                        amount: -msg.amount, // 记录为负数（支出）
                         relatedChatId: msg.id
                     });
-                    showToast(`收款成功，余额增加 ${msg.amount.toFixed(2)}`);
+                    showToast(`收款成功`); // 给你的提示保持不变
                     await saveState();
                     renderChatHistory({ autoScroll: false });
                 } else if (action === 'return') {
+                    // 你退回，AI账户无变化，仅更新消息状态
                     msg.status = 'returned';
-                    state.sui.balance += msg.amount; // 修正：退回给自己，余额应该增加
-                    state.sui.transactions.unshift({
-                        id: Date.now(),
-                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                        description: `${state.role.playerName || '你'} 退回了一笔转账`,
-                        amount: msg.amount,
-                        relatedChatId: msg.id
-                    });
-                    showToast(`已退回该笔转账，资金已返还`);
+                    showToast(`已退回该笔转账`);
                     await saveState();
                     renderChatHistory({ autoScroll: false });
                 }
@@ -2371,84 +2434,173 @@ padding: 12px 16px;
         });
         return bubble;
     };
-    
+        const hideQuickActionMenu = () => {
+            quickActionMenu.classList.remove('visible');
+            // 移除全局点击监听器
+            document.removeEventListener('click', hideQuickActionMenuOnClickOutside, true);
+        };
+
+        const hideQuickActionMenuOnClickOutside = (event) => {
+            if (!quickActionMenu.contains(event.target)) {
+                hideQuickActionMenu();
+            }
+        };
+
+        const showQuickActionMenu = (index, bubbleElement) => {
+            hideQuickActionMenu(); // 先隐藏任何已存在的菜单
+            
+            const msg = state.chat.history[index];
+            if (!msg) return;
+
+            quickActionMenu.innerHTML = ''; // 清空旧按钮
+            quickActionMenu.dataset.index = index;
+
+            const actions = [];
+            // 只有文本消息和在剧情模式下的消息才能编辑
+            if ((msg.type === 'text' || msg.type === 'voice') && !isChatBatchDeleteMode) {
+                 actions.push({ icon: 'fas fa-edit', title: '编辑', action: 'edit' });
+            }
+            actions.push({ icon: 'fas fa-trash-alt', title: '删除', action: 'delete' });
+            actions.push({ icon: 'fas fa-check-double', title: '批量删除', action: 'batch-delete' });
+
+            actions.forEach(act => {
+                const button = document.createElement('button');
+                button.className = 'quick-action-button';
+                button.title = act.title;
+                button.innerHTML = `<i class="${act.icon}"></i>`;
+                
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    hideQuickActionMenu();
+                    
+                    if (act.action === 'edit') {
+                        const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
+                        if (newText) {
+                            state.chat.history[index].text = newText;
+                            await saveState();
+                            renderChatHistory({ autoScroll: false });
+                            showToast('消息已更新');
+                        }
+                    } else if (act.action === 'delete') {
+                        const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
+                        if (confirmed) {
+                            state.chat.history.splice(index, 1);
+                            await saveState();
+                            renderChatHistory({ autoScroll: false });
+                            showToast('消息已删除');
+                        }
+                    } else if (act.action === 'batch-delete') {
+                        stickerDrawer.style.display = 'none';
+                        multifunctionMenu.classList.add('hidden');
+                        stickerDrawer.classList.remove('open');
+                        isChatBatchDeleteMode = true;
+                        renderChatHistory({ checkIndex: index });
+                    }
+                });
+                quickActionMenu.appendChild(button);
+            });
+
+            // --- 定位菜单 ---
+            const bubbleRect = bubbleElement.getBoundingClientRect();
+            const chatPageRect = chatPage.getBoundingClientRect();
+
+            // 临时显示菜单以获取其尺寸
+            quickActionMenu.style.visibility = 'hidden';
+            quickActionMenu.classList.add('visible');
+            const menuWidth = quickActionMenu.offsetWidth;
+            const menuHeight = quickActionMenu.offsetHeight;
+            quickActionMenu.classList.remove('visible');
+            quickActionMenu.style.visibility = 'visible';
+
+            let top = bubbleRect.top - chatPageRect.top - menuHeight - 8; // 8px margin above
+            let left = bubbleRect.left - chatPageRect.left + (bubbleRect.width / 2) - (menuWidth / 2);
+
+            // 防止菜单溢出屏幕顶部
+            if (top < chatPageRect.top) {
+                top = bubbleRect.bottom - chatPageRect.top + 8; // Move below
+            }
+            // 防止菜单溢出屏幕左右
+            left = Math.max(8, Math.min(left, chatPageRect.width - menuWidth - 8));
+
+            quickActionMenu.style.top = `${top}px`;
+            quickActionMenu.style.left = `${left}px`;
+            
+            // 延迟以确保定位和动画正常
+            setTimeout(() => {
+                quickActionMenu.classList.add('visible');
+                // 添加全局点击监听器以关闭菜单
+                document.addEventListener('click', hideQuickActionMenuOnClickOutside, true);
+            }, 10);
+        };
         const manageChatMessage = (index) => {
             const msg = state.chat.history[index];
-            if (!msg) return; // 只检查消息是否存在
+            if (!msg) return;
+            
+            // 找到触发事件的DOM元素
+            const bubbleElement = chatHistory.querySelector(`[data-index="${index}"]`);
+            if (!bubbleElement) return;
 
-            // 优先处理系统消息（如模式切换分割线）
-            if (msg.sender === 'system') {
-                showDialog('管理系统消息', `消息内容: "${msg.text}"`, {
+            // --- 核心修改：为剧情模式和系统消息增加编辑功能 ---
+            if (state.chat.mode === 'story' || msg.sender === 'system') {
+                // 仅允许编辑包含文本内容的消息类型
+                if (msg.type !== 'text' && msg.type !== 'voice' && msg.sender !== 'system') {
+                    // 对于非文本类型（如图片、转账等），只提供删除选项
+                     showDialog('管理消息', '此消息类型不支持编辑。', {
+                        buttons: [
+                            { text: '取消', value: 'cancel', class: 'bg-gray-500/50' },
+                            { text: '删除', value: 'delete', class: 'bg-red-500/80' }
+                        ]
+                    }).then(async action => {
+                        if (action === 'delete') {
+                            const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
+                            if(confirmed) {
+                                state.chat.history.splice(index, 1);
+                                await saveState();
+                                renderChatHistory({ autoScroll: false });
+                                showToast('消息已删除');
+                            }
+                        }
+                    });
+                    return;
+                }
+                
+                // 为文本类消息提供编辑和删除选项
+                showDialog('管理消息', `消息内容: "${msg.text}"`, {
                     buttons: [
                         { text: '取消', value: 'cancel', class: 'bg-gray-500/50' },
-                        { text: '删除', value: 'delete', class: 'bg-red-500/80' }
+                        { text: '删除', value: 'delete', class: 'bg-red-500/80' },
+                        { text: '编辑', value: 'edit', class: 'bg-blue-500' } // 新增“编辑”按钮
                     ]
                 }).then(async action => {
                     if (action === 'delete') {
-                        state.chat.history.splice(index, 1);
-                        await saveState();
-                        renderChatHistory({ autoScroll: false });
-                        showToast('消息已删除');
+                        const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
+                        if (confirmed) {
+                           state.chat.history.splice(index, 1);
+                           await saveState();
+                           renderChatHistory({ autoScroll: false });
+                           showToast('消息已删除');
+                        }
+                    } else if (action === 'edit') {
+                        // --- 新增的编辑逻辑 ---
+                        const newText = await showDialog('编辑消息', '', {
+                            input: true,
+                            defaultValue: msg.text // 将旧文本作为默认值填入输入框
+                        });
+
+                        if (newText) { // 如果用户输入了新内容并没有取消
+                            state.chat.history[index].text = newText;
+                            await saveState();
+                            renderChatHistory({ autoScroll: false }); // 重新渲染，不自动滚动
+                            showToast('消息已更新');
+                        }
                     }
                 });
-                return; // 处理完毕，退出函数
+                return;
             }
 
-            // --- 以下为原有的对用户和AI消息的处理逻辑 ---
-            let dialogMessage = '';
-            let dialogButtons = [];
-            
-            switch (msg.type) {
-                case 'text': dialogMessage = `"${(msg.text || '').substring(0, 50)}..."`; break;
-                case 'voice': dialogMessage = `一条 ${msg.duration}" 的语音消息`; break;
-                case 'transfer': dialogMessage = `一笔 ${msg.amount} 元的转账`; break;
-                case 'sticker': dialogMessage = `一个含义为 "${msg.meaning}" 的表情`; break;
-                case 'html': dialogMessage = `一个HTML模块 (内容: "${msg.htmlContent.substring(0, 50)}...")`; break;
-                default: dialogMessage = `"${(msg.text || '').substring(0, 50)}..."`;
-            }
-            
-            const commonButtons = [
-                {text: '取消', value: 'cancel', class: 'bg-gray-500/50'},
-                {text: '批量删除', value: 'batch-delete', class: 'bg-yellow-600/80'},
-                {text: '删除', value: 'delete', class: 'bg-red-500/80'}
-            ];
-
-            if ((msg.type === 'text' || state.chat.mode === 'story') && !isChatBatchDeleteMode) {
-                dialogButtons = [...commonButtons, {text: '编辑', value: 'edit', class: 'bg-blue-500'}];
-            } else {
-                dialogButtons = commonButtons;
-            }
-
-            showDialog('管理消息', dialogMessage, { 
-                buttons: dialogButtons.map(b => b.disabled ? {...b, class: `${b.class} opacity-50 cursor-not-allowed`} : b) 
-            }).then(async action => {
-                const buttonInfo = dialogButtons.find(b => b.value === action);
-                if (buttonInfo && buttonInfo.disabled) return;
-
-                if (action === 'edit') {
-                    const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
-                    if (newText) {
-                        state.chat.history[index].text = newText;
-                        await saveState();
-                        renderChatHistory({ autoScroll: false });
-                        showToast('消息已更新');
-                    }
-                } else if (action === 'delete') {
-                    const confirmed = await showDialog('确认删除', '确定要删除这条消息吗？');
-                    if (confirmed) {
-                        state.chat.history.splice(index, 1);
-                        await saveState();
-                        renderChatHistory({ autoScroll: false });
-                        showToast('消息已删除');
-                    }
-                } else if (action === 'batch-delete') {
-    multifunctionMenu.classList.add('hidden');
-    stickerDrawer.classList.remove('open'); // 保持状态干净
-    stickerDrawer.classList.add('hidden');    // <--- 核心更改：强制隐藏，避免布局冲突
-    isChatBatchDeleteMode = true;
-    renderChatHistory({ checkIndex: index });
-                }
-            });
+            // 手机模式的逻辑保持不变
+            if (isChatBatchDeleteMode) return;
+            showQuickActionMenu(index, bubbleElement);
         };
 
         
@@ -2516,15 +2668,48 @@ padding: 12px 16px;
         userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
         
         const createPhoneApiPrompt = () => {
-    const now = new Date();
-    const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const now = new Date();
+        const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // --- I am upgrading the system prompt to include instructions for image recognition ---
-    let systemPrompt = `
+        // --- 新增代码：计算时间间隔并生成上下文指令 ---
+        let timeContextPrompt = '';
+        const history = state.chat.history;
+        if (history.length > 2) {
+            const lastMessage = history[history.length - 2];
+            // 确保 lastMessage.id 是一个有效的时间戳
+            if (lastMessage && lastMessage.id) {
+                const lastMessageTime = new Date(lastMessage.id).getTime();
+                const currentTime = now.getTime();
+                const diffMinutes = Math.floor((currentTime - lastMessageTime) / (1000 * 60));
+
+                // 如果时间间隔大于60分钟，则生成提示
+                if (diffMinutes > 60) {
+                    const diffHours = Math.floor(diffMinutes / 60);
+                    const diffDays = Math.floor(diffHours / 24);
+                    
+                    let gapDescription = '';
+                    if (diffDays > 0) {
+                        gapDescription = `大约 ${diffDays} 天 ${diffHours % 24} 小时`;
+                    } else {
+                        gapDescription = `大约 ${diffHours} 小时`;
+                    }
+                    
+                    timeContextPrompt = `
+# 时间上下文
+- **重要**: 距离上一条消息（你的或玩家的）已经过去了 **${gapDescription}**。
+- 你的开场白必须自然地反映出这段时间的间隔。例如，你可以说“好久不见”、“昨天我们聊到...今天怎么样？”或对长时间的沉默表示好奇。绝对不要像几秒前那样突然接续上一句话。
+`;
+                }
+            }
+        }
+        // --- 新增代码结束 ---
+
+        // --- 修改 systemPrompt，注入时间上下文 ---
+        let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
 - 你必须意识到这是当前的现实时间。你的回复（例如问候语）应当与这个时间点相符。例如，如果是深夜，你应该说“这么晚了还没睡？”而不是“下午好”。
-
+${timeContextPrompt}
 # 你的状态
 - **账户余额**: ${state.sui.balance.toFixed(2)} 元
 
@@ -2583,74 +2768,74 @@ ${state.role.promptInstructions ? `
 - 直接开始写你的第一句聊天内容。
 `;
 
-    const messages = [{ role: 'system', content: systemPrompt }];
-    
-    const fullHistoryForAI = [];
-    state.chat.history.forEach(msg => {
-        if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
-            fullHistoryForAI.push(...msg.archivedContent);
-        } else {
-            fullHistoryForAI.push(msg);
-        }
-    });
-    
-    const historyToProcess = fullHistoryForAI;
-    historyToProcess.forEach(msg => {
-        if (msg.sender === 'system') return;
+        const messages = [{ role: 'system', content: systemPrompt }];
         
-        // --- This is the core logic upgrade ---
-        if (msg.sender === 'user' && msg.type === 'image') {
-            // For image messages, I create a special content array.
-            messages.push({
-                role: 'user',
-                content: [
-                    {
-                        type: 'text',
-                        text: msg.text // e.g., "[用户发送了一张图片]"
-                    },
-                    {
-                        type: 'image_url',
-                        image_url: {
-                            url: msg.imageUrl // The Data URL of the image is passed here.
-                        }
-                    }
-                ]
-            });
-        } else {
-            // For all other message types, the logic remains the same.
-            let content = '';
-            const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
+        const fullHistoryForAI = [];
+        state.chat.history.forEach(msg => {
+            if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
+                fullHistoryForAI.push(...msg.archivedContent);
+            } else {
+                fullHistoryForAI.push(msg);
+            }
+        });
+        
+        const historyToProcess = fullHistoryForAI;
+        historyToProcess.forEach(msg => {
+            if (msg.sender === 'system') return;
             
-            if (msg.sender === 'ai') {
-                switch (msg.type) {
-                    case 'text': content = msg.text; break;
-                    case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
-                    case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
-                    case 'html': content = `[HTML_BLOCK]${msg.htmlContent}[/HTML_BLOCK]`; break;
-                    case 'transfer':
-                        const transferPayload = { amount: msg.amount, message: msg.message };
-                        content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
-                        break;
-                    default: content = msg.text || '';
+            // --- This is the core logic upgrade ---
+            if (msg.sender === 'user' && msg.type === 'image') {
+                // For image messages, I create a special content array.
+                messages.push({
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'text',
+                            text: msg.text // e.g., "[用户发送了一张图片]"
+                        },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: msg.imageUrl // The Data URL of the image is passed here.
+                            }
+                        }
+                    ]
+                });
+            } else {
+                // For all other message types, the logic remains the same.
+                let content = '';
+                const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
+                
+                if (msg.sender === 'ai') {
+                    switch (msg.type) {
+                        case 'text': content = msg.text; break;
+                        case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
+                        case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
+                        case 'html': content = `[HTML_BLOCK]${msg.htmlContent}[/HTML_BLOCK]`; break;
+                        case 'transfer':
+                            const transferPayload = { amount: msg.amount, message: msg.message };
+                            content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
+                            break;
+                        default: content = msg.text || '';
+                    }
+                } else { // user
+                    switch (msg.type) {
+                        case 'text': content = msg.text; break;
+                        case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
+                        case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
+                        case 'html': content = `[${senderName}发送了一个自定义模块]`; break;
+                        case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
+                        default: content = msg.text || '';
+                    }
                 }
-            } else { // user
-                switch (msg.type) {
-                    case 'text': content = msg.text; break;
-                    case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
-                    case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
-                    case 'html': content = `[${senderName}发送了一个自定义模块]`; break;
-                    case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
-                    default: content = msg.text || '';
+                if (content) {
+                    messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
                 }
             }
-            if (content) {
-                messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
-            }
-        }
-    });
+        });
 
-    return messages;
-};
+        return messages;
+    };
         const createStoryApiPrompt = () => {
             const now = new Date();
             const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -2680,6 +2865,15 @@ ${state.role.promptInstructions ? `
 # 绝对禁止事项 (DO NOT DO THIS)
 - **绝对禁止聊天风格**: 严禁回复简短的、口语化的、像聊天软件里的消息。
 - **绝对禁止剧本格式**: 严禁使用“角色名: 对话”这样的格式。
+
+# 文风示例 (STYLE EXAMPLE)
+// 这是一个完美的输出示例，你的回复必须达到或超过这个标准。
+// ---
+// 雨点敲打着咖啡馆的玻璃窗，将窗外城市的霓虹灯染成一片模糊的光晕。他静静地坐在你的对面，指尖无意识地划过温热的杯壁，目光落在窗外迷蒙的夜色里，似乎在想些什么。过了许久，他才收回视线，转头看向你，眼中带着一丝不易察觉的柔和。他轻轻叹了口气，嘴角却向上弯起一个微小的弧度。
+
+“我还以为你不会来。”
+
+他低声说，声音里混杂着窗外的雨声和店里舒缓的爵士乐，显得格外温柔。
 
 # 输出格式 (必须严格遵守)
 你的最终输出**只能**包含两部分：
@@ -3090,9 +3284,25 @@ function parseTagToMessage(tag) {
         const action = actionMatch[1].toLowerCase();
         const targetId = parseInt(actionMatch[2], 10);
         const targetMsg = state.chat.history.find(m => m.id === targetId && m.sender === 'user' && m.type === 'transfer');
-        if (targetMsg) {
-            targetMsg.status = action === 'receive' ? 'received' : 'returned';
-            showToast(action === 'receive' ? '对方已收款' : '对方已退回转账');
+        
+        if (targetMsg && targetMsg.status === 'pending') { // 确保只处理一次
+            if (action === 'receive') {
+                // AI收款，余额增加
+                targetMsg.status = 'received';
+                state.sui.balance += targetMsg.amount;
+                state.sui.transactions.unshift({
+                    id: Date.now(),
+                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                    description: `收到来自 ${state.role.playerName || '你'} 的转账`,
+                    amount: targetMsg.amount, // 记录为正数（收入）
+                    relatedChatId: targetMsg.id
+                });
+                showToast('对方已收款');
+            } else if (action === 'return') {
+                // AI退回，无余额变化
+                targetMsg.status = 'returned';
+                showToast('对方已退回转账');
+            }
         }
     }
     return null;
@@ -3298,11 +3508,11 @@ function parseTagToMessage(tag) {
         });
         
         // --- NEW: Chat Batch Delete Listeners ---
-        cancelBatchDeleteChatBtn.addEventListener('click', () => {
-    isChatBatchDeleteMode = false;
-    stickerDrawer.classList.remove('hidden'); // <--- 核心更改：恢复面板的可渲染状态
-    renderChatHistory({ autoScroll: false });
-});
+    cancelBatchDeleteChatBtn.addEventListener('click', () => {
+        isChatBatchDeleteMode = false;
+        stickerDrawer.style.display = ''; // <--- 修改此处
+        renderChatHistory({ autoScroll: false });
+    });
 
         confirmBatchDeleteChatBtn.addEventListener('click', async () => {
             // 1. 找到所有被选中的复选框
@@ -3328,7 +3538,7 @@ function parseTagToMessage(tag) {
 
             // 5. 退出批量删除模式并重新渲染界面
               isChatBatchDeleteMode = false;
-    stickerDrawer.classList.remove('hidden'); // <--- 核心更改：恢复表情包面板的可渲染状态
+              stickerDrawer.style.display = ''; // <--- 核心更改：恢复表情包面板的可渲染状态
     renderChatHistory({ autoScroll: false });
 });
         // --- 新代码到此结束 ---
