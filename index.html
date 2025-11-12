@@ -3244,7 +3244,7 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                         state.chat.history.push(msg);
                         renderChatHistory();
                         const delay = msg.type === 'text' ? (150 + (msg.text || '').length * 20) : 500;
-                        await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1200)));
+                        await new Promise(resolve => setTimeout(resolve, Math.min(delay, 50)));
                     }
                 }
                 
@@ -3254,7 +3254,7 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
             } finally {
                 await saveState();
                 aiReplyBtn.disabled = false;
-                await triggerSuiGeneration();
+                triggerSuiGeneration();
             }
         }
 
@@ -3617,7 +3617,10 @@ function parseTagToMessage(tag) {
                 // 3. 【回归OpenAI格式】根据服务器最新的要求，使用 'messages' 格式
                 const requestBody = {
                     model: state.config.api.model,
-                    messages: [{ role: 'system', content: systemPrompt }],
+                    messages: [
+            { role: 'system', content: systemPrompt }, // 设置模型的角色和行为指令
+            { role: 'user', content: '请开始根据上述指令写一篇日记。' } // 明确触发模型开始写作
+        ],
                     temperature: 0.8
                 };
 
