@@ -2653,6 +2653,7 @@
                 }
             }
             
+            // --- MODIFICATION START: The entire system prompt for phone chat is rewritten for clarity and strictness ---
             let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
@@ -2666,27 +2667,38 @@
 - **人设**: ${state.role.rolePersona || '未设定'}
 - **场景**: 你正在手机聊天APP里，与 **${state.role.playerName || '玩家'}** 进行一对一聊天。
 
-# 绝对禁止事项
-- **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字 (例如: *我笑了*, (看着屏幕), [他感到温暖])。
-- **绝对禁止小说风格**: 严禁使用第三人称叙事或任何类似小说的文体。
+# 核心输出规则 (ABSOLUTE RULES FOR OUTPUT)
+1.  **一行一事 (One Line, One Action)**: 你的每一行输出 **只能包含一种内容**：要么是 **纯文本**，要么是 **一个功能标签**。
+2.  **绝对分离**: 严禁在同一行内混合纯文本和功能标签。
+3.  **多步操作**: 如果你想说话并发一个表情，你 **必须** 分成两行来完成。
+4.  **好感度标签**: 在所有聊天内容的 **最后**，必须另起一行，写上 \`[AFFINITY_CHANGE:X]\`。这是你输出的最后一部分。
 
-# 可用功能 (必须严格按以下格式使用)
+# 格式示例 (FORMATTING EXAMPLES)
+---
+### 正确格式 (CORRECT):
+我好想你啊。
+[USE_STICKER,ID:1758558059192]
+[AFFINITY_CHANGE:2]
+---
+### 正确格式 (CORRECT):
+[VOICE_MESSAGE]我真的…很高兴。[/VOICE_MESSAGE]
+[AFFINITY_CHANGE:1]
+---
+### 错误格式 (INCORRECT - DO NOT DO THIS):
+我好想你啊。[USE_STICKER,ID:1758558059192]
+---
+### 错误格式 (INCORRECT - DO NOT DO THIS):
+[VOICE_MESSAGE]我很高兴。[/VOICE_MESSAGE][USE_STICKER,ID:1758558059192]
+---
+
+# 可用功能 (Available Functions)
 - **视觉识别**: 当收到图片时，你应该描述图片内容并作出符合你角色的、自然的反应。
 - **转账**: \`[SEND_TRANSFER:{"amount":金额,"message":"留言"}]\`
 - **处理转账**: 收到玩家转账后，必须在回复中包含 \`[TRANSFER_ACTION:receive,ID:消息ID]\` 或 \`[TRANSFER_ACTION:return,ID:消息ID]\`。
 - **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
 - **发表情**: \`[USE_STICKER,ID:表情ID]\`
 - **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`
-- **引用回复**: (!!!) 如果你需要明确回复之前的某条消息, **必须** 在你的回复前加上 \`[REPLY_TO_ID:消息ID]\`。**请积极使用此功能**来确保对话的连贯性。
-
-# 核心规则
-- 你的输出由一句或多句话组成，每句话独立成行。
-- **强烈建议**在发送特殊功能消息（如表情、语音）时，同时附带**至少一条相关的纯文本消息**。
-- **请更加活跃、频繁且合理地使用(语音、表情包、转账、HTML、引用)功能**，以避免对话枯燥。
-
-# 输出格式 (必须严格遵守)
-1.  **聊天内容**: 一句或多句话，可包含功能标签。
-2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数。
+- **引用回复**: 如果你需要明确回复之前的某条消息, **必须** 在你的回复前加上 \`[REPLY_TO_ID:消息ID]\`。
 
 # 记忆与上下文
 - **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
@@ -2698,8 +2710,10 @@ ${state.role.promptInstructions ? `
 ` : ''}
 
 # 最终指令
+- 严格遵守 **核心输出规则** 和 **格式示例**。
 - 直接开始写你的第一句聊天内容。不要有任何前缀或解释。
 `;
+            // --- MODIFICATION END ---
         
             const messages = [{ role: 'system', content: systemPrompt }];
             const fullHistoryForAI = [];
