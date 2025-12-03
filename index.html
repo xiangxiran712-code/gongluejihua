@@ -3371,7 +3371,14 @@ function parseTagToMessage(tag) {
                 if (state.sui[dataType] && state.sui[dataType].length > 0) {
                     renderSuiData(dataType, state.sui[dataType]);
                 } else {
-                    listElement.innerHTML = `<div class="sui-placeholder"><p>点击右上角“刷新”<br>生成记录</p></div>`;
+                    // --- MODIFICATION START ---
+                    // For the album grid, the placeholder must span all columns to center correctly.
+                    if (listElement.id === 'sui-album-grid') {
+                        listElement.innerHTML = `<div class="sui-placeholder" style="grid-column: 1 / -1;"><p>点击右上角“刷新”<br>生成记录</p></div>`;
+                    } else {
+                        listElement.innerHTML = `<div class="sui-placeholder"><p>点击右上角“刷新”<br>生成记录</p></div>`;
+                    }
+                    // --- MODIFICATION END ---
                 }
             }
         }
