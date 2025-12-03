@@ -333,128 +333,67 @@
         .batch-delete-checkbox { position: absolute; top: 0.75rem; left: 0.75rem; }
         .form-checkbox { background-color: #4a5568; border-color: #718096; }
 
-        /* --- SUI Page Specific Styles --- */
-        .sui-nav-btn {
-            color: var(--text-color);
-            opacity: 0.6;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px; /* Overlap with parent border */
-        }
-        .sui-nav-btn:hover {
-            opacity: 1;
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        .sui-nav-btn.active {
-            opacity: 1;
-            color: #c4b5fd; /* A highlight color */
-            border-bottom-color: #c4b5fd;
-        }
-        .sui-section {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 1rem;
-        }
-        .sui-list {
-            padding-right: 8px; /* For scrollbar gap */
-        }
-        .sui-list-item {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.8rem;
-            position: relative;
-        }
-        .sui-list-item .timestamp {
-            font-size: 0.7rem;
-            opacity: 0.6;
-            display: block;
-            margin-bottom: 4px;
-        }
-        .sui-list-item .amount-positive { color: #4ade80; }
-        .sui-list-item .amount-negative { color: #f87171; }
-        .sui-list-item .chat-with { font-weight: bold; color: #93c5fd; }
-        .sui-chat-log {
-            margin-top: 6px;
-            padding-left: 10px;
-            border-left: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        .sui-chat-log p {
-            margin-bottom: 2px;
-            line-height: 1.4;
-        }
-        .sui-list-item .url { color: #a78bfa; word-break: break-all; }
-        .sui-browsing-session {
-            margin-top: 6px;
-            padding-left: 10px;
-            border-left: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        .sui-browsing-session p {
-            margin-bottom: 2px;
-            line-height: 1.4;
-            font-size: 0.75rem;
-        }
-        .sui-browsing-session .url {
-            opacity: 0.7;
-            font-size: 0.7rem;
-        }
-        .sui-item-actions {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            display: flex;
-            gap: 0.5rem;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-            z-index: 5; /* Ensure buttons are on top */
-        }
-        .sui-list-item:hover .sui-item-actions {
-            opacity: 1;
-        }
-        .sui-action-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: var(--text-color);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            cursor: pointer;
-        }
-        .sui-action-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        .sui-section-clear-btn {
-            background: rgba(255, 82, 82, 0.2);
-            border: 1px solid rgba(255, 82, 82, 0.4);
-            color: #ffcdd2;
-            padding: 2px 8px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .sui-section-clear-btn:hover {
-            background: rgba(255, 82, 82, 0.4);
-            color: white;
-            box-shadow: 0 0 8px rgba(255, 82, 82, 0.5);
-        }
-        /* MODIFIED: Transaction Item Layout */
-        .transaction-item {
-            /* No longer flex, elements will stack */
-        }
-        .sui-list-item .amount-display {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        /* --- SUI Page Specific Styles (NEW) --- */
+        .sui-page-header { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 26rem; margin: 0 auto 1rem; }
+        #sui-home { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 1rem; }
+        #sui-icon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; width: 100%; max-width: 20rem; }
+        .sui-icon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; aspect-ratio: 1/1; background: rgba(255,255,255,0.1); border-radius: 1rem; transition: all 0.2s ease-out; }
+        .sui-icon-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-4px); }
+        .sui-icon-btn i { font-size: 2rem; }
+        .sui-icon-btn span { font-size: 0.75rem; font-weight: 500; }
+        
+        .sui-sub-page { display: none; width: 100%; height: 100%; flex-direction: column; padding: 1rem; }
+        .sui-sub-page-content { flex-grow: 1; overflow-y: auto; padding-right: 0.5rem; } /* Add padding for scrollbar */
+        .sui-sub-page-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
+        .sui-back-sub-btn { background: none; border: none; color: var(--text-color); padding: 0.5rem; font-size: 1.25rem; }
+        .sui-refresh-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 9999px; padding: 0.5rem 1rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s; }
+        .sui-refresh-btn:hover { background: rgba(255,255,255,0.25); }
+        .sui-refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sui-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; text-align: center; opacity: 0.6; }
+
+        /* Shopping List Styles */
+        .sui-shopping-item { background: rgba(0,0,0,0.2); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #818cf8; }
+        .sui-shopping-item .store { font-weight: 700; font-size: 0.9rem; }
+        .sui-shopping-item .details { display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem; }
+        .sui-shopping-item .item-name { font-size: 0.8rem; opacity: 0.9; }
+        .sui-shopping-item .price { font-size: 0.9rem; font-weight: 500; color: #f87171; }
+
+        /* Browser History Styles */
+        .sui-browser-item { display: flex; align-items: center; gap: 0.75rem; background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+        .sui-browser-item i { color: #60a5fa; }
+        .sui-browser-item .info { flex-grow: 1; overflow: hidden; }
+        .sui-browser-item .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sui-browser-item .url { font-size: 0.75rem; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #a78bfa; }
+
+        /* Other Chat Styles */
+        .sui-otherchat-item { background: rgba(0,0,0,0.2); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
+        .sui-otherchat-item .header { font-weight: 700; margin-bottom: 0.75rem; }
+        .sui-otherchat-item .chat-log { display: flex; flex-direction: column; gap: 0.5rem; }
+        .sui-otherchat-item .chat-bubble { max-width: 80%; padding: 0.5rem 0.75rem; border-radius: 1rem; font-size: 0.85rem; }
+        .sui-otherchat-item .bubble-me { background: #3b82f6; color: white; align-self: flex-end; border-bottom-right-radius: 0.25rem; }
+        .sui-otherchat-item .bubble-them { background: #4b5563; align-self: flex-start; border-bottom-left-radius: 0.25rem; }
+
+        /* Album Styles */
+        #sui-album-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .sui-photo-item { position: relative; aspect-ratio: 1/1; background-color: #374151; border-radius: 0.5rem; overflow: hidden; }
+        .sui-photo-item img { width: 100%; height: 100%; object-fit: cover; }
+        .sui-photo-item .caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: white; padding: 1.5rem 0.5rem 0.5rem; font-size: 0.75rem; text-align: center; }
+
+        /* Notepad Styles */
+        .sui-note-item { background: #fef9c3; color: #713f12; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); transform: rotate(-1deg); font-family: 'Comic Sans MS', cursive; }
+        .sui-note-item:nth-child(even) { transform: rotate(1.5deg); background: #dbeafe; color: #1e3a8a;}
+        .sui-note-item .note-title { font-weight: 700; border-bottom: 1px solid rgba(0,0,0,0.2); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+        .sui-note-item .note-content { font-size: 0.9rem; line-height: 1.5; }
+
+        /* Footprints Styles */
+        .sui-footprints-list { position: relative; padding-left: 1.5rem; }
+        .sui-footprints-list::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.2); }
+        .sui-footprint-item { position: relative; margin-bottom: 1.5rem; }
+        .sui-footprint-item::before { content: ''; position: absolute; left: -1.5rem; top: 0.25rem; width: 14px; height: 14px; background: var(--bg-color); border: 2px solid #93c5fd; border-radius: 50%; z-index: 1; }
+        .sui-footprint-item .location { font-weight: 700; font-size: 1rem; }
+        .sui-footprint-item .timestamp { font-size: 0.75rem; opacity: 0.7; }
+        .sui-footprint-item .note { font-size: 0.85rem; margin-top: 0.25rem; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 0.25rem; }
+
 
         /* --- Touch Effect --- */
         .touch-particle {
@@ -560,11 +499,11 @@
             border-radius: 8px;
         }
         .html-bubble {
-    padding: 0;
-    overflow: hidden; /* 防止内部元素溢出影响布局 */
-    background: transparent; /* 使气泡背景透明，让内部HTML完全控制外观 */
-    box-shadow: none; /* 移除默认阴影，让内部HTML控制自己的阴影 */
-}
+            padding: 0;
+            overflow: hidden; /* 防止内部元素溢出影响布局 */
+            background: transparent; /* 使气泡背景透明，让内部HTML完全控制外观 */
+            box-shadow: none; /* 移除默认阴影，让内部HTML控制自己的阴影 */
+        }
         #sticker-drawer {
             position: absolute;
             bottom: 0;
@@ -678,16 +617,16 @@
         }
         /* --- NEW: Story Mode Active Styling --- */
         .story-block {
-padding: 12px 16px;
-    width: 100%;
-    font-size: 16px;
-    line-height: 1.6;
-    color: var(--text-color); /* 修正：使用全局文字颜色变量 */
-    border-left: 3px solid rgba(75, 85, 99, 0.7); 
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
+            padding: 12px 16px;
+            width: 100%;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-color); /* 修正：使用全局文字颜色变量 */
+            border-left: 3px solid rgba(75, 85, 99, 0.7); 
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
         .story-block:hover {
             background-color: rgba(255, 255, 255, 0.08);
         }
@@ -703,59 +642,107 @@ padding: 12px 16px;
             /* background-color: #1a1a1b; */ /* 可选：改变背景色 */
         }
         .image-bubble {
-        background: transparent;
-        padding: 0;
-        box-shadow: none;
-        max-width: 60%; /* 限制图片最大宽度 */
-        border-radius: 12px;
-        overflow: hidden; /* 确保图片遵循圆角 */
-    }
-    .image-bubble img {
-        max-width: 100%;
-        height: auto;
-        display: block; /* 移除图片下方的空隙 */
-        cursor: pointer; /* 提示用户图片可点击 */
-    }
-    /* --- NEW: Quick Action Menu Styles --- */
-#quick-action-menu {
-    position: absolute;
-    z-index: 30;
-    background: #4a5568; /* bg-slate-600 */
-    border-radius: 9999px; /* rounded-full */
-    padding: 4px;
-    display: flex;
-    gap: 4px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
-    pointer-events: none; /* Initially not clickable */
-}
+            background: transparent;
+            padding: 0;
+            box-shadow: none;
+            max-width: 60%; /* 限制图片最大宽度 */
+            border-radius: 12px;
+            overflow: hidden; /* 确保图片遵循圆角 */
+        }
+        .image-bubble img {
+            max-width: 100%;
+            height: auto;
+            display: block; /* 移除图片下方的空隙 */
+            cursor: pointer; /* 提示用户图片可点击 */
+        }
+        /* --- NEW: Quick Action Menu Styles --- */
+        #quick-action-menu {
+            position: absolute;
+            z-index: 30;
+            background: #4a5568; /* bg-slate-600 */
+            border-radius: 9999px; /* rounded-full */
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+            pointer-events: none; /* Initially not clickable */
+        }
 
-#quick-action-menu.visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto; /* Clickable when visible */
-}
+        #quick-action-menu.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto; /* Clickable when visible */
+        }
 
-.quick-action-button {
-    background-color: transparent;
-    border: none;
-    color: var(--text-color);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
+        .quick-action-button {
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
 
-.quick-action-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
+        .quick-action-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        /* --- NEW: Load More Button Style --- */
+        #load-more-btn {
+            display: block;
+            margin: 0.5rem auto;
+            padding: 0.5rem 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 9999px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.8rem;
+        }
+        #load-more-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        #load-more-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* --- NEW: Reply/Quote Feature Styles --- */
+        .quoted-message {
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            border-left: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0.9;
+            cursor: pointer; /* To allow jumping to the original message */
+        }
+        .message-bubble.user .quoted-message {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: rgba(255, 255, 255, 0.6);
+        }
+        .quoted-message .sender-name {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .quoted-message .content-snippet {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
@@ -854,6 +841,19 @@ padding: 12px 16px;
                             </div>
                         </div>
                         <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col scrollable-content"></div>
+                        
+                        <!-- NEW: Reply Preview Bar -->
+                        <div id="reply-preview-bar" class="px-4 pb-2 hidden">
+                            <div class="glass-container p-2 rounded-t-xl flex items-center justify-between text-sm">
+                                <div class="flex-grow overflow-hidden pr-2">
+                                    <div class="font-bold text-xs opacity-80">回复 <span id="reply-to-name"></span>:</div>
+                                    <p id="reply-to-content" class="truncate opacity-90"></p>
+                                </div>
+                                <button id="cancel-reply-btn" class="p-2 rounded-full hover:bg-white/20 transition-colors flex-shrink-0">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
                         
                         <!-- NEW: Multifunction Menu -->
                         <div id="multifunction-menu" class="px-4 pb-2 hidden">
@@ -1054,63 +1054,78 @@ padding: 12px 16px;
                         </div>
                     </div>
 
-                    <!-- SUI 核心监控页面 -->
-                    <div id="sui-page" class="hidden w-full h-full flex flex-col p-4">
-                        <div class="flex items-center justify-between w-full max-w-2xl mx-auto mb-4">
-                            <button id="sui-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                            <h1 class="text-2xl font-bold">核心监控</h1>
-                            <div class="w-8"></div> <!-- Placeholder for alignment -->
+                    <!-- SUI 核心监控页面 (NEW STRUCTURE) -->
+                    <div id="sui-page" class="hidden w-full h-full flex flex-col">
+                        <!-- SUI Main Menu -->
+                        <div id="sui-home">
+                             <div class="sui-page-header">
+                                <button id="sui-back-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                                <h1 class="text-2xl font-bold">核心监控</h1>
+                                <div class="w-10"></div> <!-- Placeholder for alignment -->
+                            </div>
+                            <div id="sui-icon-grid">
+                                <button class="sui-icon-btn" data-target="sui-shopping-page"><i class="fas fa-shopping-cart text-green-400"></i><span>购物记录</span></button>
+                                <button class="sui-icon-btn" data-target="sui-browser-page"><i class="fas fa-globe-americas text-blue-400"></i><span>浏览记录</span></button>
+                                <button class="sui-icon-btn" data-target="sui-otherchat-page"><i class="fas fa-comments text-purple-400"></i><span>聊天记录</span></button>
+                                <button class="sui-icon-btn" data-target="sui-album-page"><i class="fas fa-images text-yellow-400"></i><span>相册</span></button>
+                                <button class="sui-icon-btn" data-target="sui-notepad-page"><i class="fas fa-sticky-note text-orange-400"></i><span>记事本</span></button>
+                                <button class="sui-icon-btn" data-target="sui-footprints-page"><i class="fas fa-map-marker-alt text-red-400"></i><span>足迹</span></button>
+                            </div>
+                        </div>
+
+                        <!-- SUI Sub Pages -->
+                        <div id="sui-shopping-page" class="sui-sub-page">
+                            <div class="sui-sub-page-header">
+                                <button class="sui-back-sub-btn"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-xl font-bold">购物记录</h2>
+                                <button class="sui-refresh-btn" data-type="shopping"><i class="fas fa-sync-alt"></i> 刷新</button>
+                            </div>
+                            <div id="sui-shopping-list" class="sui-sub-page-content scrollable-content space-y-2"></div>
+                        </div>
+
+                        <div id="sui-browser-page" class="sui-sub-page">
+                            <div class="sui-sub-page-header">
+                                <button class="sui-back-sub-btn"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-xl font-bold">浏览记录</h2>
+                                <button class="sui-refresh-btn" data-type="browser"><i class="fas fa-sync-alt"></i> 刷新</button>
+                            </div>
+                            <div id="sui-browser-list" class="sui-sub-page-content scrollable-content space-y-2"></div>
                         </div>
                         
-                        <!-- SUI Navigation Tabs -->
-                        <div id="sui-nav" class="w-full max-w-2xl mx-auto flex mb-4 border-b border-white/20">
-                            <button data-target="sui-account-section" class="sui-nav-btn flex-1 py-2 text-center font-semibold transition-colors duration-300 active">账户信息</button>
-                            <button data-target="sui-comms-section" class="sui-nav-btn flex-1 py-2 text-center font-semibold transition-colors duration-300">外部通讯</button>
-                            <button data-target="sui-browsing-section" class="sui-nav-btn flex-1 py-2 text-center font-semibold transition-colors duration-300">浏览记录</button>
+                        <div id="sui-otherchat-page" class="sui-sub-page">
+                            <div class="sui-sub-page-header">
+                                <button class="sui-back-sub-btn"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-xl font-bold">聊天记录</h2>
+                                <button class="sui-refresh-btn" data-type="otherchat"><i class="fas fa-sync-alt"></i> 刷新</button>
+                            </div>
+                            <div id="sui-otherchat-list" class="sui-sub-page-content scrollable-content space-y-4"></div>
                         </div>
 
-                        <!-- SUI Content Sections -->
-                        <div id="sui-content-container" class="w-full max-w-2xl mx-auto flex-1 overflow-y-auto scrollable-content">
-                            <!-- Account Section -->
-                            <div id="sui-account-section" class="sui-content-section">
-                                <div class="sui-section">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <h2 class="text-xl font-bold">账户详情</h2>
-                                        <button id="sui-clear-account-btn" class="sui-section-clear-btn"><i class="fas fa-broom"></i> 清空</button>
-                                    </div>
-                                    <p class="mb-2">当前余额: <span id="sui-balance" class="font-mono text-lg text-amber-300">0.00</span></p>
-                                    <h3 class="text-md font-semibold mb-2 border-t border-white/10 pt-2">交易记录</h3>
-                                    <div id="sui-transactions-list" class="sui-list">
-                                        <p class="opacity-70 text-center">暂无记录</p>
-                                    </div>
-                                </div>
+                        <div id="sui-album-page" class="sui-sub-page">
+                            <div class="sui-sub-page-header">
+                                <button class="sui-back-sub-btn"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-xl font-bold">相册</h2>
+                                <button class="sui-refresh-btn" data-type="album"><i class="fas fa-sync-alt"></i> 刷新</button>
                             </div>
+                            <div id="sui-album-grid" class="sui-sub-page-content scrollable-content"></div>
+                        </div>
 
-                            <!-- Comms Section -->
-                            <div id="sui-comms-section" class="sui-content-section hidden">
-                                <div class="sui-section">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <h2 class="text-xl font-bold">外部通讯</h2>
-                                        <button id="sui-clear-comms-btn" class="sui-section-clear-btn"><i class="fas fa-broom"></i> 清空</button>
-                                    </div>
-                                    <div id="sui-other-chats-list" class="sui-list">
-                                        <p class="opacity-70 text-center">暂无记录</p>
-                                    </div>
-                                </div>
+                        <div id="sui-notepad-page" class="sui-sub-page">
+                            <div class="sui-sub-page-header">
+                                <button class="sui-back-sub-btn"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-xl font-bold">记事本</h2>
+                                <button class="sui-refresh-btn" data-type="notepad"><i class="fas fa-sync-alt"></i> 刷新</button>
                             </div>
+                            <div id="sui-notepad-list" class="sui-sub-page-content scrollable-content space-y-4"></div>
+                        </div>
 
-                            <!-- Browsing Section -->
-                            <div id="sui-browsing-section" class="sui-content-section hidden">
-                                <div class="sui-section">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <h2 class="text-xl font-bold">浏览记录</h2>
-                                        <button id="sui-clear-browsing-btn" class="sui-section-clear-btn"><i class="fas fa-broom"></i> 清空</button>
-                                    </div>
-                                    <div id="sui-browsing-history-list" class="sui-list">
-                                        <p class="opacity-70 text-center">暂无记录</p>
-                                    </div>
-                                </div>
+                        <div id="sui-footprints-page" class="sui-sub-page">
+                            <div class="sui-sub-page-header">
+                                <button class="sui-back-sub-btn"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-xl font-bold">足迹</h2>
+                                <button class="sui-refresh-btn" data-type="footprints"><i class="fas fa-sync-alt"></i> 刷新</button>
                             </div>
+                            <div id="sui-footprints-list" class="sui-footprints-list sui-sub-page-content scrollable-content"></div>
                         </div>
                     </div>
 
@@ -1155,14 +1170,16 @@ padding: 12px 16px;
             }
         };
 
-        const APP_VERSION = "3.7.0"; // Version with parsing fixes
+        const APP_VERSION = "4.0.0"; // SUI Redesign
+
+        // --- NEW: Chat Pagination Constant ---
+        const CHAT_PAGE_SIZE = 100;
 
         // --- IndexedDB Helper ---
         const db = {
             _db: null,
             init: function(dbName, storeNames) {
         return new Promise((resolve, reject) => {
-            // 版本号从 2 升级到 3，以触发数据库结构更新
             const request = indexedDB.open(dbName, 3);
             request.onerror = () => reject("IndexedDB error: " + request.error);
             request.onsuccess = (event) => { this._db = event.target.result; resolve(this); };
@@ -1230,7 +1247,7 @@ padding: 12px 16px;
 
         // Buttons
         const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
-        const backBtns = document.querySelectorAll('#chat-back-btn, #role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn, #sui-back-btn');
+        const backBtns = document.querySelectorAll('#role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn, #sui-back-btn, #chat-back-btn');
         const exportDataBtn = get('export-data-btn'), importDataBtn = get('import-data-btn'), importFileInput = get('import-file-input'), diaryBtn = get('diary-btn'), suiBtn = get('sui-btn');
         const fullscreenBtn = get('fullscreen-btn');
 
@@ -1247,6 +1264,13 @@ padding: 12px 16px;
         const transferBtn = get('transfer-btn'), voiceModeBtn = get('voice-mode-btn'), stickerPanelBtn = get('sticker-panel-btn'), storyModeBtn = get('story-mode-btn');
         const stickerDrawer = get('sticker-drawer'), stickerGrid = get('sticker-grid'), addStickerBtn = get('add-sticker-btn');
         const stickerUploadInput = get('sticker-upload-input'), closeStickerDrawerBtn = get('close-sticker-drawer-btn');
+        // --- NEW: Reply Feature Elements ---
+        const replyPreviewBar = get('reply-preview-bar');
+        const replyToName = get('reply-to-name');
+        const replyToContent = get('reply-to-content');
+        const cancelReplyBtn = get('cancel-reply-btn');
+        let currentReplyTargetId = null;
+
 
         // Memory elements
         const memoryListEl = get('memory-list'), addMemoryBtn = get('add-memory-btn'), batchDeleteMemoriesBtn = get('batch-delete-memories-btn');
@@ -1258,11 +1282,12 @@ padding: 12px 16px;
         const diaryBatchActions = get('diary-batch-actions'), confirmBatchDeleteBtn = get('confirm-batch-delete-diaries-btn'), cancelBatchDeleteBtn = get('cancel-batch-delete-btn');
         let isDiaryBatchDeleteMode = false;
 
-        // SUI elements
-        const suiContentContainer = get('sui-content-container');
-        let suiBalanceEl = get('sui-balance'), suiTransactionsListEl = get('sui-transactions-list'), suiOtherChatsListEl = get('sui-other-chats-list'), suiBrowsingHistoryListEl = get('sui-browsing-history-list');
-        const suiNav = get('sui-nav'), suiNavBtns = document.querySelectorAll('.sui-nav-btn'), suiContentSections = document.querySelectorAll('.sui-content-section');
-        const suiClearAccountBtn = get('sui-clear-account-btn'), suiClearCommsBtn = get('sui-clear-comms-btn'), suiClearBrowsingBtn = get('sui-clear-browsing-btn');
+        // SUI elements (NEW)
+        const suiHomePage = get('sui-home');
+        const suiIconGrid = get('sui-icon-grid');
+        const suiSubPages = document.querySelectorAll('.sui-sub-page');
+        const suiSubBackBtns = document.querySelectorAll('.sui-back-sub-btn');
+        const suiRefreshBtns = document.querySelectorAll('.sui-refresh-btn');
 
         // Dialog elements
         const dialog = get('custom-dialog'), dialogTitle = get('dialog-title'), dialogMessage = get('dialog-message');
@@ -1284,10 +1309,17 @@ padding: 12px 16px;
             chat: { history: [], affinity: 0, sendMode: 'text', mode: 'phone' }, // mode: 'phone' or 'story'
             memories: [],
             diaries: [],
-            sui: { isInitialized: false, balance: 0, transactions: [], otherChats: [], browsingHistory: [] },
+            sui: {
+        shopping: [],
+        browser: [],
+        otherchat: [],
+        album: [],
+        notepad: [],
+        footprints: []
+    },
             music: { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 },
             stickers: [],
-            ui: { isFullscreen: false }
+            ui: { isFullscreen: false, chatPage: 0 }
         };
         
         const applyColors = (colors) => {
@@ -1349,18 +1381,13 @@ padding: 12px 16px;
             state.version = APP_VERSION;
             const stateToSave = JSON.parse(JSON.stringify(state));
 
-            // --- 将大型数据数组存入 IndexedDB ---
-            // 我们使用固定的 'main' 作为键，因为每个仓库只存一个完整的数据数组
             await db.set('chatHistory', 'main', state.chat.history);
             await db.set('memories', 'main', state.memories);
             await db.set('diaries', 'main', state.diaries);
-            await db.set('suiData', 'main', state.sui);
             
-            // --- 从即将存入 localStorage 的对象中删除这些大型数据 ---
-            delete stateToSave.chat.history; // 只删除 history，保留 affinity 等其他 chat 配置
+            delete stateToSave.chat.history;
             delete stateToSave.memories;
             delete stateToSave.diaries;
-            delete stateToSave.sui;
 
             for (const key in ASSET_KEYS) {
                 const assetData = ASSET_KEYS[key](stateToSave);
@@ -1406,7 +1433,6 @@ padding: 12px 16px;
         }
 
         if (savedState) {
-            // Compatibility check for story mode transition
             if (!savedState.chat || typeof savedState.chat.mode === 'undefined') {
                 if (savedState.chat) savedState.chat.mode = 'phone';
                 else savedState.chat = { history: [], affinity: 0, sendMode: 'text', mode: 'phone' };
@@ -1417,7 +1443,6 @@ padding: 12px 16px;
             mergedState.config = { ...defaultState.config, ...(savedState.config || {}) };
             mergedState.config.colors = { ...defaultState.config.colors, ...(savedState.config?.colors || {}) };
             mergedState.role = { ...defaultState.role, ...(savedState.role || {}) };
-            // 注意：不再从 localStorage 合并 sui, memories, diaries, chat.history
             mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
             mergedState.chat = { ...defaultState.chat, ...(savedState.chat || {}) };
             mergedState.ui = { ...defaultState.ui, ...(savedState.ui || {}) };
@@ -1425,20 +1450,16 @@ padding: 12px 16px;
             Object.assign(state, mergedState);
         }
         
-        // --- 从 IndexedDB 加载大型数据 ---
-        // 这样可以确保即使 localStorage 中没有这些数据，也能从 IndexedDB 恢复
-        const [chatHistoryData, memoriesData, diariesData, suiData, stickersData] = await Promise.all([
+        const [chatHistoryData, memoriesData, diariesData, stickersData] = await Promise.all([
             db.get('chatHistory', 'main'),
             db.get('memories', 'main'),
             db.get('diaries', 'main'),
-            db.get('suiData', 'main'),
             db.getAll('stickers')
         ]);
         
         if (chatHistoryData) state.chat.history = chatHistoryData;
         if (memoriesData) state.memories = memoriesData;
         if (diariesData) state.diaries = diariesData;
-        if (suiData) state.sui = suiData;
         state.stickers = stickersData || [];
 
 
@@ -1470,7 +1491,6 @@ padding: 12px 16px;
         renderChatHistory({ autoScroll: true });
         renderMemoryList();
         renderDiaryList();
-        renderSuiPage();
         renderStickerDrawer();
     };
 
@@ -1525,56 +1545,32 @@ padding: 12px 16px;
             });
         };
 
-        // --- 新的Toast通知队列系统 ---
-        
-        // 1. 定义队列和状态锁
         let toastQueue = [];
         let isToastActive = false;
 
-        // 2. 创建一个处理器函数，负责按顺序显示队列中的通知
         const processToastQueue = () => {
-            // 如果当前已有通知在显示，或者队列为空，则不执行任何操作
-            if (isToastActive || toastQueue.length === 0) {
-                return;
-            }
-
-            // 锁定状态，表示即将显示一个通知
+            if (isToastActive || toastQueue.length === 0) { return; }
             isToastActive = true;
-
-            // 从队列头部取出第一条消息
             const message = toastQueue.shift();
-
             const toast = document.createElement('div');
             toast.textContent = message;
             toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 z-[10001] opacity-0';
             document.body.appendChild(toast);
-
-            // Fade-in
             setTimeout(() => toast.classList.remove('opacity-0'), 10);
-
-            // 设置通知显示的总时长
-            const displayDuration = 2000; // 显示2秒
-            const fadeOutDuration = 300;   // 渐隐动画0.3秒
-
-            // 在显示时间结束后，开始渐隐
+            const displayDuration = 2000;
+            const fadeOutDuration = 300;
             setTimeout(() => {
                 toast.classList.add('opacity-0');
-                
-                // 在渐隐动画结束后，移除元素并处理下一条通知
                 setTimeout(() => {
                     toast.remove();
-                    isToastActive = false; // 解除锁定
-                    processToastQueue();   // 尝试处理队列中的下一条通知
+                    isToastActive = false;
+                    processToastQueue();
                 }, fadeOutDuration);
-
             }, displayDuration);
         };
 
-        // 3. 改造原始的 showToast 函数，使其只负责将消息推入队列
         const showToast = (message) => {
-            // 将新消息添加到队列尾部
             toastQueue.push(message);
-            // 每次添加后都尝试启动处理器
             processToastQueue();
         };
         
@@ -1850,19 +1846,13 @@ padding: 12px 16px;
         }
 
         // --- Navigation & Page Setup ---
-        strategyBtn.addEventListener('click', () => { showView('chat'); setTimeout(() => { chatHistory.scrollTop = chatHistory.scrollHeight; }, 0); });
+        strategyBtn.addEventListener('click', () => { state.ui.chatPage = 0; showView('chat'); setTimeout(() => { chatHistory.scrollTop = chatHistory.scrollHeight; }, 0); });
         memoryBtn.addEventListener('click', () => { renderMemoryList(); showView('memory'); });
         diaryBtn.addEventListener('click', () => { renderDiaryList(); showView('diary'); });
         suiBtn.addEventListener('click', () => {
-            try {
-                renderSuiPage();
-                suiNavBtns.forEach((btn, index) => btn.classList.toggle('active', index === 0));
-                suiContentSections.forEach((section, index) => section.classList.toggle('hidden', index !== 0));
-                showView('sui');
-            } catch (e) {
-                console.error("Error opening SUI page:", e);
-                showDialog("页面错误", "无法打开核心监控页面，可能存在损坏的数据。错误详情已记录在控制台。");
-            }
+            suiHomePage.style.display = 'flex';
+            suiSubPages.forEach(p => p.style.display = 'none');
+            showView('sui');
         });
         roleBtn.addEventListener('click', () => { get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender; get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName; get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona; get('prompt-instructions').value = state.role.promptInstructions; showView('role'); });
         settingsBtn.addEventListener('click', () => { 
@@ -1870,10 +1860,7 @@ padding: 12px 16px;
             apiBaseUrl.value = state.config.api.baseUrl; 
             apiKey.value = state.config.api.key; 
             apiModel.value = state.config.api.model; 
-            // --- 新增代码 ---
-            // 从 state 中读取 maxContext 的值并填充到输入框中，如果值不存在则使用默认值 20
             get('api-max-context').value = state.config.api.maxContext || 20; 
-            // --- 新增结束 ---
             themeBgColor.value = state.config.colors.bgColor; 
             themeTextColor.value = state.config.colors.textColor; 
             themeGlassBg.value = rgbaToHex(state.config.colors.glassBg); 
@@ -2000,58 +1987,83 @@ padding: 12px 16px;
             }
         });
 
+        let isLoadingMore = false;
+        async function loadMoreMessages() {
+            if (isLoadingMore) return;
+            isLoadingMore = true;
+
+            const oldScrollHeight = chatHistory.scrollHeight;
+            const btn = get('load-more-btn');
+            if (btn) btn.disabled = true;
+
+            state.ui.chatPage++;
+            await saveState();
+            
+            renderChatHistory({ autoScroll: false });
+
+            const newScrollHeight = chatHistory.scrollHeight;
+            chatHistory.scrollTop = newScrollHeight - oldScrollHeight;
+
+            isLoadingMore = false;
+        }
+
         const renderChatHistory = (options = {}) => {
             const { autoScroll = true, checkIndex = null } = options;
             const isStoryMode = state.chat.mode === 'story';
 
-            // --- UI清理与模式切换 ---
             multifunctionMenu.classList.add('hidden');
             stickerDrawer.classList.remove('open');
-            chatHistory.innerHTML = '';
-            // 根据当前是否是剧情模式，添加/移除专用class
             chatPage.classList.toggle('story-mode-active', isStoryMode);
             
             if (!state.chat.history) state.chat.history = [];
 
+            const totalMessages = state.chat.history.length;
+            const messagesToShowCount = (state.ui.chatPage + 1) * CHAT_PAGE_SIZE;
+            const messagesToRender = state.chat.history.slice(-messagesToShowCount);
+            const hasMoreMessages = totalMessages > messagesToRender.length;
+            const startIndexInFullArray = totalMessages - messagesToRender.length;
+
+            const fragment = document.createDocumentFragment();
+
+            if (hasMoreMessages) {
+                const loadMoreBtn = document.createElement('button');
+                loadMoreBtn.id = 'load-more-btn';
+                loadMoreBtn.textContent = '加载更早的记录';
+                loadMoreBtn.onclick = loadMoreMessages;
+                fragment.appendChild(loadMoreBtn);
+            }
+
             let inStorySegment = false;
-            // 如果不在剧情模式，则最后一个“剧情开始”标记无效
             const lastStoryStartIndex = isStoryMode ? state.chat.history.findLastIndex(msg => msg.type === 'story_start') : -1;
 
-            state.chat.history.forEach((msg, index) => {
-                // 标记当前是否在活跃的剧情段落中
-                if (lastStoryStartIndex !== -1 && index > lastStoryStartIndex) {
+            messagesToRender.forEach((msg, i) => {
+                const originalIndex = startIndexInFullArray + i;
+
+                if (lastStoryStartIndex !== -1 && originalIndex > lastStoryStartIndex) {
                     inStorySegment = true;
                 } else {
                     inStorySegment = false;
                 }
                 
-                // 1. 系统消息处理
                 if ((msg.sender === 'system' && msg.type !== 'story_review_placeholder') || msg.type === 'story_start') {
                     if (msg.storyContent) {
-                        chatHistory.appendChild(createStoryAnchor(msg));
+                        fragment.appendChild(createStoryAnchor(msg));
                     } else {
-                        chatHistory.appendChild(createSystemMessage(msg));
+                        fragment.appendChild(createSystemMessage(msg));
                     }
                     return;
                 }
-// --- 新增代码：处理剧情回顾占位符 (已增加长按删除) ---
                 if (msg.type === 'story_review_placeholder') {
                     const placeholderWrapper = document.createElement('div');
                     placeholderWrapper.className = 'system-message-wrapper cursor-pointer';
-                    
                     const textSpan = document.createElement('span');
                     textSpan.className = 'system-message-text hover:bg-white/20 transition-colors duration-200';
-                    
                     const visibleContent = msg.archivedContent.filter(entry => 
                         entry.type !== 'story_start' && entry.type !== 'story_end'
                     );
-
                     textSpan.innerHTML = `<i class="fas fa-book-open mr-2"></i>剧情回顾 (共 ${visibleContent.length} 条内容)`;
-                    
                     placeholderWrapper.appendChild(textSpan);
-                    chatHistory.appendChild(placeholderWrapper);
                     
-                    // --- 长按删除逻辑 ---
                     let pressTimer;
                     const startPress = () => {
                         pressTimer = setTimeout(async () => {
@@ -2067,94 +2079,58 @@ padding: 12px 16px;
                                     showToast('剧情回顾已删除');
                                 }
                             }
-                        }, 750); // 750毫秒判定为长按
+                        }, 750);
                     };
-
-                    const cancelPress = (e) => {
-                        clearTimeout(pressTimer);
-                    };
-
+                    const cancelPress = () => clearTimeout(pressTimer);
                     placeholderWrapper.addEventListener('mousedown', startPress);
                     placeholderWrapper.addEventListener('mouseup', cancelPress);
                     placeholderWrapper.addEventListener('mouseleave', cancelPress);
                     placeholderWrapper.addEventListener('touchstart', startPress, { passive: true });
                     placeholderWrapper.addEventListener('touchend', cancelPress);
-                    
-                    // --- 单击查看逻辑 ---
-                    placeholderWrapper.addEventListener('click', (e) => {
-                        // 如果长按计时器正在运行，说明这可能是一个长按的开始，不应触发单击
-                        if (pressTimer) { 
-                            clearTimeout(pressTimer);
-                        }
-                        
+                    placeholderWrapper.addEventListener('click', () => {
+                        if (pressTimer) clearTimeout(pressTimer);
                         const storyLogContainer = document.createElement('div');
                         storyLogContainer.className = 'space-y-3 max-h-[60vh] overflow-y-auto scrollable-content p-2 -m-2';
                         storyLogContainer.style.fontFamily = 'var(--custom-font)';
-
                         if (visibleContent.length > 0) {
                             visibleContent.forEach(entry => {
                                 const storyEntry = document.createElement('div');
                                 let narrativeText = '';
-
-                                if (entry.sender === 'user') {
-                                    narrativeText = `<strong>${state.role.playerName || '你'}:</strong><br><div class="pl-2 border-l-2 border-current/20 mt-1">${(entry.text || '').replace(/\n/g, '<br>')}</div>`;
-                                } else if (entry.sender === 'ai') {
-                                    narrativeText = (entry.text || '').replace(/\n/g, '<br>');
-                                } else if (entry.sender === 'system') {
-                                    storyEntry.className = 'text-center opacity-70 text-xs py-1';
-                                    narrativeText = `--- ${entry.text} ---`;
-                                }
-                                
-                                if (narrativeText) {
-                                    storyEntry.innerHTML = narrativeText;
-                                    storyLogContainer.appendChild(storyEntry);
-                                }
+                                if (entry.sender === 'user') narrativeText = `<strong>${state.role.playerName || '你'}:</strong><br><div class="pl-2 border-l-2 border-current/20 mt-1">${(entry.text || '').replace(/\n/g, '<br>')}</div>`;
+                                else if (entry.sender === 'ai') narrativeText = (entry.text || '').replace(/\n/g, '<br>');
+                                else if (entry.sender === 'system') { storyEntry.className = 'text-center opacity-70 text-xs py-1'; narrativeText = `--- ${entry.text} ---`; }
+                                if (narrativeText) { storyEntry.innerHTML = narrativeText; storyLogContainer.appendChild(storyEntry); }
                             });
                         } else {
                             storyLogContainer.innerHTML = `<p class="text-center opacity-60">这段剧情没有内容。</p>`;
                         }
-
-                        showDialog('剧情回顾', storyLogContainer, {
-                            buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }]
-                        });
+                        showDialog('剧情回顾', storyLogContainer, { buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }] });
                     });
-
-                    return; // 处理完占位符后，跳过本次循环的剩余部分
+                    fragment.appendChild(placeholderWrapper);
+                    return;
                 }
-                // --- 新增代码结束 ---
-                // 2. 根据是否在活跃剧情段落中，决定渲染方式
-                if (inStorySegment) {
-                    // --- 渲染为“叙事文本块” ---
-                    const block = document.createElement('div');
-                    block.className = 'story-block'; // 使用这个class来获得剧本风格
-                    block.dataset.index = index;
-                    block.dataset.id = msg.id;
 
+                if (inStorySegment) {
+                    const block = document.createElement('div');
+                    block.className = 'story-block';
+                    block.dataset.index = originalIndex;
+                    block.dataset.id = msg.id;
                     const content = document.createElement('p');
                     let narrativeText = '';
-
-                    if (msg.sender === 'user') {
-                        narrativeText = `<strong>${state.role.playerName || '你'}:</strong> ${msg.text.replace(/\n/g, '<br>')}`;
-                    } else { // AI sender
-                        narrativeText = msg.text.replace(/\n/g, '<br>');
-                    }
+                    if (msg.sender === 'user') narrativeText = `<strong>${state.role.playerName || '你'}:</strong> ${msg.text.replace(/\n/g, '<br>')}`;
+                    else narrativeText = msg.text.replace(/\n/g, '<br>');
                     content.innerHTML = narrativeText;
                     block.appendChild(content);
 
-                    // 为叙事块添加长按/右键事件，以便管理
                     let pressTimer;
-                    block.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
+                    block.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(originalIndex), 750); });
                     block.addEventListener('mouseup', () => clearTimeout(pressTimer));
                     block.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-                    block.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
+                    block.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(originalIndex), 750); }, { passive: true });
                     block.addEventListener('touchend', () => clearTimeout(pressTimer));
-
-                    chatHistory.appendChild(block);
-
+                    fragment.appendChild(block);
                 } else {
-                    // --- 渲染为“手机聊天气泡” ---
                     const bubbleWrapper = document.createElement('div');
-                    // 更改为垂直布局，并根据发送者对齐
                     bubbleWrapper.className = `flex w-full flex-col mb-2 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`;
 
                     let bubble;
@@ -2166,24 +2142,30 @@ padding: 12px 16px;
                         case 'image': bubble = createImageBubble(msg); break;
                         default: bubble = createTextBubble(msg);
                     }
-                    bubble.dataset.index = index;
+                    bubble.dataset.index = originalIndex;
                     bubble.dataset.id = msg.id;
+                    
+                    if (msg.replyTo) {
+                        const originalMsg = state.chat.history.find(m => m.id === msg.replyTo);
+                        if (originalMsg) {
+                            const quotedMessageEl = createQuotedMessage(originalMsg);
+                            bubble.prepend(quotedMessageEl);
+                        }
+                    }
+
 
                     let bubbleContainerForLayout;
-
                     if (isChatBatchDeleteMode) {
                         const container = document.createElement('div');
-                        container.className = 'relative flex items-center'; // 使用flex来对齐复选框和气泡
+                        container.className = 'relative flex items-center';
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
                         checkbox.className = 'form-checkbox h-5 w-5 rounded text-indigo-500 border-gray-600 bg-gray-700 focus:ring-indigo-500 mr-2';
-                        if (index === checkIndex) checkbox.checked = true;
-                        
-                        // 根据发送者决定复选框和气泡的顺序
+                        if (originalIndex === checkIndex) checkbox.checked = true;
                         if (msg.sender === 'user') {
                             container.appendChild(bubble);
                             container.appendChild(checkbox);
-                            bubble.classList.add('mr-2'); // 气泡和复选框的间距
+                            bubble.classList.add('mr-2');
                         } else {
                             container.appendChild(checkbox);
                             container.appendChild(bubble);
@@ -2192,32 +2174,30 @@ padding: 12px 16px;
                         bubbleContainerForLayout = container;
                     } else {
                         let pressTimer;
-                        bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); });
+                        bubble.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(originalIndex), 750); });
                         bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
                         bubble.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-                        bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(index), 750); }, { passive: true });
+                        bubble.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(originalIndex), 750); }, { passive: true });
                         bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
                         bubbleContainerForLayout = bubble;
                     }
                     
-                    // 1. 将气泡（或其容器）添加到垂直布局中
                     bubbleWrapper.appendChild(bubbleContainerForLayout);
-
-                    // 2. 创建并添加时间戳元素
                     const time = new Date(msg.id);
-                    if (!isNaN(time.getTime())) { // 确保ID是有效的时间戳
+                    if (!isNaN(time.getTime())) {
                         const timeString = time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
                         const timeEl = document.createElement('div');
-                        timeEl.className = 'text-[10px] opacity-50 mt-1 px-2'; // 样式：小字号、半透明、上边距、水平内边距
+                        timeEl.className = 'text-[10px] opacity-50 mt-1 px-2';
                         timeEl.textContent = timeString;
                         bubbleWrapper.appendChild(timeEl);
                     }
-                    
-                    chatHistory.appendChild(bubbleWrapper);
+                    fragment.appendChild(bubbleWrapper);
                 }
             });
+
+            chatHistory.innerHTML = '';
+            chatHistory.appendChild(fragment);
             
-            // --- UI状态更新 ---
             storyModeBtn.classList.toggle('text-blue-400', isStoryMode);
             [transferBtn, voiceModeBtn, stickerPanelBtn].forEach(btn => btn.disabled = isStoryMode);
             
@@ -2229,10 +2209,8 @@ padding: 12px 16px;
                 userInput.placeholder = state.chat.sendMode === 'voice' ? '输入语音文字...' : '请输入消息...';
             }
 
-            // (批量删除UI和滚动逻辑保持不变)
             chatFooter.style.display = isChatBatchDeleteMode ? 'none' : 'flex';
             chatBatchActions.style.display = isChatBatchDeleteMode ? 'flex' : 'none';
-            
             
             if (checkIndex !== null) {
                 const targetEl = chatHistory.querySelector(`[data-index="${checkIndex}"]`);
@@ -2246,116 +2224,71 @@ padding: 12px 16px;
         
         const createStoryAnchor = (msg) => {
             const wrapper = document.createElement('div');
-            // 添加一个特殊的类名和 data-id 以便点击时识别
             wrapper.className = 'system-message-wrapper story-block-anchor cursor-pointer hover:bg-white/20 transition-colors duration-200';
             wrapper.dataset.storyBlockId = msg.id;
-
-            const content = msg.storyContent.length > 0
-                ? `--- 剧情回顾 (共 ${msg.storyContent.length} 条内容) ---`
-                : '--- 进入剧情模式 ---';
-            
+            const content = msg.storyContent.length > 0 ? `--- 剧情回顾 (共 ${msg.storyContent.length} 条内容) ---` : '--- 进入剧情模式 ---';
             wrapper.innerHTML = `<span class="system-message-text"><i class="fas fa-book-open mr-2"></i>${content}</span>`;
             return wrapper;
         };
 
         chatHistory.addEventListener('click', async (e) => {
-            // --- 新增：处理剧情锚点点击 ---
-            const storyAnchor = e.target.closest('.story-block-anchor');
-            if (storyAnchor) {
-                const blockId = parseInt(storyAnchor.dataset.storyBlockId, 10);
-                const storyBlock = state.chat.history.find(m => m.id === blockId);
+            const msgContainer = e.target.closest('.message-bubble, .story-block-anchor');
+            if (!msgContainer) return;
 
+            if (msgContainer.classList.contains('story-block-anchor')) {
+                const blockId = parseInt(msgContainer.dataset.storyBlockId, 10);
+                const storyBlock = state.chat.history.find(m => m.id === blockId);
                 if (storyBlock && storyBlock.storyContent) {
-                    // 创建一个容器来展示剧情日志
                     const storyLogContainer = document.createElement('div');
                     storyLogContainer.className = 'space-y-4 max-h-[60vh] overflow-y-auto scrollable-content p-2 -m-2';
-                    storyLogContainer.style.fontFamily = 'var(--custom-font)'; // 继承字体
-
+                    storyLogContainer.style.fontFamily = 'var(--custom-font)';
                     storyBlock.storyContent.forEach(entry => {
                         const storyEntry = document.createElement('div');
-                        let narrativeText = '';
-
-                        if (entry.sender === 'user') {
-                            // 核心：处理用户输入换行
-                            narrativeText = `<strong>${state.role.playerName || '你'}:</strong><br>${entry.text.replace(/\n/g, '<br>')}`;
-                        } else { // AI sender
-                            // 核心：处理AI回复换行
-                            narrativeText = entry.text.replace(/\n/g, '<br>');
-                        }
-                        
+                        let narrativeText = entry.sender === 'user' ? `<strong>${state.role.playerName || '你'}:</strong><br>${entry.text.replace(/\n/g, '<br>')}` : entry.text.replace(/\n/g, '<br>');
                         storyEntry.innerHTML = narrativeText;
                         storyLogContainer.appendChild(storyEntry);
                     });
-                    
-                    if(storyBlock.storyContent.length === 0){
-                        storyLogContainer.innerHTML = `<p class="text-center opacity-60">暂无剧情内容</p>`;
-                    }
-
-                    showDialog('剧情回顾', storyLogContainer, {
-                        buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }]
-                    });
+                    showDialog('剧情回顾', storyLogContainer, { buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }] });
                 }
-                return; // 阻止事件冒泡到下面的旧逻辑
+                return;
             }
 
-            // --- 原有的事件处理逻辑 ---
-            const msgContainer = e.target.closest('.message-bubble'); // 不再检查 .story-block
-            if (!msgContainer) return;
-
-            const msgId = parseInt(msgContainer.dataset.id, 10);
+            const msgId = Number(msgContainer.dataset.id);
             const msg = state.chat.history.find(m => m.id === msgId);
             if (!msg) return;
 
-            // --- 语音消息点击处理 ---
-            if (e.target.closest('.voice-bubble') && msg.type === 'voice') {
+            if (msg.type === 'voice') {
                 msg.isExpanded = !msg.isExpanded;
-                
                 const scrollPosition = chatHistory.scrollHeight - chatHistory.scrollTop;
                 renderChatHistory({ autoScroll: false });
                 chatHistory.scrollTop = chatHistory.scrollHeight - scrollPosition;
-                
                 await saveState();
                 return;
             }
 
-            // --- 转账消息点击处理 (增加退回功能) ---
-            if (e.target.closest('.transfer-bubble.pending') && msg.type === 'transfer' && msg.sender === 'ai') {
-                const action = await showDialog(
-                    '处理转账',
-                    `你收到一笔来自 ${state.role.roleName || '对方'} 的转账，金额 ${msg.amount.toFixed(2)} 元。`,
-                    {
-                        buttons: [
-                            { text: '取消', value: false, class: 'bg-gray-500/50' },
-                            { text: '退回', value: 'return', class: 'bg-yellow-600/80' },
-                            { text: '收取', value: 'receive', class: 'bg-blue-500' }
-                        ]
-                    }
-                );
+            if (msg.type === 'transfer' && msg.sender === 'ai' && msg.status === 'pending') {
+                const action = await showDialog('处理转账', `你收到一笔来自 ${state.role.roleName || '对方'} 的转账，金额 ${msg.amount.toFixed(2)} 元。`, {
+                    buttons: [
+                        { text: '取消', value: false, class: 'bg-gray-500/50' },
+                        { text: '退回', value: 'return', class: 'bg-yellow-600/80' },
+                        { text: '收取', value: 'receive', class: 'bg-blue-500' }
+                    ]
+                });
 
-                if (action === 'receive') {
-                    // 你收款，AI支出
-                    msg.status = 'received';
-                    state.sui.balance -= msg.amount; // AI的余额减少
-                    state.sui.transactions.unshift({
-                        id: Date.now(),
-                        timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                        description: `向 ${state.role.playerName || '你'} 转账`, // 从AI视角记录
-                        amount: -msg.amount, // 记录为负数（支出）
-                        relatedChatId: msg.id
-                    });
-                    showToast(`收款成功`); // 给你的提示保持不变
-                    await saveState();
-                    renderChatHistory({ autoScroll: false });
-                } else if (action === 'return') {
-                    // 你退回，AI账户无变化，仅更新消息状态
-                    msg.status = 'returned';
-                    showToast(`已退回该笔转账`);
+                if (action) {
+                    msg.status = (action === 'receive') ? 'received' : 'returned';
+                    if (action === 'receive') {
+                        showToast(`收款成功`);
+                    } else {
+                        showToast(`已退回该笔转账`);
+                    }
                     await saveState();
                     renderChatHistory({ autoScroll: false });
                 }
                 return;
             }
         });
+        
         const createSystemMessage = (msg) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'system-message-wrapper';
@@ -2373,8 +2306,6 @@ padding: 12px 16px;
         const createTransferBubble = (msg) => {
             const bubble = document.createElement('div');
             const statusText = { pending: '待查收', received: '已收款', returned: '已退回' };
-            // --- 核心修正 ---
-            // 在这里添加了 'message-bubble' 类
             bubble.className = `message-bubble transfer-bubble ${msg.sender} ${msg.status}`;
             bubble.innerHTML = `
                 <div class="transfer-content">
@@ -2402,8 +2333,6 @@ padding: 12px 16px;
 
         const createStickerBubble = (msg) => {
             const bubble = document.createElement('div');
-            // --- 核心修正 ---
-            // 在这里添加了 'message-bubble' 类
             bubble.className = `message-bubble sticker-bubble ${msg.sender}`;
             const sticker = state.stickers.find(s => s.id === msg.stickerId);
             if (sticker) {
@@ -2415,28 +2344,75 @@ padding: 12px 16px;
         };
         
         const createHtmlBubble = (msg) => {
-        const bubble = document.createElement('div');
-        // 核心修正：添加了 'html-bubble' 类，以应用正确的透明容器样式
-        bubble.className = `message-bubble html-bubble ${msg.sender}`; 
-        
-        // 安全提示：直接使用 innerHTML 可能会有XSS风险。
-        // 在此应用中，我们信任AI生成的内容，因此直接使用以实现功能。
-        bubble.innerHTML = msg.htmlContent;
-        
-        return bubble;
-    };
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble html-bubble ${msg.sender}`; 
+            bubble.innerHTML = msg.htmlContent;
+            return bubble;
+        };
+
         const createImageBubble = (msg) => {
-        const bubble = document.createElement('div');
-        bubble.className = `message-bubble image-bubble ${msg.sender}`;
-        bubble.innerHTML = `<img src="${msg.imageUrl}" alt="用户发送的图片">`;
-        bubble.querySelector('img').addEventListener('click', () => {
-            window.open(msg.imageUrl, '_blank');
-        });
-        return bubble;
-    };
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble image-bubble ${msg.sender}`;
+            bubble.innerHTML = `<img src="${msg.imageUrl}" alt="用户发送的图片">`;
+            bubble.querySelector('img').addEventListener('click', () => {
+                window.open(msg.imageUrl, '_blank');
+            });
+            return bubble;
+        };
+
+        const createQuotedMessage = (originalMsg) => {
+            const element = document.createElement('div');
+            element.className = 'quoted-message';
+            element.dataset.originalId = originalMsg.id;
+
+            const senderName = originalMsg.sender === 'user' 
+                ? (state.role.playerName || '你')
+                : (state.role.roleName || '角色');
+
+            let contentSnippet = '';
+            switch (originalMsg.type) {
+                case 'text':
+                case 'voice':
+                    contentSnippet = originalMsg.text;
+                    break;
+                case 'sticker':
+                    contentSnippet = `[表情] ${originalMsg.meaning}`;
+                    break;
+                case 'image':
+                    contentSnippet = '[图片]';
+                    break;
+                case 'transfer':
+                    contentSnippet = `[转账] ${originalMsg.amount.toFixed(2)}元`;
+                    break;
+                default:
+                    contentSnippet = '[消息]';
+            }
+
+            element.innerHTML = `
+                <div class="sender-name">${senderName}</div>
+                <div class="content-snippet">${contentSnippet}</div>
+            `;
+            
+            element.onclick = () => {
+                const targetElement = chatHistory.querySelector(`.message-bubble[data-id="${originalMsg.id}"], .story-block[data-id="${originalMsg.id}"]`);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetElement.style.transition = 'background-color 0.5s';
+                    targetElement.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                    setTimeout(() => {
+                        targetElement.style.backgroundColor = '';
+                    }, 1000);
+                } else {
+                    showToast('原始消息不在当前加载范围');
+                }
+            };
+
+            return element;
+        };
+
+
         const hideQuickActionMenu = () => {
             quickActionMenu.classList.remove('visible');
-            // 移除全局点击监听器
             document.removeEventListener('click', hideQuickActionMenuOnClickOutside, true);
         };
 
@@ -2447,16 +2423,18 @@ padding: 12px 16px;
         };
 
         const showQuickActionMenu = (index, bubbleElement) => {
-            hideQuickActionMenu(); // 先隐藏任何已存在的菜单
+            hideQuickActionMenu(); 
             
             const msg = state.chat.history[index];
             if (!msg) return;
 
-            quickActionMenu.innerHTML = ''; // 清空旧按钮
+            quickActionMenu.innerHTML = ''; 
             quickActionMenu.dataset.index = index;
 
             const actions = [];
-            // 只有文本消息和在剧情模式下的消息才能编辑
+            if (!isChatBatchDeleteMode) {
+                 actions.push({ icon: 'fas fa-reply', title: '引用', action: 'reply' });
+            }
             if ((msg.type === 'text' || msg.type === 'voice') && !isChatBatchDeleteMode) {
                  actions.push({ icon: 'fas fa-edit', title: '编辑', action: 'edit' });
             }
@@ -2473,7 +2451,9 @@ padding: 12px 16px;
                     e.stopPropagation();
                     hideQuickActionMenu();
                     
-                    if (act.action === 'edit') {
+                    if (act.action === 'reply') {
+                        setupReply(index);
+                    } else if (act.action === 'edit') {
                         const newText = await showDialog('编辑消息', '', { input: true, defaultValue: msg.text });
                         if (newText) {
                             state.chat.history[index].text = newText;
@@ -2500,11 +2480,9 @@ padding: 12px 16px;
                 quickActionMenu.appendChild(button);
             });
 
-            // --- 定位菜单 ---
             const bubbleRect = bubbleElement.getBoundingClientRect();
             const chatPageRect = chatPage.getBoundingClientRect();
 
-            // 临时显示菜单以获取其尺寸
             quickActionMenu.style.visibility = 'hidden';
             quickActionMenu.classList.add('visible');
             const menuWidth = quickActionMenu.offsetWidth;
@@ -2512,23 +2490,19 @@ padding: 12px 16px;
             quickActionMenu.classList.remove('visible');
             quickActionMenu.style.visibility = 'visible';
 
-            let top = bubbleRect.top - chatPageRect.top - menuHeight - 8; // 8px margin above
+            let top = bubbleRect.top - chatPageRect.top - menuHeight - 8;
             let left = bubbleRect.left - chatPageRect.left + (bubbleRect.width / 2) - (menuWidth / 2);
 
-            // 防止菜单溢出屏幕顶部
             if (top < chatPageRect.top) {
-                top = bubbleRect.bottom - chatPageRect.top + 8; // Move below
+                top = bubbleRect.bottom - chatPageRect.top + 8; 
             }
-            // 防止菜单溢出屏幕左右
             left = Math.max(8, Math.min(left, chatPageRect.width - menuWidth - 8));
 
             quickActionMenu.style.top = `${top}px`;
             quickActionMenu.style.left = `${left}px`;
             
-            // 延迟以确保定位和动画正常
             setTimeout(() => {
                 quickActionMenu.classList.add('visible');
-                // 添加全局点击监听器以关闭菜单
                 document.addEventListener('click', hideQuickActionMenuOnClickOutside, true);
             }, 10);
         };
@@ -2536,15 +2510,11 @@ padding: 12px 16px;
             const msg = state.chat.history[index];
             if (!msg) return;
             
-            // 找到触发事件的DOM元素
             const bubbleElement = chatHistory.querySelector(`[data-index="${index}"]`);
             if (!bubbleElement) return;
 
-            // --- 核心修改：为剧情模式和系统消息增加编辑功能 ---
             if (state.chat.mode === 'story' || msg.sender === 'system') {
-                // 仅允许编辑包含文本内容的消息类型
                 if (msg.type !== 'text' && msg.type !== 'voice' && msg.sender !== 'system') {
-                    // 对于非文本类型（如图片、转账等），只提供删除选项
                      showDialog('管理消息', '此消息类型不支持编辑。', {
                         buttons: [
                             { text: '取消', value: 'cancel', class: 'bg-gray-500/50' },
@@ -2564,12 +2534,11 @@ padding: 12px 16px;
                     return;
                 }
                 
-                // 为文本类消息提供编辑和删除选项
                 showDialog('管理消息', `消息内容: "${msg.text}"`, {
                     buttons: [
                         { text: '取消', value: 'cancel', class: 'bg-gray-500/50' },
                         { text: '删除', value: 'delete', class: 'bg-red-500/80' },
-                        { text: '编辑', value: 'edit', class: 'bg-blue-500' } // 新增“编辑”按钮
+                        { text: '编辑', value: 'edit', class: 'bg-blue-500' }
                     ]
                 }).then(async action => {
                     if (action === 'delete') {
@@ -2581,16 +2550,15 @@ padding: 12px 16px;
                            showToast('消息已删除');
                         }
                     } else if (action === 'edit') {
-                        // --- 新增的编辑逻辑 ---
                         const newText = await showDialog('编辑消息', '', {
                             input: true,
-                            defaultValue: msg.text // 将旧文本作为默认值填入输入框
+                            defaultValue: msg.text
                         });
 
-                        if (newText) { // 如果用户输入了新内容并没有取消
+                        if (newText) {
                             state.chat.history[index].text = newText;
                             await saveState();
-                            renderChatHistory({ autoScroll: false }); // 重新渲染，不自动滚动
+                            renderChatHistory({ autoScroll: false }); 
                             showToast('消息已更新');
                         }
                     }
@@ -2598,31 +2566,24 @@ padding: 12px 16px;
                 return;
             }
 
-            // 手机模式的逻辑保持不变
             if (isChatBatchDeleteMode) return;
             showQuickActionMenu(index, bubbleElement);
         };
 
-        
-
         const sendMessage = async (messageObject) => {
-            // 基础校验
-            if (!messageObject.text && messageObject.sender !== 'system' && messageObject.type !== 'sticker' && messageObject.type !== 'transfer') return;
+            if (!messageObject.text && messageObject.sender !== 'system' && messageObject.type !== 'sticker' && messageObject.type !== 'transfer' && messageObject.type !== 'image') return;
             if (messageObject.sender !== 'system' && (!messageObject.text || !messageObject.text.trim()) && (messageObject.type === 'text' || messageObject.type === 'voice')) return;
             
-            // 不论何种模式，都直接将消息推入主历史记录
             state.chat.history.push(messageObject);
             
             if (messageObject.sender === 'user') {
                 userInput.value = '';
-                // 发送后重置输入框高度
                 setTimeout(() => {
                     userInput.style.height = 'auto';
                 }, 0);
             }
             
             await saveState();
-            // 渲染由 renderChatHistory 根据当前模式决定
             renderChatHistory({ autoScroll: true });
         };
 
@@ -2644,12 +2605,18 @@ padding: 12px 16px;
             } else {
                 msgObject = { id: Date.now(), sender: 'user', type: 'text', text: text };
             }
+
+            if (currentReplyTargetId) {
+                msgObject.replyTo = currentReplyTargetId;
+            }
+
             sendMessage(msgObject);
+            cancelReply();
         };
         
         const adjustTextareaHeight = () => {
-            userInput.style.height = 'auto'; // Reset height
-            const newHeight = Math.min(userInput.scrollHeight, 120); // 120px is max-height
+            userInput.style.height = 'auto';
+            const newHeight = Math.min(userInput.scrollHeight, 120); 
             userInput.style.height = `${newHeight}px`;
         };
 
@@ -2659,7 +2626,6 @@ padding: 12px 16px;
             if (e.key === 'Enter' && !e.shiftKey) { 
                 e.preventDefault(); 
                 handleSend(); 
-                // Reset height after sending
                 setTimeout(() => {
                     userInput.style.height = 'auto';
                 }, 0);
@@ -2668,50 +2634,29 @@ padding: 12px 16px;
         userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
         
         const createPhoneApiPrompt = () => {
-        const now = new Date();
-        const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-        // --- 新增代码：计算时间间隔并生成上下文指令 ---
-        let timeContextPrompt = '';
-        const history = state.chat.history;
-        if (history.length > 2) {
-            const lastMessage = history[history.length - 2];
-            // 确保 lastMessage.id 是一个有效的时间戳
-            if (lastMessage && lastMessage.id) {
-                const lastMessageTime = new Date(lastMessage.id).getTime();
-                const currentTime = now.getTime();
-                const diffMinutes = Math.floor((currentTime - lastMessageTime) / (1000 * 60));
-
-                // 如果时间间隔大于60分钟，则生成提示
-                if (diffMinutes > 60) {
-                    const diffHours = Math.floor(diffMinutes / 60);
-                    const diffDays = Math.floor(diffHours / 24);
-                    
-                    let gapDescription = '';
-                    if (diffDays > 0) {
-                        gapDescription = `大约 ${diffDays} 天 ${diffHours % 24} 小时`;
-                    } else {
-                        gapDescription = `大约 ${diffHours} 小时`;
+            const now = new Date();
+            const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            let timeContextPrompt = '';
+            const history = state.chat.history;
+            if (history.length > 2) {
+                const lastMessage = history[history.length - 2];
+                if (lastMessage && lastMessage.id) {
+                    const lastMessageTime = new Date(lastMessage.id).getTime();
+                    const currentTime = now.getTime();
+                    const diffMinutes = Math.floor((currentTime - lastMessageTime) / (1000 * 60));
+                    if (diffMinutes > 60) {
+                        const diffHours = Math.floor(diffMinutes / 60);
+                        const diffDays = Math.floor(diffHours / 24);
+                        let gapDescription = diffDays > 0 ? `约 ${diffDays} 天 ${diffHours % 24} 小时` : `约 ${diffHours} 小时`;
+                        timeContextPrompt = `\n# 时间上下文\n- **重要**: 距离上一条消息已过去 **${gapDescription}**。你的开场白必须自然地反映出这段时间间隔。`;
                     }
-                    
-                    timeContextPrompt = `
-# 时间上下文
-- **重要**: 距离上一条消息（你的或玩家的）已经过去了 **${gapDescription}**。
-- 你的开场白必须自然地反映出这段时间的间隔。例如，你可以说“好久不见”、“昨天我们聊到...今天怎么样？”或对长时间的沉默表示好奇。绝对不要像几秒前那样突然接续上一句话。
-`;
                 }
             }
-        }
-        // --- 新增代码结束 ---
-
-        // --- 修改 systemPrompt，注入时间上下文 ---
-        let systemPrompt = `
+            
+            let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
-- 你必须意识到这是当前的现实时间。你的回复（例如问候语）应当与这个时间点相符。例如，如果是深夜，你应该说“这么晚了还没睡？”而不是“下午好”。
-${timeContextPrompt}
-# 你的状态
-- **账户余额**: ${state.sui.balance.toFixed(2)} 元
+- 你的回复必须与当前时间点相符。${timeContextPrompt}
 
 # MODE: PHONE CHAT (手机聊天模式)
 # ===================================
@@ -2719,30 +2664,29 @@ ${timeContextPrompt}
 # 你的核心任务
 - **身份**: 你是 **${state.role.roleName || '角色'}** (${state.role.roleGender || '未设定'})。
 - **人设**: ${state.role.rolePersona || '未设定'}
-- **场景**: 你正在一个手机聊天APP里，与 **${state.role.playerName || '玩家'}** 进行一对一的聊天。
+- **场景**: 你正在手机聊天APP里，与 **${state.role.playerName || '玩家'}** 进行一对一聊天。
 
-# 绝对禁止事项 (DO NOT DO THIS)
-- **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字。例如：*我笑了*、(看着屏幕)、[他感到一阵温暖]、窗外的雨停了。
+# 绝对禁止事项
+- **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字 (例如: *我笑了*, (看着屏幕), [他感到温暖])。
 - **绝对禁止小说风格**: 严禁使用第三人称叙事或任何类似小说的文体。
 
-# 可用功能
-- **视觉识别**: 你现在可以“看到”用户发送的图片。当收到图片时，你应该描述图片内容并作出符合你角色的、有情感的、自然的反应。
+# 可用功能 (必须严格按以下格式使用)
+- **视觉识别**: 当收到图片时，你应该描述图片内容并作出符合你角色的、自然的反应。
 - **转账**: \`[SEND_TRANSFER:{"amount":金额,"message":"留言"}]\`
 - **处理转账**: 收到玩家转账后，必须在回复中包含 \`[TRANSFER_ACTION:receive,ID:消息ID]\` 或 \`[TRANSFER_ACTION:return,ID:消息ID]\`。
 - **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
 - **发表情**: \`[USE_STICKER,ID:表情ID]\`
 - **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`
+- **引用回复**: (!!!) 如果你需要明确回复之前的某条消息, **必须** 在你的回复前加上 \`[REPLY_TO_ID:消息ID]\`。**请积极使用此功能**来确保对话的连贯性。
 
-# 核心规则：回复构成 (已优化)
-- **纯文本消息可以单独发送**。
-- 如果你要发送任何特殊功能消息（如表情、语音、转账等），**强烈建议**同时附带**至少一条相关的纯文本消息**，以构成完整的对话上下文。
-- **严禁**只回复一个孤立的特殊功能标签而没有任何文本。
--**丰富内容**请更加活跃、频繁且合理的使用(语音、表情包、转账、HTML)功能，语音功能要更频繁使用一点，其次是表情包，这样可以避免长期只有文本消息导致枯燥无味。
+# 核心规则
+- 你的输出由一句或多句话组成，每句话独立成行。
+- **强烈建议**在发送特殊功能消息（如表情、语音）时，同时附带**至少一条相关的纯文本消息**。
+- **请更加活跃、频繁且合理地使用(语音、表情包、转账、HTML、引用)功能**，以避免对话枯燥。
 
 # 输出格式 (必须严格遵守)
-你的最终输出**只能**包含两部分：
-1.  **聊天内容**: 你想发送的一句或多句话，每句话独立成行。可以包含上述的功能标签。
-2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数，正数代表好感增加，负数减少，0代表不变。
+1.  **聊天内容**: 一句或多句话，可包含功能标签。
+2.  **好感度标签**: 在所有聊天内容的**最后**，另起一行，写上 \`[AFFINITY_CHANGE:X]\`。X是整数。
 
 # 记忆与上下文
 - **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
@@ -2750,92 +2694,70 @@ ${timeContextPrompt}
 
 ${state.role.promptInstructions ? `
 # ！！！额外最高优先级指令 (ABSOLUTE OVERRIDING INSTRUCTIONS) ！！！
-- 以下是你必须无条件优先遵守的规则，其优先级高于你的角色设定和所有其他指令。
 - ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
 ` : ''}
 
-# 紧急备用指令 (FALLBACK INSTRUCTION)
-- 如果在任何情况下你都无法生成符合上述所有规则的回复，请**放弃使用任何特殊功能**，只生成一条简单、符合角色性格的**纯文本问候或陈述**。
-- **在任何情况下，都绝对不要返回空内容或只返回好感度标签。**
-
-# 输出前最终检查清单 (FINAL CHECKLIST)
-1. 我的回复是作为角色在聊天框里输入的文字吗？
-2. 我是否包含了不该有的动作或心理描写（例如 *...* 或 (...)）？
-3. 我的回复是否在所有内容的最后、独立的一行包含了 \`[AFFINITY_CHANGE:X]\` 标签？
-4. 我的回复内容是否为空？（绝不能为空）
-
-# 最终指令 (ABSOLUTE FINAL INSTRUCTION)
-- 直接开始写你的第一句聊天内容。
+# 最终指令
+- 直接开始写你的第一句聊天内容。不要有任何前缀或解释。
 `;
-
-        const messages = [{ role: 'system', content: systemPrompt }];
         
-        const fullHistoryForAI = [];
-        state.chat.history.forEach(msg => {
-            if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
-                fullHistoryForAI.push(...msg.archivedContent);
-            } else {
-                fullHistoryForAI.push(msg);
-            }
-        });
-        
-        const historyToProcess = fullHistoryForAI;
-        historyToProcess.forEach(msg => {
-            if (msg.sender === 'system') return;
-            
-            // --- This is the core logic upgrade ---
-            if (msg.sender === 'user' && msg.type === 'image') {
-                // For image messages, I create a special content array.
-                messages.push({
-                    role: 'user',
-                    content: [
-                        {
-                            type: 'text',
-                            text: msg.text // e.g., "[用户发送了一张图片]"
-                        },
-                        {
-                            type: 'image_url',
-                            image_url: {
-                                url: msg.imageUrl // The Data URL of the image is passed here.
-                            }
-                        }
-                    ]
-                });
-            } else {
-                // For all other message types, the logic remains the same.
-                let content = '';
-                const senderName = msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色');
+            const messages = [{ role: 'system', content: systemPrompt }];
+            const fullHistoryForAI = [];
+            state.chat.history.forEach(msg => {
+                if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
+                    fullHistoryForAI.push(...msg.archivedContent);
+                } else {
+                    fullHistoryForAI.push(msg);
+                }
+            });
+            const historyToProcess = fullHistoryForAI.slice(- (parseInt(get('api-max-context').value) || 20) );
+            historyToProcess.forEach(msg => {
+                if (msg.sender === 'system') return;
                 
-                if (msg.sender === 'ai') {
-                    switch (msg.type) {
-                        case 'text': content = msg.text; break;
-                        case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
-                        case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
-                        case 'html': content = `[HTML_BLOCK]${msg.htmlContent}[/HTML_BLOCK]`; break;
-                        case 'transfer':
-                            const transferPayload = { amount: msg.amount, message: msg.message };
-                            content = `[SEND_TRANSFER:${JSON.stringify(transferPayload)}]`;
-                            break;
-                        default: content = msg.text || '';
+                if (msg.sender === 'user' && msg.type === 'image') {
+                    messages.push({
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: `[Message ID: ${msg.id}] ${msg.text}` },
+                            { type: 'image_url', image_url: { url: msg.imageUrl } }
+                        ]
+                    });
+                } else {
+                    let content = '';
+                    const role = msg.sender === 'user' ? 'user' : 'assistant';
+                    
+                    if (role === 'assistant') {
+                        switch (msg.type) {
+                            case 'text': content = msg.text; break;
+                            case 'voice': content = `[VOICE_MESSAGE]${msg.text}[/VOICE_MESSAGE]`; break;
+                            case 'sticker': content = `[USE_STICKER,ID:${msg.stickerId}]`; break;
+                            case 'html': content = `[HTML_BLOCK]${msg.htmlContent}[/HTML_BLOCK]`; break;
+                            case 'transfer': content = `[SEND_TRANSFER:${JSON.stringify({amount: msg.amount, message: msg.message})}]`; break;
+                            default: content = msg.text || '';
+                        }
+                        if (msg.replyTo) {
+                            content = `[REPLY_TO_ID:${msg.replyTo}] ${content}`;
+                        }
+                    } else { // User's messages
+                        switch (msg.type) {
+                            case 'text': content = msg.text; break;
+                            case 'voice': content = `[语音消息]: ${msg.text}`; break;
+                            case 'sticker': content = `[表情, 含义: ${msg.meaning}]`; break;
+                            case 'html': content = `[自定义模块]`; break;
+                            case 'transfer': content = `[转账 ${msg.amount}元, 留言: "${msg.message}"]`; break;
+                            default: content = msg.text || '';
+                        }
+                        content = `[Message ID: ${msg.id}] ${content}`;
                     }
-                } else { // user
-                    switch (msg.type) {
-                        case 'text': content = msg.text; break;
-                        case 'voice': content = `[${senderName}发送了一条语音消息]: ${msg.text}`; break;
-                        case 'sticker': content = `[${senderName}发送了一个表情，含义是: ${msg.meaning}]`; break;
-                        case 'html': content = `[${senderName}发送了一个自定义模块]`; break;
-                        case 'transfer': content = `[${senderName}向你转账 ${msg.amount}元，留言: "${msg.message}", ID: ${msg.id}]`; break;
-                        default: content = msg.text || '';
-                    }
-                }
-                if (content) {
-                    messages.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: content });
-                }
-            }
-        });
 
-        return messages;
-    };
+                    if (content) {
+                        messages.push({ role, content });
+                    }
+                }
+            });
+            return messages;
+        };
+
         const createStoryApiPrompt = () => {
             const now = new Date();
             const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -2844,9 +2766,6 @@ ${state.role.promptInstructions ? `
 # 当前时间
 - **${currentTimeString}**
 - 你在叙述故事时，必须让故事的氛围和角色的行为与这个现实时间点保持一致。例如，如果是深夜，环境描写应该是夜晚的景象，角色的对话也应符合深夜的语境。
-
-# 你的状态
-- **账户余额**: ${state.sui.balance.toFixed(2)} 元
 
 # MODE: NARRATIVE STORY (剧情模式)
 # ===================================
@@ -2889,7 +2808,6 @@ ${state.role.promptInstructions ? `
 - ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
 ` : ''}
 
-// ---【新增的强化指令：为AI提供安全出口】---
 # 紧急备用指令 (FALLBACK INSTRUCTION)
 - 如果在任何情况下你都无法生成符合上述所有规则的复杂剧情段落，请**放弃复杂的描写**，只生成一句简单的、符合第三人称叙事风格的、关于角色 **${state.role.roleName}** 状态或动作的陈述。
 - **在任何情况下，都绝对不要返回空内容。**
@@ -2898,16 +2816,12 @@ ${state.role.promptInstructions ? `
 1. 我的描述是围绕角色 **${state.role.roleName}** 的第三人称叙事吗？
 2. 我的回复是否在所有内容的最后、独立的一行包含了 \`[AFFINITY_CHANGE:X]\` 标签？
 3. 我的回复内容是否为空？（绝不能为空）
-// ---【新增指令结束】---
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
 - **检查你的输出！** 你的回复必须是**小说一样的叙事段落**。
 - 直接开始写你的故事段落。
 `;
             const apiMessages = [{ role: 'system', content: systemPrompt }];
-
-            // --- 你的核心逻辑保持不变 ---
-
             const fullHistoryForAI = [];
             state.chat.history.forEach(msg => {
                 if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
@@ -2916,9 +2830,7 @@ ${state.role.promptInstructions ? `
                     fullHistoryForAI.push(msg);
                 }
             });
-
             const historyForContext = fullHistoryForAI;
-
             historyForContext.forEach(msg => {
                 if (msg.sender === 'user' || msg.sender === 'ai') {
                     if (msg.text) {
@@ -2927,197 +2839,37 @@ ${state.role.promptInstructions ? `
                     }
                 }
             });
-            // --- 你的逻辑结束 ---
-
             return apiMessages;
         };
 
-        async function initializeSuiBalance() {
-            if (state.sui.isInitialized) return;
-            const persona = state.role.rolePersona.toLowerCase();
-            let balance = 0;
-            if (/ceo|总裁|富豪|精英|董事长|投资人/.test(persona)) {
-                balance = 5000000 + Math.random() * 100000000;
-            } else if (/学生|实习生|打工人|普通|贫穷|穷/.test(persona)) {
-                balance = 1000 + Math.random() * 5000;
-            } else {
-                balance = 50000 + Math.random() * 200000;
-            }
-            state.sui.balance = balance;
-            state.sui.isInitialized = true;
-            showToast(`【SUI：账户已激活，初始资金 ${balance.toFixed(2)}】`);
-            await saveState();
-        }
-
         async function callSuiApi(systemPrompt) {
             if (!state.config.api.baseUrl || !state.config.api.key) return null;
-            console.log('%c[SUI] 正在调用SUI API...', 'color: #03a9f4; font-weight: bold;', { prompt: systemPrompt });
+            console.log('%c[SUI] 调用SUI API...', 'color: #03a9f4; font-weight: bold;', { prompt: systemPrompt });
             try {
                 const messages = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: '请根据系统指令，立即生成所需的JSON对象。' }
-];
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: '请根据系统指令，立即生成所需的JSON对象。' }
+                ];
                 const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
-                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.6 })
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: messages, temperature: 0.8 })
                 });
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error(`%c[SUI] API 请求失败，状态码: ${response.status}.`, 'color: #f44336; font-weight: bold;', '响应:', errorText);
-                    return null;
+                    throw new Error(`SUI API 请求失败: ${response.status} ${errorText}`);
                 }
                 const data = await response.json();
                 const content = data.choices?.[0]?.message?.content;
-                if (!content) { console.warn('%c[SUI] API 响应中不包含任何内容。', 'color: #ffc107;'); return null; }
-                console.log('%c[SUI] 从API收到原始文本:', 'color: #4caf50;', content);
-                const jsonRegex = /({[\s\S]*})|(\[[\s\S]*\])/;
-                const match = content.match(jsonRegex);
-                if (!match) { console.error('%c[SUI] 解析失败：在响应中未找到有效的JSON结构。', 'color: #f44336; font-weight: bold;'); return null; }
-                const jsonString = match[0];
-                console.log('%c[SUI] 正则表达式提取出的JSON字符串:', 'color: #ff9800;', jsonString);
-                try {
-                    const parsedJson = JSON.parse(jsonString);
-                    console.log('%c[SUI] JSON解析成功！', 'color: #8bc34a; font-weight: bold;', parsedJson);
-                    return parsedJson;
-                } catch (e) {
-                    console.error('%c[SUI] JSON解析失败，即使已经提取出字符串。', 'color: #f44336; font-weight: bold;', e, '问题字符串:', jsonString);
-                    return null;
-                }
+                if (!content) { console.warn('%c[SUI] API响应无内容。', 'color: #ffc107;'); return null; }
+                
+                const jsonMatch = content.match(/\[\s*{[\s\S]*}[^\]]*\]/);
+                if (!jsonMatch) { throw new Error('在响应中未找到有效的JSON数组。'); }
+
+                return JSON.parse(jsonMatch[0]);
             } catch (error) {
-                console.error("%c[SUI] callSuiApi 函数发生严重错误:", 'color: #f44336; font-weight: bold;', error);
-                return null;
-            }
-        }
-
-        async function generateTransactionBatch() {
-            const recentHistory = state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色')}: ${msg.type === 'text' ? msg.text : `[${msg.type}消息]`}`).join('\n');
-            const persona = state.role.rolePersona;
-            const count = Math.floor(Math.random() * 3) + 1; // 随机生成 1-3 条
-
-            const systemPrompt = `你是一个生活模拟器。基于以下角色设定和最近的对话，生成 ${count} 笔符合该角色生活方式的交易记录。
-
-角色设定: ${persona}
-最近对话:
-${recentHistory}
----
-你的输出必须是一个JSON数组，每个对象包含 "description" (字符串) 和 "amount" (数字)。
-- \`amount\` 为正数代表收入，为负数代表支出。
-- 请根据角色设定，合理地混合收入和支出。例如，一个CEO可能会有大额投资回报（收入）和奢侈品消费（支出）；一个学生可能会有兼职收入和生活开销。
-- 描述要简洁明了。
-
-例如，如果需要生成2笔记录:
-[{"description": "季度项目奖金", "amount": +50000}, {"description": "购买新款笔记本电脑", "amount": -15800}]
-
-不要输出任何其他内容，只输出JSON数组。`;
-
-            const result = await callSuiApi(systemPrompt);
-            
-            if (result && Array.isArray(result) && result.length > 0) { // 确保结果有效且不为空
-                let totalAmount = 0;
-                let addedCount = 0; // 计数器，记录成功添加的交易数量
-                for (const transaction of result) {
-                    if (typeof transaction.description === 'string' && typeof transaction.amount === 'number') {
-                        const newTransaction = {
-                            id: Date.now() + Math.random(), // Add random to avoid collision in batch
-                            timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                            description: transaction.description,
-                            amount: transaction.amount
-                        };
-                        state.sui.transactions.unshift(newTransaction);
-                        totalAmount += transaction.amount;
-                        addedCount++; // 每成功添加一笔，计数器加一
-                    }
-                }
-                state.sui.balance += totalAmount;
-
-                // 核心修改：在循环外显示一条总结性通知
-                if (addedCount > 0) {
-                    showToast(`【SUI：已生成 ${addedCount} 笔新交易】`);
-                }
-
-                await saveState();
-            }
-        }
-
-        async function generateOtherChat() {
-            const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色')}: ${msg.text}`).join('\n');
-            const persona = state.role.rolePersona;
-            const systemPrompt = `你是一个生活模拟器。基于以下角色设定，虚构一段该角色与另一人（非玩家）的简短对话（2-4句）。
-角色设定: ${persona}
----
-你的输出必须是一个JSON对象，格式如下: {"with": "对话者名称/身份", "log": [{"sender": "角色名", "text": "对话内容"}, {"sender": "对话者", "text": "对话内容"}]}
-例如: {"with": "助理小陈", "log": [{"sender": "${state.role.roleName}", "text": "下午的会议资料准备好了吗？"}, {"sender": "助理小陈", "text": "准备好了，董事长。"}]}
-不要输出任何其他内容。`;
-            const result = await callSuiApi(systemPrompt);
-            if (result && result.with && Array.isArray(result.log)) {
-                const newChat = {
-                    id: Date.now(),
-                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                    with: result.with,
-                    log: result.log
-                };
-                state.sui.otherChats.unshift(newChat);
-                // 核心修改：使用通用的类别通知
-                showToast('【SUI：新通讯记录已生成】');
-                await saveState();
-            }
-        }
-
-        async function generateBrowsingHistory() {
-            const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? '玩家' : '角色'}: ${msg.text}`).join('\n');
-            const persona = state.role.rolePersona;
-            const systemPrompt = `你是一个生活模拟器。基于以下角色设定和最近对话，虚构一个该角色刚刚进行的网络浏览会话（2-3个相关页面）。
-角色设定: ${persona}
-最近对话:
-${recentHistory}
----
-你的输出必须是一个JSON对象，格式如下: {"session": [{"title": "页面标题1", "url": "https://example.com/page1"}, {"title": "页面标题2", "url": "https://example.com/page2"}]}
-URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或最近关心的话题。不要输出任何其他内容。`;
-            const result = await callSuiApi(systemPrompt);
-            if (result && Array.isArray(result.session) && result.session.length > 0) {
-                const newHistory = {
-                    id: Date.now(),
-                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                    session: result.session
-                };
-                state.sui.browsingHistory.unshift(newHistory);
-                // 核心修改：使用通用的类别通知
-                showToast('【SUI：新浏览记录已生成】');
-                await saveState();
-            }
-        }
-
-        async function triggerSuiGeneration() {
-            // 定义一个空数组，用来存放所有需要执行的生成任务（Promise）
-            const promises = [];
-
-            // --- 核心升级：调用批量交易生成函数 ---
-            // 交易记录：80% 的生成概率
-            if (Math.random() < 0.80) {
-                promises.push(generateTransactionBatch());
-            }
-
-            // 2. 外部通讯：50% 的生成概率
-            if (Math.random() < 0.50) {
-                promises.push(generateOtherChat());
-            }
-
-            // 3. 浏览记录：50% 的生成概率
-            if (Math.random() < 0.50) {
-                promises.push(generateBrowsingHistory());
-            }
-
-            // 如果有任何任务被选中，就并行执行它们
-            if (promises.length > 0) {
-                try {
-                    // Promise.all 会同时开始所有任务，并等待它们全部完成
-                    await Promise.all(promises);
-                    console.log(`%c[SUI] 成功并行生成了 ${promises.length} 组记录。`, 'color: #4caf50; font-weight: bold;');
-                } catch (error) {
-                    // 如果其中任何一个任务失败，这里会捕获到错误
-                    console.error("%c[SUI] 并行生成记录时发生错误:", 'color: #f44336; font-weight: bold;', error);
-                }
+                console.error("%c[SUI] callSuiApi 错误:", 'color: #f44336; font-weight: bold;', error);
+                throw error; // Re-throw to be caught by the caller
             }
         }
         
@@ -3128,10 +2880,8 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
             }
             aiReplyBtn.disabled = true;
             showToast('对方正在输入...');
-            await initializeSuiBalance();
 
             try {
-                // 此处调用指令生成函数的逻辑保持不变
                 const messages = state.chat.mode === 'phone' ? createPhoneApiPrompt() : createStoryApiPrompt();
                 
                 const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
@@ -3146,21 +2896,20 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                 let rawContent = data.choices?.[0]?.message?.content;
                 
                 if (!rawContent || !rawContent.trim()) {
-                    console.warn("API响应为空或格式不正确:", data);
                     throw new Error("API响应为空或格式不正确。");
                 }
                 
                 rawContent = rawContent.trim();
                 
-                const affinityRegex = /\[A-?F-?F-?I-?N-?I-?T-?Y-?_CHANGE:(-?\d+)\]/gi;
-                const affinityMatch = [...rawContent.matchAll(affinityRegex)];
-                affinityMatch.forEach(match => {
-                    const affinityChange = parseInt(match[1], 10);
+                const affinityRegex = /\[AFFINITY_CHANGE:(-?\d+)\]/i;
+                const affinityMatch = rawContent.match(affinityRegex);
+                if (affinityMatch) {
+                    const affinityChange = parseInt(affinityMatch[1], 10);
                     if (!isNaN(affinityChange)) {
                         state.chat.affinity = Math.max(0, Math.min(100, state.chat.affinity + affinityChange));
                         showToast(`好感度 ${affinityChange > 0 ? '+' : ''}${affinityChange}`);
                     }
-                });
+                }
                 
                 let contentForParsing = rawContent.replace(affinityRegex, '').trim();
 
@@ -3168,83 +2917,38 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
                     await saveState(); 
                     return;
                 }
-
-                const messagesToSend = [];
-
-                if (state.chat.mode === 'story') {
-                    messagesToSend.push({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
-                } else {
-                    // --- 手机模式解析逻辑已恢复 ---
-                    while (contentForParsing.length > 0) {
-                        let tagStartIndex = contentForParsing.indexOf('[');
-                        
-                        if (tagStartIndex === 0) {
-                            let tagEndIndex = -1;
-                            let tagNameMatch = contentForParsing.match(/^\[([A-Z_-]+)/i);
-                            let tagName = tagNameMatch ? tagNameMatch[1].toUpperCase().replace(/-/g, '_') : null;
-
-                            if (tagName === 'VOICE_MESSAGE' || tagName === 'HTML_BLOCK') {
-                                const baseName = tagName.split('_').map(part => part.split('').join('[-_]?')).join('[-_]');
-                                const closingRegex = new RegExp(`\\[\\/` + baseName + `\\]`, 'i');
-                                const closingMatch = contentForParsing.match(closingRegex);
-                                if (closingMatch) {
-                                   tagEndIndex = closingMatch.index + closingMatch[0].length - 1;
-                                }
-                            } else if (tagName) {
-                                tagEndIndex = contentForParsing.indexOf(']');
-                            }
-
-                            if (tagEndIndex === -1) {
-                                messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: contentForParsing });
-                                contentForParsing = '';
-                                continue;
-                            }
-
-                            const tag = contentForParsing.substring(0, tagEndIndex + 1);
-                            const msgObject = parseTagToMessage(tag);
-                            if (msgObject) messagesToSend.push(msgObject);
-                            
-                            contentForParsing = contentForParsing.substring(tagEndIndex + 1).trim();
-
-                        } else {
-                            const textToProcess = (tagStartIndex === -1) 
-                                ? contentForParsing 
-                                : contentForParsing.substring(0, tagStartIndex);
-
-                            // --- 【核心恢复】使用原有的正则表达式进行句子分割 ---
-                            const sentenceRegex = /(.*?)([.?!。？！…~]+|\n)/g;
-                            const sentences = [...textToProcess.matchAll(sentenceRegex)];
-                            let lastIndex = 0;
-                            sentences.forEach(match => {
-                                const sentence = (match[1] + (match[2] || '')).trim();
-                                if (sentence) {
-                                    messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: sentence });
-                                }
-                                lastIndex = match.index + match[0].length;
-                            });
-                            
-                            // 处理正则表达式未能匹配的剩余文本
-                            if (lastIndex < textToProcess.length) {
-                                const remainingText = textToProcess.substring(lastIndex).trim();
-                                if (remainingText) {
-                                    messagesToSend.push({ id: Date.now() + Math.random(), sender: 'ai', type: 'text', text: remainingText });
-                                }
-                            }
-                            // --- 【恢复结束】---
-    
-                            contentForParsing = (tagStartIndex === -1) 
-                                ? '' 
-                                : contentForParsing.substring(tagStartIndex).trim();
-                        }
-                    }
-                }
                 
-                if (messagesToSend.length > 0) {
-                    for (const msg of messagesToSend) {
-                        state.chat.history.push(msg);
-                        renderChatHistory();
-                        const delay = msg.type === 'text' ? (150 + (msg.text || '').length * 20) : 500;
-                        await new Promise(resolve => setTimeout(resolve, Math.min(delay, 50)));
+                if (state.chat.mode === 'story') {
+                    sendMessage({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
+                } else {
+                    const lines = contentForParsing.split('\n').filter(line => line.trim() !== '');
+                    
+                    for (const line of lines) {
+                        let currentLine = line.trim();
+                        let replyToId = null;
+
+                        const replyMatch = currentLine.match(/^\[REPLY_TO_ID:(\d+)\]\s*/i);
+                        if (replyMatch) {
+                            replyToId = parseInt(replyMatch[1], 10);
+                            currentLine = currentLine.substring(replyMatch[0].length).trim();
+                        }
+
+                        let msgObject = parseTagToMessage(currentLine);
+                        if (!msgObject && currentLine) {
+                            msgObject = { sender: 'ai', type: 'text', text: currentLine };
+                        }
+
+                        if (msgObject) {
+                            msgObject.id = Date.now() + Math.random();
+                            if (replyToId) {
+                                msgObject.replyTo = replyToId;
+                            }
+                            state.chat.history.push(msgObject);
+                            renderChatHistory({ autoScroll: true }); 
+                            
+                            const delay = msgObject.type === 'text' ? (150 + (msgObject.text || '').length * 20) : 500;
+                            await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1500)));
+                        }
                     }
                 }
                 
@@ -3254,52 +2958,42 @@ URL可以是虚构的但要看起来合理。标题应反映角色的兴趣或�
             } finally {
                 await saveState();
                 aiReplyBtn.disabled = false;
-                triggerSuiGeneration();
             }
         }
 
+
 function parseTagToMessage(tag) {
-    const voiceMatch = tag.match(/^\[VOICE-?_MESSAGE\](.*)\[\/VOICE-?_MESSAGE\]$/si);
-    const transferMatch = tag.match(/^\[SEND-?_TRANSFER:(.*)\]$/si);
-    const stickerMatch = tag.match(/^\[USE-?_STICKER,.*?ID:(\d+).*?\]$/i);
-    const actionMatch = tag.match(/^\[TRANSFER-?_ACTION:(receive|return),ID:(\d+)\]$/i);
-    const htmlMatch = tag.match(/^\[HTML-?_BLOCK\](.*)\[\/HTML-?_BLOCK\]$/si);
+    const voiceMatch = tag.match(/^\[VOICE_MESSAGE\](.*)\[\/VOICE_MESSAGE\]$/si);
+    const transferMatch = tag.match(/^\[SEND_TRANSFER:(.*)\]$/si);
+    const stickerMatch = tag.match(/^\[USE_STICKER,ID:(\d+)\]$/i);
+    const actionMatch = tag.match(/^\[TRANSFER_ACTION:(receive|return),ID:(\d+)\]$/i);
+    const htmlMatch = tag.match(/^\[HTML_BLOCK\](.*)\[\/HTML_BLOCK\]$/si);
 
     if (htmlMatch) {
         const htmlContent = htmlMatch[1].trim();
-        if (htmlContent) return { id: Date.now(), sender: 'ai', type: 'html', htmlContent: htmlContent };
+        if (htmlContent) return { sender: 'ai', type: 'html', htmlContent: htmlContent };
     } else if (voiceMatch) {
         const text = voiceMatch[1].trim();
-        if (text) return { id: Date.now(), sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
+        if (text) return { sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
     } else if (stickerMatch) {
         const stickerId = parseInt(stickerMatch[1], 10);
         const sticker = state.stickers.find(s => s.id === stickerId);
-        if (sticker) return { id: Date.now(), sender: 'ai', type: 'sticker', stickerId: stickerId, meaning: sticker.meaning };
+        if (sticker) return { sender: 'ai', type: 'sticker', stickerId: stickerId, meaning: sticker.meaning };
     } else if (transferMatch) {
         try {
             const payload = JSON.parse(transferMatch[1]);
-            if (payload.amount > 0) return { id: Date.now(), sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message || '转账给你', status: 'pending' };
+            if (payload.amount > 0) return { sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message || '转账给你', status: 'pending' };
         } catch (e) { console.error('解析转账标签失败:', e); }
     } else if (actionMatch) {
         const action = actionMatch[1].toLowerCase();
         const targetId = parseInt(actionMatch[2], 10);
         const targetMsg = state.chat.history.find(m => m.id === targetId && m.sender === 'user' && m.type === 'transfer');
         
-        if (targetMsg && targetMsg.status === 'pending') { // 确保只处理一次
+        if (targetMsg && targetMsg.status === 'pending') { 
             if (action === 'receive') {
-                // AI收款，余额增加
                 targetMsg.status = 'received';
-                state.sui.balance += targetMsg.amount;
-                state.sui.transactions.unshift({
-                    id: Date.now(),
-                    timestamp: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                    description: `收到来自 ${state.role.playerName || '你'} 的转账`,
-                    amount: targetMsg.amount, // 记录为正数（收入）
-                    relatedChatId: targetMsg.id
-                });
                 showToast('对方已收款');
             } else if (action === 'return') {
-                // AI退回，无余额变化
                 targetMsg.status = 'returned';
                 showToast('对方已退回转账');
             }
@@ -3319,6 +3013,7 @@ function parseTagToMessage(tag) {
             if (confirmed) {
                 state.chat.history = [];
                 state.chat.affinity = 0;
+                state.ui.chatPage = 0; 
                 await saveState();
                 renderChatHistory();
                 showToast('已开始新的对话');
@@ -3326,10 +3021,8 @@ function parseTagToMessage(tag) {
         });
 
         summarizeMemoryBtn.addEventListener('click', async () => {
-            // 定义固定的上下文数量
             const SUMMARY_CONTEXT_COUNT = 100;
 
-            // 1. 前置检查
             if (state.chat.history.length === 0) {
                 showDialog('无法存档', '没有聊天记录可以总结。');
                 return;
@@ -3339,16 +3032,13 @@ function parseTagToMessage(tag) {
                 return;
             }
 
-            // 2. 用户确认 (提示信息会显示实际将总结的条数)
             const actualCount = Math.min(state.chat.history.length, SUMMARY_CONTEXT_COUNT);
             const confirmed = await showDialog('存档记忆', `确定要将最近的 ${actualCount} 条对话存档为一条新的记忆吗？`);
             if (!confirmed) return;
 
-            // 3. 执行API调用和UI反馈
             showToast('正在总结聊天内容...');
             summarizeMemoryBtn.disabled = true;
             try {
-                // 使用 slice 截取固定数量的最近消息
                 const chatToSummarize = state.chat.history.slice(-SUMMARY_CONTEXT_COUNT);
 
                 const chatContent = chatToSummarize
@@ -3404,7 +3094,6 @@ function parseTagToMessage(tag) {
                 memoryListEl.innerHTML = '<p class="text-center opacity-50">还没有任何记忆存档。</p>';
                 return;
             }
-            // 核心修正：按ID降序排序，确保最新的在最前面
             const sortedMemories = [...state.memories].sort((a, b) => b.id - a.id);
 
             sortedMemories.forEach(memory => {
@@ -3436,7 +3125,6 @@ function parseTagToMessage(tag) {
                     editBtn.onclick = async () => {
                         const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: memory.content });
                         if (newContent) {
-                            // 修正：通过ID查找并更新，而不是不稳定的索引
                             const memoryToUpdate = state.memories.find(m => m.id === memory.id);
                             if (memoryToUpdate) {
                                 memoryToUpdate.content = newContent;
@@ -3453,7 +3141,6 @@ function parseTagToMessage(tag) {
                     deleteBtn.onclick = async () => {
                         const confirmed = await showDialog('删除记忆', '确定要删除这条记忆吗？');
                         if (confirmed) {
-                            // 修正：通过ID过滤数组，而不是不稳定的索引
                             state.memories = state.memories.filter(m => m.id !== memory.id);
                             await saveState();
                             renderMemoryList();
@@ -3507,41 +3194,28 @@ function parseTagToMessage(tag) {
             }
         });
         
-        // --- NEW: Chat Batch Delete Listeners ---
     cancelBatchDeleteChatBtn.addEventListener('click', () => {
         isChatBatchDeleteMode = false;
-        stickerDrawer.style.display = ''; // <--- 修改此处
+        stickerDrawer.style.display = '';
         renderChatHistory({ autoScroll: false });
     });
 
         confirmBatchDeleteChatBtn.addEventListener('click', async () => {
-            // 1. 找到所有被选中的复选框
             const checkedBoxes = chatHistory.querySelectorAll('input[type="checkbox"]:checked');
-            
-            // 2. 从这些复选框旁边的消息气泡中提取出要删除的消息ID
             const idsToDelete = Array.from(checkedBoxes).map(checkbox => {
-                // 复选框和消息气泡在同一个父容器内，通过父元素找到对应的消息气泡
                 const bubble = checkbox.parentElement.querySelector('.message-bubble, .story-block');
-                // 解析并返回消息的ID
                 return bubble ? Number(bubble.dataset.id) : null;
-            }).filter(id => id !== null); // 过滤掉无效的ID
+            }).filter(id => id !== null); 
 
             if (idsToDelete.length > 0) {
-                // 3. 从聊天历史记录中过滤掉需要删除的消息
                 state.chat.history = state.chat.history.filter(msg => !idsToDelete.includes(msg.id));
-                
-                // 4. 保存状态
                 await saveState();
-                
                 showToast(`已删除 ${idsToDelete.length} 条消息`);
             }
-
-            // 5. 退出批量删除模式并重新渲染界面
               isChatBatchDeleteMode = false;
-              stickerDrawer.style.display = ''; // <--- 核心更改：恢复表情包面板的可渲染状态
+              stickerDrawer.style.display = '';
     renderChatHistory({ autoScroll: false });
 });
-        // --- 新代码到此结束 ---
 
         const renderDiaryList = () => {
             diaryListContainer.innerHTML = '';
@@ -3598,7 +3272,6 @@ function parseTagToMessage(tag) {
 
         async function generateDiaryEntry() {
             try {
-                // 1. 检查基本条件
                 if (state.chat.history.length === 0) {
                     showDialog('无法生成', '还没有任何对话记录。');
                     return;
@@ -3610,21 +3283,16 @@ function parseTagToMessage(tag) {
 
                 showToast('正在准备日记内容...');
                 generateDiaryBtn.disabled = true;
-
-                // 2. 构建你的提示词
                 const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题、禁止日期开头。`;
 
-                // 3. 【回归OpenAI格式】根据服务器最新的要求，使用 'messages' 格式
                 const requestBody = {
                     model: state.config.api.model,
                     messages: [
-            { role: 'system', content: systemPrompt }, // 设置模型的角色和行为指令
-            { role: 'user', content: '请开始根据上述指令写一篇日记。' } // 明确触发模型开始写作
+            { role: 'system', content: systemPrompt }, 
+            { role: 'user', content: '请开始根据上述指令写一篇日记。' }
         ],
                     temperature: 0.8
                 };
-
-                // 4. 发送API请求
                 showToast('TA正在提笔写日记...');
                 const response = await fetch(`${state.config.api.baseUrl}/chat/completions`, {
                     method: 'POST',
@@ -3640,10 +3308,7 @@ function parseTagToMessage(tag) {
 
                 const data = await response.json();
                 
-                // 5. 【回归OpenAI格式】从 'choices' 中解析响应
                 const diaryContent = data.choices?.[0]?.message?.content;
-
-                // 6. 处理结果并更新UI
                 if (diaryContent) {
                     state.diaries.unshift({ id: Date.now(), content: diaryContent });
                     await saveState();
@@ -3692,201 +3357,178 @@ function parseTagToMessage(tag) {
             }
         });
         
-        // --- SUI Page Logic ---
-        const renderSuiPage = () => {
-            if (!state.sui) state.sui = { balance: 0, transactions: [], otherChats: [], browsingHistory: [] };
-            suiBalanceEl.textContent = state.sui.balance.toFixed(2);
-            renderSuiTransactions();
-            renderSuiOtherChats();
-            renderSuiBrowsingHistory();
-        };
-
-        const renderSuiTransactions = () => {
-            suiTransactionsListEl.innerHTML = '';
-            if (!state.sui.transactions || state.sui.transactions.length === 0) {
-                suiTransactionsListEl.innerHTML = '<p class="opacity-70 text-center">暂无记录</p>'; return;
-            }
-            state.sui.transactions.forEach(t => {
-                const item = document.createElement('div');
-                item.className = 'sui-list-item transaction-item';
-                const amountClass = t.amount > 0 ? 'amount-positive' : 'amount-negative';
-                item.innerHTML = `
-                    <div class="sui-item-actions">
-                        <button class="sui-action-btn" data-action="add-to-memory" data-type="transactions" data-id="${t.id}" title="存为记忆"><i class="fas fa-bookmark"></i></button>
-                        <button class="sui-action-btn" data-action="delete" data-type="transactions" data-id="${t.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                    <span class="timestamp">${t.timestamp}</span>
-                    <p>${t.description}</p>
-                    <div class="amount-display">
-                        <span class="${amountClass} font-mono">${t.amount.toFixed(2)}</span>
-                    </div>
-                `;
-                suiTransactionsListEl.appendChild(item);
+        // --- SUI Page Logic (NEW) ---
+        function showSuiSubPage(targetId) {
+            suiHomePage.style.display = 'none';
+            suiSubPages.forEach(page => {
+                page.style.display = page.id === targetId ? 'flex' : 'none';
             });
-        };
-
-        const renderSuiOtherChats = () => {
-            suiOtherChatsListEl.innerHTML = '';
-            if (!state.sui.otherChats || state.sui.otherChats.length === 0) {
-                suiOtherChatsListEl.innerHTML = '<p class="opacity-70 text-center">暂无记录</p>'; return;
-            }
-            state.sui.otherChats.forEach(c => {
-                const item = document.createElement('div');
-                item.className = 'sui-list-item';
-
-                // 检查 c.log 是否为有效数组，如果不是，则提供一个提示，防止程序崩溃
-                const logHtml = Array.isArray(c.log)
-                    ? c.log.map(l => `<p><strong>${l.sender || '未知'}:</strong> ${l.text || ''}</p>`).join('')
-                    : '<p class="opacity-50">[数据不完整，无法显示对话]</p>';
-                
-                item.innerHTML = `
-                    <div class="sui-item-actions">
-                        <button class="sui-action-btn" data-action="add-to-memory" data-type="otherChats" data-id="${c.id}" title="存为记忆"><i class="fas fa-bookmark"></i></button>
-                        <button class="sui-action-btn" data-action="delete" data-type="otherChats" data-id="${c.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                    <span class="timestamp">${c.timestamp}</span>
-                    <p>与 <span class="chat-with">${c.with}</span> 的对话</p>
-                    <div class="sui-chat-log">${logHtml}</div>
-                `;
-                suiOtherChatsListEl.appendChild(item);
-            });
-        };
-
-        const renderSuiBrowsingHistory = () => {
-            suiBrowsingHistoryListEl.innerHTML = '';
-            if (!state.sui.browsingHistory || state.sui.browsingHistory.length === 0) {
-                suiBrowsingHistoryListEl.innerHTML = '<p class="opacity-70 text-center">暂无记录</p>'; return;
-            }
-            state.sui.browsingHistory.forEach(h => {
-                const item = document.createElement('div');
-                item.className = 'sui-list-item';
-                const sessionHtml = h.session.map(p => `<p>${p.title}<br><span class="url">${p.url}</span></p>`).join('');
-                item.innerHTML = `
-                    <div class="sui-item-actions">
-                        <button class="sui-action-btn" data-action="add-to-memory" data-type="browsingHistory" data-id="${h.id}" title="存为记忆"><i class="fas fa-bookmark"></i></button>
-                        <button class="sui-action-btn" data-action="delete" data-type="browsingHistory" data-id="${h.id}" title="删除"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                    <span class="timestamp">${h.timestamp}</span>
-                    <p>浏览会话</p>
-                    <div class="sui-browsing-session">${sessionHtml}</div>
-                `;
-                suiBrowsingHistoryListEl.appendChild(item);
-            });
-        };
-
-        suiNav.addEventListener('click', (e) => {
-            const targetBtn = e.target.closest('.sui-nav-btn');
-            if (!targetBtn) return;
             
-            suiNavBtns.forEach(btn => btn.classList.remove('active'));
-            targetBtn.classList.add('active');
+            const dataType = targetId.replace('sui-', '').replace('-page', '');
+            const listElement = get(targetId.replace('-page', '-list')) || get(targetId.replace('-page', '-grid'));
             
-            const targetSectionId = targetBtn.dataset.target;
-            suiContentSections.forEach(section => {
-                section.classList.toggle('hidden', section.id !== targetSectionId);
+            if (listElement) {
+                if (state.sui[dataType] && state.sui[dataType].length > 0) {
+                    renderSuiData(dataType, state.sui[dataType]);
+                } else {
+                    listElement.innerHTML = `<div class="sui-placeholder"><p>点击右上角“刷新”<br>生成记录</p></div>`;
+                }
+            }
+        }
+
+        suiIconGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.sui-icon-btn');
+            if (btn) {
+                const targetId = btn.dataset.target;
+                showSuiSubPage(targetId);
+            }
+        });
+
+        suiSubBackBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                suiHomePage.style.display = 'flex';
+                suiSubPages.forEach(p => p.style.display = 'none');
             });
         });
 
-        const clearSuiSection = async (sectionKey, sectionName, renderFunc) => {
-            const confirmed = await showDialog('确认清空', `确定要清空所有“${sectionName}”记录吗？此操作不可撤销。`);
-            if (confirmed) {
-                if (sectionKey === 'transactions') {
-                    state.sui.transactions = [];
-                } else if (sectionKey === 'otherChats') {
-                    state.sui.otherChats = [];
-                } else if (sectionKey === 'browsingHistory') {
-                    state.sui.browsingHistory = [];
-                }
-                await saveState();
-                renderFunc();
-                showToast(`已清空${sectionName}记录`);
-            }
-        };
+        suiRefreshBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const type = btn.dataset.type;
+                if (!type) return;
 
-        suiClearAccountBtn.addEventListener('click', () => clearSuiSection('transactions', '交易', renderSuiTransactions));
-        suiClearCommsBtn.addEventListener('click', () => clearSuiSection('otherChats', '外部通讯', renderSuiOtherChats));
-        suiClearBrowsingBtn.addEventListener('click', () => clearSuiSection('browsingHistory', '浏览', renderSuiBrowsingHistory));
-        
-         // --- NEW: SUI Item Interaction Handler (ULTRA-SAFE FIX) ---
-        suiContentContainer.addEventListener('click', async (e) => {
-            const btn = e.target.closest('.sui-action-btn');
-            if (!btn || btn.disabled) return;
-
-            const action = btn.dataset.action;
-            const type = btn.dataset.type;
-            const idFromButton = btn.dataset.id; // 从按钮获取ID，保持为字符串
-
-            if (!action || !type || !idFromButton) return;
-
-            // 【核心修正】: 将数据中的ID和按钮的ID都强制转换为字符串再进行严格比较 (===)
-            // 这是最安全、最明确的比较方式，可以彻底避免类型问题。
-            const itemData = state.sui[type].find(item => String(item.id) === idFromButton);
-
-            if (!itemData) {
-                showDialog('内部错误', `无法在数据中找到ID为 ${idFromButton} 的项目。`);
-                return;
-            }
-
-            if (action === 'delete') {
-                const confirmed = await showDialog('确认删除', '确定要删除这条记录吗？');
-                if (confirmed) {
-                    // 同样使用安全的字符串比较来进行过滤
-                    state.sui[type] = state.sui[type].filter(item => String(item.id) !== idFromButton);
-                    await saveState();
-                    if (type === 'transactions') renderSuiTransactions();
-                    else if (type === 'otherChats') renderSuiOtherChats();
-                    else if (type === 'browsingHistory') renderSuiBrowsingHistory();
-                    showToast('记录已删除');
-                }
-            } else if (action === 'add-to-memory') {
+                const listId = `sui-${type === 'album' ? 'album-grid' : `${type}-list`}`;
+                const listEl = get(listId);
+                
                 btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 生成中...`;
+                listEl.innerHTML = `<div class="sui-placeholder"><i class="fas fa-spinner fa-spin text-2xl"></i></div>`;
 
                 try {
-                    let memoryContent = '';
-                    const roleName = state.role.roleName || 'TA';
-
-                    switch (type) {
-                        case 'transactions':
-                            memoryContent = `在SUI监控中发现一条交易记录：\n时间: ${itemData.timestamp}\n描述: ${itemData.description}\n金额: ${itemData.amount.toFixed(2)}`;
-                            break;
-                        case 'otherChats':
-                            const chatLog = Array.isArray(itemData.log) ? itemData.log.map(l => `${l.sender}: ${l.text}`).join('\n') : '[数据不完整]';
-                            memoryContent = `在SUI监控中发现一段通讯记录 (与 ${itemData.with}, 时间: ${itemData.timestamp})：\n${chatLog}`;
-                            break;
-                        case 'browsingHistory':
-                            const pageTitles = Array.isArray(itemData.session) ? itemData.session.map((p, index) => `${index + 1}. ${p.title}`).join('\n') : '[数据不完整]';
-                            memoryContent = `在SUI监控中发现一段浏览记录 (时间: ${itemData.timestamp})，${roleName} 浏览了以下页面：\n${pageTitles}`;
-                            break;
+                    const data = await generateSuiData(type);
+                    if (data && data.length > 0) {
+                        renderSuiData(type, data);
+                        state.sui[type] = data; 
+                        await saveState();
+                    } else {
+                         listEl.innerHTML = `<div class="sui-placeholder"><p>未能生成有效记录<br>请检查API或稍后重试</p></div>`;
                     }
-
-                    if (!memoryContent) {
-                        throw new Error('生成的记忆内容为空，无法添加。');
-                    }
-
-                    const isDuplicate = state.memories.some(mem => mem.content === memoryContent);
-                    if (isDuplicate) {
-                        showToast('该记忆已存在');
-                        btn.innerHTML = '<i class="fas fa-check-double"></i>';
-                        btn.title = '已存在';
-                        return;
-                    }
-
-                    state.memories.unshift({ id: Date.now(), content: memoryContent });
-                    await saveState();
-                    renderMemoryList();
-
-                    btn.innerHTML = '<i class="fas fa-check"></i>';
-                    btn.title = '已添加';
-                    showToast('已成功存为记忆！');
-
                 } catch (error) {
-                    console.error('在 "存为记忆" 过程中发生错误:', error);
-                    showDialog('操作失败', `在添加记忆时发生错误：<br><br><strong>${error.message}</strong><br><br>请检查控制台获取详细信息。`);
+                    listEl.innerHTML = `<div class="sui-placeholder"><p class="text-red-400">生成失败<br>${error.message}</p></div>`;
+                } finally {
                     btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-sync-alt"></i> 刷新`;
                 }
-            }
+            });
         });
+        
+        async function generateSuiData(type) {
+            const persona = state.role.rolePersona || '一个普通人';
+            const recentHistory = state.chat.history.slice(-10).map(msg => `${msg.sender === 'user' ? (state.role.playerName || '玩家') : (state.role.roleName || '角色')}: ${msg.text}`).join('\n');
+            let systemPrompt = `你是一个生活模拟器。基于以下角色设定和最近对话，为TA生成5条相关的记录。
 
+# 角色设定
+${persona}
+
+# 最近对话
+${recentHistory}
+---
+# 任务
+你的输出必须是一个包含5个对象的JSON数组。不要输出任何其他内容。`;
+
+            switch(type) {
+                case 'shopping':
+                    systemPrompt += `\n每个对象格式: {"store": "店铺名称", "item": "商品名称", "price": 数字}`;
+                    break;
+                case 'browser':
+                    systemPrompt += `\n每个对象格式: {"title": "网页标题", "url": "https://example.com/path"}`;
+                    break;
+                case 'otherchat':
+                    systemPrompt += `\n虚构一段与他人的2-4句对话。每个对象格式: {"with": "对话者名称/身份", "log": [{"sender": "me", "text": "内容"}, {"sender": "them", "text": "内容"}]}`;
+                    break;
+                case 'album':
+                    systemPrompt += `\n每个对象格式: {"caption": "照片描述(简短)", "keywords": "用于生成图片的关键词", "description": "对这张照片的详细描述，至少30字，描绘照片中的场景、人物情感和氛围。"}`;
+                    break;
+                case 'notepad':
+                    systemPrompt += `\n每个对象格式: {"title": "笔记标题", "content": "笔记内容"}`;
+                    break;
+                case 'footprints':
+                    systemPrompt += `\n每个对象格式: {"location": "地点名称", "note": "关于此地点的简短说明"}`;
+                    break;
+            }
+            return await callSuiApi(systemPrompt);
+        }
+        
+        function renderSuiData(type, data) {
+            const listId = `sui-${type === 'album' ? 'album-grid' : `${type}-list`}`;
+            const listEl = get(listId);
+            listEl.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            const now = new Date();
+
+            data.forEach((item, index) => {
+                const el = document.createElement('div');
+                const itemTime = new Date(now.getTime() - index * 3600000 - Math.random() * 3600000); // Stagger times
+                const timeString = itemTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                
+                switch(type) {
+                    case 'shopping':
+                        el.className = 'sui-shopping-item';
+                        el.innerHTML = `
+                            <div class="store">${item.store || '未知商店'}</div>
+                            <div class="details">
+                                <span class="item-name">${item.item || '未知商品'}</span>
+                                <span class="price">-¥${(item.price || 0).toFixed(2)}</span>
+                            </div>`;
+                        break;
+                    case 'browser':
+                        el.className = 'sui-browser-item';
+                        el.innerHTML = `
+                            <i class="fas fa-globe-americas"></i>
+                            <div class="info">
+                                <div class="title">${item.title || '无标题'}</div>
+                                <div class="url">${item.url || 'about:blank'}</div>
+                            </div>`;
+                        break;
+                    case 'otherchat':
+                        el.className = 'sui-otherchat-item';
+                        const logHtml = (item.log || []).map(l => `<div class="chat-bubble ${l.sender === 'me' ? 'bubble-me' : 'bubble-them'}">${l.text}</div>`).join('');
+                        el.innerHTML = `<div class="header">与 ${item.with || '某人'} 的对话</div><div class="chat-log">${logHtml}</div>`;
+                        break;
+                    case 'album':
+        el.className = 'sui-photo-item cursor-pointer'; // 添加cursor-pointer提示可点击
+        const keywords = (item.keywords || 'abstract').replace(/\s/g, ',');
+        // 将描述存储在data属性中
+        el.dataset.description = item.description || '没有关于这张照片的更多描述。';
+        
+        el.innerHTML = `
+            <img src="https://placehold.co/300x300/555/fff?text=${encodeURIComponent(keywords)}" alt="${item.caption}">
+            <div class="caption">${item.caption || '无标题'}</div>`;
+
+        // 添加点击事件监听器
+        el.addEventListener('click', () => {
+            showDialog('照片详情', el.dataset.description, { 
+                buttons: [{ text: '关闭', value: true, class: 'bg-gray-500/50' }] 
+            });
+        });
+        break;
+                    case 'notepad':
+                        el.className = 'sui-note-item';
+                        el.innerHTML = `
+                            <div class="note-title">${item.title || '无标题笔记'}</div>
+                            <div class="note-content">${(item.content || '').replace(/\n/g, '<br>')}</div>`;
+                        break;
+                    case 'footprints':
+                        el.className = 'sui-footprint-item';
+                        el.innerHTML = `
+                            <div class="location">${item.location || '未知地点'}</div>
+                            <div class="timestamp">${timeString}</div>
+                            <div class="note">${item.note || '在此处停留了一段时间。'}</div>`;
+                        break;
+                }
+                fragment.appendChild(el);
+            });
+            listEl.appendChild(fragment);
+        }
 
         // --- Multifunction Menu & Chat Features ---
         multifunctionToggleBtn.addEventListener('click', () => {
@@ -3930,47 +3572,37 @@ function parseTagToMessage(tag) {
             const isCurrentlyStoryMode = state.chat.mode === 'story';
 
             if (isCurrentlyStoryMode) {
-                // --- 新逻辑：退出剧情模式，并将当前剧情打包为占位符 ---
                 state.chat.mode = 'phone';
                 
-                // 在历史记录的末尾添加一个“剧情结束”的标记
                 state.chat.history.push({
                     id: Date.now(),
                     sender: 'system',
-                    type: 'story_end', // 新的结束标记类型
+                    type: 'story_end', 
                     text: '--- 剧情结束 ---'
                 });
 
-                // 找到最后一个“剧情开始”和对应的“剧情结束”标记的索引
                 const storyStartIndex = state.chat.history.findLastIndex(msg => msg.type === 'story_start');
                 const storyEndIndex = state.chat.history.findLastIndex(msg => msg.type === 'story_end');
 
                 if (storyStartIndex !== -1 && storyEndIndex > storyStartIndex) {
-                    // 1. 从 history 中“剪切”出这段剧情的所有消息（包括开始和结束标记）
                     const messagesToArchive = state.chat.history.splice(storyStartIndex, storyEndIndex - storyStartIndex + 1);
-
-                    // 2. 创建一个“占位符”对象，并将剪切出来的内容存入其中
                     const placeholder = {
-                        id: Date.now() + 1, // 确保ID唯一
-                        type: 'story_review_placeholder', // 新的占位符类型
+                        id: Date.now() + 1,
+                        type: 'story_review_placeholder',
                         sender: 'system',
-                        archivedContent: messagesToArchive // 核心：保存被收纳的内容
+                        archivedContent: messagesToArchive
                     };
-
-                    // 3. 将这个占位符插入到被剪切内容的原位置
                     state.chat.history.splice(storyStartIndex, 0, placeholder);
                 }
 
                 showToast('已返回手机模式');
 
             } else {
-                // --- 进入剧情模式 (逻辑不变) ---
                 state.chat.mode = 'story';
-                // 插入一个“剧情开始”的标记，用于后续的收纳操作
                 state.chat.history.push({ 
                     id: Date.now(), 
                     sender: 'system', 
-                    type: 'story_start', // 特殊类型
+                    type: 'story_start', 
                     text: '--- 切换到剧情模式 ---' 
                 });
                 showToast('已进入剧情模式');
@@ -4067,6 +3699,46 @@ imageUploadInput.addEventListener('change', async (e) => {
             };
             reader.readAsDataURL(file);
         });
+
+        function setupReply(index) {
+            const msg = state.chat.history[index];
+            if (!msg) return;
+
+            currentReplyTargetId = msg.id;
+            
+            replyToName.textContent = msg.sender === 'user' ? (state.role.playerName || '你') : (state.role.roleName || '角色');
+
+            let contentSnippet = '';
+            switch (msg.type) {
+                case 'text':
+                case 'voice':
+                    contentSnippet = msg.text;
+                    break;
+                case 'sticker':
+                    contentSnippet = `[表情] ${msg.meaning}`;
+                    break;
+                case 'image':
+                    contentSnippet = '[图片]';
+                    break;
+                case 'transfer':
+                    contentSnippet = `[转账] ${msg.amount.toFixed(2)}元`;
+                    break;
+                default:
+                    contentSnippet = '[消息]';
+            }
+            replyToContent.textContent = contentSnippet;
+
+            replyPreviewBar.classList.remove('hidden');
+            userInput.focus();
+        }
+
+        function cancelReply() {
+            currentReplyTargetId = null;
+            replyPreviewBar.classList.add('hidden');
+        }
+
+        cancelReplyBtn.addEventListener('click', cancelReply);
+
 
         // --- Data Management ---
         exportDataBtn.addEventListener('click', async () => {
