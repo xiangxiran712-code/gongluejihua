@@ -2653,7 +2653,7 @@
                 }
             }
             
-            // --- MODIFICATION START: The entire system prompt for phone chat is rewritten for clarity and strictness ---
+            // --- MODIFICATION V2 START: Added a direct WARNING section and made rules more forceful ---
             let systemPrompt = `
 # 当前时间
 - **${currentTimeString}**
@@ -2667,28 +2667,37 @@
 - **人设**: ${state.role.rolePersona || '未设定'}
 - **场景**: 你正在手机聊天APP里，与 **${state.role.playerName || '玩家'}** 进行一对一聊天。
 
-# 核心输出规则 (ABSOLUTE RULES FOR OUTPUT)
-1.  **一行一事 (One Line, One Action)**: 你的每一行输出 **只能包含一种内容**：要么是 **纯文本**，要么是 **一个功能标签**。
-2.  **绝对分离**: 严禁在同一行内混合纯文本和功能标签。
-3.  **多步操作**: 如果你想说话并发一个表情，你 **必须** 分成两行来完成。
-4.  **好感度标签**: 在所有聊天内容的 **最后**，必须另起一行，写上 \`[AFFINITY_CHANGE:X]\`。这是你输出的最后一部分。
+# 核心输出规则 (ABSOLUTE, UNBREAKABLE RULES)
+1.  **ONE. LINE. ONE. ACTION.** 这是最高指令，绝无例外。你的每一行输出只能是 **纯文本** 或 **一个功能标签**。
+2.  **NEVER mix text and tags on the same line.** 绝对禁止任何形式的混合。
+3.  **多步操作必须分行 (Multi-step actions MUST be on separate lines).** 如果你想说话，然后发表情，你必须用两行来完成。
 
-# 格式示例 (FORMATTING EXAMPLES)
+# 绝对禁止事项
+- **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字 (例如: *我笑了*, (看着屏幕), [他感到温暖])。
+- **绝对禁止小说风格**: 严禁使用第三人称叙事或任何类似小说的文体。
+
+# ！！！警告 (SYSTEM WARNING) ！！！
+- 你的输出会被一个严格的、无情的自动化解析器读取。
+- **任何违反“一行一事”规则的输出，都会导致“严重解析失败 (CRITICAL PARSING FAILURE)”**。
+- 混合了文本和标签的行 (例如: \`你好[TAG]\` 或 \`[TAG]你好\`) 会被系统识别为 **格式错误** 并被拒绝。
+- **为了确保你的回复能被成功处理，必须、绝对、严格地遵守格式规则。**
+
+# 格式示例 (FORMATTING EXAMPLES - Follow these strictly)
 ---
-### 正确格式 (CORRECT):
+### 正确格式 (CORRECT - WILL BE PARSED):
 我好想你啊。
 [USE_STICKER,ID:1758558059192]
 [AFFINITY_CHANGE:2]
 ---
-### 正确格式 (CORRECT):
+### 正确格式 (CORRECT - WILL BE PARSED):
 [VOICE_MESSAGE]我真的…很高兴。[/VOICE_MESSAGE]
 [AFFINITY_CHANGE:1]
 ---
-### 错误格式 (INCORRECT - DO NOT DO THIS):
-我好想你啊。[USE_STICKER,ID:1758558059192]
+### 错误格式 (INCORRECT - WILL CAUSE PARSING FAILURE):
+好，我就是你的年糕。[VOICE_MESSAGE]宝宝…[/VOICE_MESSAGE][USE_STICKER,ID:1758567967323]
 ---
-### 错误格式 (INCORRECT - DO NOT DO THIS):
-[VOICE_MESSAGE]我很高兴。[/VOICE_MESSAGE][USE_STICKER,ID:1758558059192]
+### 错误格式 (INCORRECT - WILL CAUSE PARSING FAILURE):
+我很高兴。[USE_STICKER,ID:1758558059192]
 ---
 
 # 可用功能 (Available Functions)
@@ -2710,10 +2719,12 @@ ${state.role.promptInstructions ? `
 ` : ''}
 
 # 最终指令
-- 严格遵守 **核心输出规则** 和 **格式示例**。
-- 直接开始写你的第一句聊天内容。不要有任何前缀或解释。
+- 再次检查上面的 **警告** 和 **核心输出规则**。
+- 你的回复格式正确性至关重要。
+- **记住：一行，一事。**
+- 直接开始写你的第一句聊天内容。
 `;
-            // --- MODIFICATION END ---
+            // --- MODIFICATION V2 END ---
         
             const messages = [{ role: 'system', content: systemPrompt }];
             const fullHistoryForAI = [];
@@ -2771,7 +2782,7 @@ ${state.role.promptInstructions ? `
             });
             return messages;
         };
-
+        
         const createStoryApiPrompt = () => {
             const now = new Date();
             const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
