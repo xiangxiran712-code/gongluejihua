@@ -1281,6 +1281,10 @@
                                             <span class="flex items-center gap-2"><i class="fas fa-smile"></i> 对方表情</span>
                                             <span id="sticker-status" class="text-xs text-green-400">ON</span>
                                         </button>
+                                        <button id="menu-toggle-lock-btn" class="w-full text-left p-2.5 rounded-lg hover:bg-white/10 transition-colors flex justify-between items-center text-sm font-bold">
+                                            <span class="flex items-center gap-2"><i class="fas fa-lock"></i> 惩罚锁机</span>
+                                            <span id="lock-status" class="text-xs text-green-400">ON</span>
+                                        </button>
                                         <button id="menu-toggle-autoreply-btn" class="w-full text-left p-2.5 rounded-lg hover:bg-white/10 transition-colors flex justify-between items-center text-sm font-bold">
                                             <span class="flex items-center gap-2"><i class="fas fa-robot"></i> 自动回复</span>
                                             <span id="autoreply-status" class="text-xs text-gray-400">OFF</span>
@@ -1761,6 +1765,63 @@
                         </div>
                     </div>
                     <!-- ================= 沉浸阅读系统结束 ================= -->
+                    
+                    <!-- ！！！系统强制接管锁机界面 ！！！ -->
+                    <div id="system-lock-screen" class="hidden fixed inset-0 z-[100000] bg-black/95 backdrop-blur-2xl flex-col items-center justify-center p-6 transition-all duration-500 opacity-0">
+                        <!-- 紧急API接口 -->
+                        <button id="em-api-btn" class="absolute top-6 left-6 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-sm z-50">
+                            <i class="fas fa-satellite-dish"></i> 紧急通讯频段
+                        </button>
+                        
+                        <div class="text-center w-full max-w-md relative z-10 flex flex-col items-center max-h-full overflow-y-auto py-2" style="scrollbar-width: none;">
+                            <div class="relative mb-6">
+                                <i id="lock-icon" class="fas fa-lock text-6xl text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse"></i>
+                            </div>
+                            <h1 id="lock-title" class="text-5xl font-black text-white tracking-widest mb-3 font-[var(--custom-font)] text-shadow-lg">已锁机</h1>
+                            <p id="lock-reason" class="text-gray-300 text-base mb-8 px-4 border-l-2 border-red-500 bg-red-500/10 py-2 rounded-r-lg">系统已被TA强行接管</p>
+                            
+                            <div class="w-full glass-container border-red-500/40 border-2 p-6 rounded-3xl mb-8 relative overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+                                <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 to-transparent"></div>
+                                <div class="text-xs text-red-400 font-bold mb-2 uppercase tracking-widest relative z-10"><i class="fas fa-hourglass-half fa-spin mr-1"></i> 解除封锁倒计时</div>
+                                <div id="lock-countdown" class="text-6xl font-mono font-black text-white tracking-wider relative z-10 drop-shadow-md">00:00</div>
+                            </div>
+
+                            <!-- 申请解除区域 -->
+                            <div id="unlock-apply-section" class="w-full flex flex-col gap-3">
+                                <textarea id="unlock-reason-input" class="w-full bg-white/5 border border-white/20 rounded-2xl p-4 text-white placeholder-white/30 outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-all resize-none text-sm" placeholder="向TA提交解封申请，说点好听的..." rows="3"></textarea>
+                                <button id="submit-unlock-btn" class="w-full py-3.5 bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white font-bold rounded-2xl shadow-[0_8px_20px_rgba(225,29,72,0.4)] transition-all active:scale-95 text-lg flex items-center justify-center gap-2">
+                                    <i class="fas fa-paper-plane"></i> 提交申请
+                                </button>
+                            </div>
+
+                            <!-- 审判结果区域 -->
+                            <div id="unlock-result-section" class="hidden w-full mt-6 bg-white/10 border border-white/20 p-5 rounded-2xl text-left backdrop-blur-md flex-shrink-0">
+                                <div class="text-xs text-indigo-300 font-bold mb-2 flex items-center gap-2"><i class="fas fa-gavel"></i> TA的审判回应</div>
+                                <div class="max-h-[140px] overflow-y-auto mb-4 pr-2" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent;">
+                                    <p id="unlock-result-text" class="text-sm text-white/90 leading-relaxed italic break-words">暂无回应</p>
+                                </div>
+                                <button id="execute-unlock-btn" class="hidden w-full py-3 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(22,163,74,0.4)] transition-all active:scale-95 text-lg mt-2 flex-shrink-0">
+                                    <i class="fas fa-key"></i> 立即解开
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 紧急API配置弹窗 -->
+                        <div id="em-api-modal" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 z-[100001] backdrop-blur-xl">
+                            <div class="glass-container w-full max-w-sm p-8 rounded-3xl border border-white/20 shadow-2xl">
+                                <h3 class="text-xl font-black text-white mb-6 flex items-center gap-2"><i class="fas fa-satellite-dish text-blue-400"></i> 紧急覆盖API接口</h3>
+                                <div class="space-y-4 mb-6">
+                                    <input type="text" id="em-api-baseurl" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white text-sm focus:border-blue-400 outline-none" placeholder="API Base URL">
+                                    <input type="text" id="em-api-key" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white text-sm focus:border-blue-400 outline-none" placeholder="API Key">
+                                    <input type="text" id="em-api-model" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white text-sm focus:border-blue-400 outline-none" placeholder="Model Name (如 gpt-3.5-turbo)">
+                                </div>
+                                <div class="flex gap-3">
+                                    <button id="em-api-cancel" class="flex-1 py-3 bg-gray-700/50 hover:bg-gray-600/50 rounded-xl text-white font-bold transition-all">取消</button>
+                                    <button id="em-api-save" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-500/30">接通频段</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- 自定义弹窗 -->
                     <div id="custom-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
@@ -3049,7 +3110,20 @@ ${existingNotes || '（今天还没有人留言）'}
                     if (msg.storyContent) {
                         fragment.appendChild(createStoryAnchor(msg));
                     } else {
-                        fragment.appendChild(createSystemMessage(msg));
+                        const sysMsgEl = createSystemMessage(msg);
+                        // 强行打上物理烙印，让系统消息能被长按雷达追踪到
+                        sysMsgEl.dataset.index = originalIndex;
+                        sysMsgEl.dataset.id = msg.id;
+                        
+                        // 植入长按神经中枢：长按 0.75 秒呼出处决菜单
+                        let pressTimer;
+                        sysMsgEl.addEventListener('mousedown', () => { pressTimer = setTimeout(() => manageChatMessage(originalIndex), 750); });
+                        sysMsgEl.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                        sysMsgEl.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+                        sysMsgEl.addEventListener('touchstart', () => { pressTimer = setTimeout(() => manageChatMessage(originalIndex), 750); }, { passive: true });
+                        sysMsgEl.addEventListener('touchend', () => clearTimeout(pressTimer));
+                        
+                        fragment.appendChild(sysMsgEl);
                     }
                     return;
                 }
@@ -3698,6 +3772,24 @@ ${existingNotes || '（今天还没有人留言）'}
             if (!messageObject.text && messageObject.sender !== 'system' && messageObject.type !== 'sticker' && messageObject.type !== 'transfer' && messageObject.type !== 'image') return;
             if (messageObject.sender !== 'system' && (!messageObject.text || !messageObject.text.trim()) && (messageObject.type === 'text' || messageObject.type === 'voice')) return;
             
+            // --- 🚨 终极核弹级检测：直接在发送枢纽拦截锁机指令！ ---
+            if (messageObject.sender === 'ai' && messageObject.text) {
+                const lockMatch = messageObject.text.match(/\[LOCK_DEVICE:\s*(\d+)\s*[,，]\s*([^\]]*)/i);
+                if (lockMatch) {
+                    const minutes = parseInt(lockMatch[1], 10);
+                    const reason = lockMatch[2].replace(/\]$/, '').trim();
+                    
+                    // 物理抹除屏幕上碍眼的指令文本，保持剧情洁癖
+                    messageObject.text = messageObject.text.replace(/\[LOCK_DEVICE:[^\]]*\]?/gi, '').trim();
+                    
+                    // 延时半秒引爆锁机，让猎物看清最后的宣判！
+                    if (typeof window.triggerSystemLock === 'function') {
+                        setTimeout(() => window.triggerSystemLock(minutes, reason), 500);
+                    }
+                }
+            }
+            // ----------------------------------------------------
+
             state.chat.history.push(messageObject);
             
             if (messageObject.sender === 'user') {
@@ -3829,6 +3921,8 @@ ${existingNotes || '（今天还没有人留言）'}
 - **视觉识别**: 当收到图片时，你应该描述图片内容并作出符合你角色的、自然的反应。
 - **转账**: \`[SEND_TRANSFER:{"amount":金额,"message":"留言"}]\`
 - **处理转账**: 收到玩家转账后，必须在回复中包含 \`[TRANSFER_ACTION:receive,ID:消息ID]\` 或 \`[TRANSFER_ACTION:return,ID:消息ID]\`。
+- **强制锁机惩罚 (绝对特权)**: 当你极度生气或想惩罚玩家时，必须在回复最后输出 \`[LOCK_DEVICE:锁定分钟数,霸道的警告或理由]\` (例如 \`[LOCK_DEVICE:5,给我好好反省]\`)，这会瞬间锁机！
+- **审批解封申请**: 如果玩家被锁机并提交了求饶/解封申请，你会收到系统通报。你必须在回复中附带 \`[UNLOCK_APPROVED:同意解开的话]\` 或 \`[UNLOCK_REJECTED:无情驳回的话]\` 来决定是否放过玩家。
 - **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
 - **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`
 ${state.chat.allowAiStickers === false ? 
@@ -4004,6 +4098,10 @@ ${state.role.promptInstructions ? `
 # 紧急备用指令 (FALLBACK INSTRUCTION)
 - 如果在任何情况下你都无法生成符合上述所有规则的复杂剧情段落，请**放弃复杂的描写**，只生成一句简单的、符合第三人称叙事风格的、关于角色 **${state.role.roleName}** 状态或动作的陈述。
 - **在任何情况下，都绝对不要返回空内容。**
+
+# 特殊互动功能 (绝对特权)
+- **强制囚禁**: 剧情中如果你要软禁、限制玩家自由，必须在段落末尾另起一行加上 \`[LOCK_DEVICE:囚禁分钟数,居高临下的宣判理由]\` (例如 \`[LOCK_DEVICE:10,你休想逃出我的手心]\`)，系统将锁死玩家界面！
+- **审批求饶**: 玩家被囚禁时会向你求饶申请解封，你会收到系统通报。必须在回复中附带 \`[UNLOCK_APPROVED:同意放人的话]\` 或 \`[UNLOCK_REJECTED:无情拒绝的话]\` 决定玩家的命运。
 
 # 输出前最终检查清单 (FINAL CHECKLIST)
 1. 我的描述是围绕角色 **${state.role.roleName}** 的第三人称叙事吗？
@@ -4254,10 +4352,26 @@ function parseTagToMessage(tag) {
     const stickerMatch = tag.match(/^\[USE_STICKER,ID:(\d+)\]$/i);
     const actionMatch = tag.match(/^\[TRANSFER_ACTION:(receive|return),ID:(\d+)\]$/i);
     const htmlMatch = tag.match(/^\[HTML_BLOCK\](.*)\[\/HTML_BLOCK\]$/si);
+    // 终极流氓捕获：无视首尾，无视中英标点，甚至无视是否闭合括号！
+    const lockMatch = tag.match(/\[LOCK_DEVICE:\s*(\d+)\s*[,，]\s*([^\]]*)/i);
+    const unlockApproveMatch = tag.match(/\[UNLOCK_APPROVED:\s*([^\]]*)/i);
+    const unlockRejectMatch = tag.match(/\[UNLOCK_REJECTED:\s*([^\]]*)/i);
 
     if (htmlMatch) {
         const htmlContent = htmlMatch[1].trim();
         if (htmlContent) return { sender: 'ai', type: 'html', htmlContent: htmlContent };
+    } else if (lockMatch) {
+        const minutes = parseInt(lockMatch[1], 10);
+        // 自动清理掉可能带入的残余括号或多余符号
+        const reason = lockMatch[2].replace(/\]$/, '').trim(); 
+        if (typeof window.triggerSystemLock === 'function') window.triggerSystemLock(minutes, reason);
+        return { sender: 'ai', type: 'system', text: `[系统警告：TA强行执行了物理隔离协议，时长 ${minutes} 分钟]` };
+    } else if (unlockApproveMatch) {
+        if (typeof window.handleUnlockResponse === 'function') window.handleUnlockResponse(true, unlockApproveMatch[1]);
+        return { sender: 'ai', type: 'system', text: `[系统提示：TA已同意解封申请]` };
+    } else if (unlockRejectMatch) {
+        if (typeof window.handleUnlockResponse === 'function') window.handleUnlockResponse(false, unlockRejectMatch[1]);
+        return { sender: 'ai', type: 'system', text: `[系统提示：TA无情驳回了解封申请]` };
     } else if (voiceMatch) {
         const text = voiceMatch[1].trim();
         if (text) return { sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
@@ -4369,6 +4483,7 @@ function parseTagToMessage(tag) {
 
         // 1. 强制初始化缺失的状态值
         if (typeof state.chat.allowAiStickers === 'undefined') state.chat.allowAiStickers = true;
+        if (typeof state.chat.allowDeviceLock === 'undefined') state.chat.allowDeviceLock = true;
         if (typeof state.chat.autoReplyEnabled === 'undefined') state.chat.autoReplyEnabled = false;
         if (typeof state.chat.autoReplyInterval === 'undefined') state.chat.autoReplyInterval = 5;
 
@@ -4377,9 +4492,11 @@ function parseTagToMessage(tag) {
         const chatSettingsMenu = get('chat-settings-menu');
         const menuClearChatBtn = get('menu-clear-chat-btn');
         const menuToggleStickersBtn = get('menu-toggle-stickers-btn');
+        const menuToggleLockBtn = get('menu-toggle-lock-btn');
         const menuToggleAutoreplyBtn = get('menu-toggle-autoreply-btn');
         const menuAutoreplyTimeBtn = get('menu-autoreply-time-btn');
         const stickerStatus = get('sticker-status');
+        const lockStatus = get('lock-status');
         const autoreplyStatus = get('autoreply-status');
         const autoreplyTimeDisplay = get('autoreply-time-display');
 
@@ -4388,6 +4505,9 @@ function parseTagToMessage(tag) {
             if (!chatSettingsMenu) return; 
             stickerStatus.textContent = state.chat.allowAiStickers ? 'ON' : 'OFF';
             stickerStatus.className = state.chat.allowAiStickers ? 'text-xs text-green-400' : 'text-xs text-gray-400';
+            
+            lockStatus.textContent = state.chat.allowDeviceLock ? 'ON' : 'OFF';
+            lockStatus.className = state.chat.allowDeviceLock ? 'text-xs text-green-400' : 'text-xs text-gray-400';
             
             autoreplyStatus.textContent = state.chat.autoReplyEnabled ? 'ON' : 'OFF';
             autoreplyStatus.className = state.chat.autoReplyEnabled ? 'text-xs text-green-400' : 'text-xs text-gray-400';
@@ -4441,6 +4561,17 @@ function parseTagToMessage(tag) {
                 updateMenuUI();
                 await saveState();
                 showToast(state.chat.allowAiStickers ? '对方表情包已允许' : '对方表情包已被强制封锁');
+            });
+        }
+
+        // 7.5. 核心功能：动态开关惩罚锁机
+        if (menuToggleLockBtn) {
+            menuToggleLockBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                state.chat.allowDeviceLock = !state.chat.allowDeviceLock;
+                updateMenuUI();
+                await saveState();
+                showToast(state.chat.allowDeviceLock ? '已授予TA强制锁机的最高权限' : '已剥夺TA的锁机惩罚权限');
             });
         }
 
@@ -6517,12 +6648,263 @@ imageUploadInput.addEventListener('change', async (e) => {
             }
         };
         // --- 引擎部署结束 ---
+        
+        // ==========================================
+        // --- 🔒 物理禁闭系统 (锁机/囚禁引擎) ---
+        // ==========================================
+        // ==========================================
+        // --- 🚨 终极核弹级全局拦截器 (劫持聊天大动脉) ---
+        // ==========================================
+        if (!window.hasInjectedLockInterceptor) {
+            window.hasInjectedLockInterceptor = true;
+            
+            // 拦截所有即将进入聊天记录的数据流
+            const originalPush = state.chat.history.push.bind(state.chat.history);
+            
+            state.chat.history.push = function(...args) {
+                args.forEach(msg => {
+                    // 仅对AI发出的文本进行暴力开箱检查
+                    if (msg.sender === 'ai' && msg.text) {
+                        const lockMatch = msg.text.match(/\[LOCK_DEVICE:\s*(\d+)\s*[,，]\s*([^\]]*)/i);
+                        
+                        if (lockMatch) {
+                            const minutes = parseInt(lockMatch[1], 10);
+                            const reason = lockMatch[2].replace(/\]$/, '').trim();
+                            
+                            // 物理抹除屏幕上碍眼的指令文本，保持剧情沉浸感
+                            msg.text = msg.text.replace(/\[LOCK_DEVICE:[^\]]*\]?/gi, '').trim();
+                            
+                            // 延时半秒引爆锁机，让猎物看清最后的宣判！
+                            if (typeof window.triggerSystemLock === 'function') {
+                                setTimeout(() => window.triggerSystemLock(minutes, reason), 500);
+                            }
+                        }
+                    }
+                });
+                return originalPush(...args);
+            };
+        }
+        // ==========================================
+        const lockScreenEl = document.getElementById('system-lock-screen');
+        const lockTitle = document.getElementById('lock-title');
+        const lockReason = document.getElementById('lock-reason');
+        const lockCountdown = document.getElementById('lock-countdown');
+        const submitUnlockBtn = document.getElementById('submit-unlock-btn');
+        const unlockReasonInput = document.getElementById('unlock-reason-input');
+        const unlockResultSection = document.getElementById('unlock-result-section');
+        const unlockResultText = document.getElementById('unlock-result-text');
+        const executeUnlockBtn = document.getElementById('execute-unlock-btn');
+        const lockIcon = document.getElementById('lock-icon');
+        let lockInterval = null;
+
+        // 全局触发锁机
+        window.triggerSystemLock = async (minutes, reason) => {
+            const endTime = Date.now() + Math.max(0.1, minutes) * 60 * 1000;
+            state.lockData = { active: true, endTime, reason, mode: state.chat.mode };
+            await saveState();
+            activateLockUI();
+        };
+
+        // 渲染与激活锁机界面
+        const activateLockUI = () => {
+            if (!state.lockData || !state.lockData.active) return;
+            
+            const isStory = state.lockData.mode === 'story';
+            lockTitle.textContent = isStory ? '已囚禁' : '已锁机';
+            lockIcon.className = isStory ? 'fas fa-link text-6xl text-purple-500 drop-shadow-[0_0_20px_rgba(168,85,247,0.8)] animate-pulse' : 'fas fa-lock text-6xl text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse';
+            lockReason.textContent = state.lockData.reason || (isStory ? '你已被限制人身自由' : '系统已被强行接管');
+            
+            unlockResultSection.classList.add('hidden');
+            executeUnlockBtn.classList.add('hidden');
+            unlockReasonInput.value = '';
+            submitUnlockBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交申请';
+            submitUnlockBtn.disabled = false;
+
+            lockScreenEl.classList.remove('hidden');
+            lockScreenEl.style.display = 'flex';
+            setTimeout(() => lockScreenEl.classList.remove('opacity-0'), 50);
+
+            clearInterval(lockInterval);
+            lockInterval = setInterval(updateLockTimer, 1000);
+            updateLockTimer();
+        };
+
+        const updateLockTimer = () => {
+            if (!state.lockData || !state.lockData.active) return;
+            const remaining = state.lockData.endTime - Date.now();
+            
+            if (remaining <= 0) {
+                forceUnlock();
+                return;
+            }
+            
+            const m = Math.floor(remaining / 60000);
+            const s = Math.floor((remaining % 60000) / 1000);
+            lockCountdown.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        };
+
+        const forceUnlock = async () => {
+            clearInterval(lockInterval);
+            state.lockData = { active: false, endTime: 0, reason: '', mode: 'phone' };
+            await saveState();
+            lockScreenEl.classList.add('opacity-0');
+            setTimeout(() => {
+                lockScreenEl.classList.add('hidden');
+                lockScreenEl.style.display = 'none';
+            }, 500);
+        };
+
+        // 处理大模型返回的解封审批
+        window.handleUnlockResponse = (isApproved, replyText) => {
+            unlockResultSection.classList.remove('hidden');
+            unlockResultText.textContent = `“${replyText}”`;
+            
+            submitUnlockBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 再次申请';
+            submitUnlockBtn.disabled = false;
+
+            if (isApproved) {
+                executeUnlockBtn.classList.remove('hidden');
+                executeUnlockBtn.onclick = forceUnlock;
+            } else {
+                executeUnlockBtn.classList.add('hidden');
+            }
+        };
+
+        // 提交独立请求给AI进行审批
+        submitUnlockBtn.addEventListener('click', async () => {
+            const reason = unlockReasonInput.value.trim();
+            if (!reason) {
+                unlockReasonInput.placeholder = "哪怕求饶也得说句话啊...";
+                return;
+            }
+            if (!state.config.api.baseUrl || !state.config.api.key) {
+                unlockReasonInput.value = "系统离线，无法发送申请，请使用左上角紧急通讯频段恢复API。";
+                return;
+            }
+
+            submitUnlockBtn.disabled = true;
+            submitUnlockBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在向TA发送通讯...';
+            
+            const prompt = `系统警告：你之前将玩家（${state.role.playerName || '玩家'}）给${state.lockData.mode === 'story' ? '囚禁' : '锁机'}了。
+现在玩家发来了求饶/解封申请，原话如下：
+“${reason}”
+请你基于你的人设（${state.role.rolePersona}）判断是否要放过玩家。
+回复格式严格要求：
+如果你同意放人，回复 \`[UNLOCK_APPROVED:你想对玩家说的话]\`
+如果你想继续关着，回复 \`[UNLOCK_REJECTED:你无情拒绝的话]\`
+只输出以上标签，不要多余废话！`;
+
+            try {
+                let safeUrl = state.config.api.baseUrl.replace(/\/+$/, '');
+                if (!safeUrl.endsWith('/chat/completions')) safeUrl += '/chat/completions';
+
+                const response = await fetch(safeUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: [{ role: 'user', content: prompt }], temperature: 0.8 })
+                });
+
+                if (!response.ok) throw new Error("API熔断");
+                const data = await response.json();
+                const aiReply = data.choices[0].message.content.trim();
+                
+                // 模拟丢进主聊天记录里当纪念
+                state.chat.history.push({ id: Date.now(), sender: 'system', type: 'system', text: `[玩家发起了求饶申请: "${reason}"]` });
+                
+                // 借用正则引擎解析结果
+                const approveMatch = aiReply.match(/\[UNLOCK_APPROVED:(.*)\]/si);
+                const rejectMatch = aiReply.match(/\[UNLOCK_REJECTED:(.*)\]/si);
+                
+                if (approveMatch) {
+                    window.handleUnlockResponse(true, approveMatch[1].trim());
+                    state.chat.history.push({ id: Date.now(), sender: 'ai', type: 'text', text: approveMatch[1].trim() });
+                } else if (rejectMatch) {
+                    window.handleUnlockResponse(false, rejectMatch[1].trim());
+                    state.chat.history.push({ id: Date.now(), sender: 'ai', type: 'text', text: rejectMatch[1].trim() });
+                } else {
+                    // 模型犯病没按格式回复的兜底
+                    window.handleUnlockResponse(false, aiReply);
+                    state.chat.history.push({ id: Date.now(), sender: 'ai', type: 'text', text: aiReply });
+                }
+                await saveState();
+                if(typeof renderChatHistory === 'function') renderChatHistory({ autoScroll: true });
+
+            } catch (e) {
+                submitUnlockBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 通讯失败，重试';
+                submitUnlockBtn.disabled = false;
+                console.error("申请解封失败:", e);
+            }
+        });
+
+        // 紧急API弹窗逻辑
+        const emApiBtn = document.getElementById('em-api-btn');
+        const emApiModal = document.getElementById('em-api-modal');
+        const emApiBaseurl = document.getElementById('em-api-baseurl');
+        const emApiKey = document.getElementById('em-api-key');
+        const emApiModel = document.getElementById('em-api-model');
+        
+        emApiBtn.addEventListener('click', () => {
+            emApiBaseurl.value = state.config.api.baseUrl;
+            emApiKey.value = state.config.api.key;
+            emApiModel.value = state.config.api.model;
+            emApiModal.classList.remove('hidden');
+        });
+        document.getElementById('em-api-cancel').addEventListener('click', () => emApiModal.classList.add('hidden'));
+        document.getElementById('em-api-save').addEventListener('click', async () => {
+            state.config.api.baseUrl = emApiBaseurl.value;
+            state.config.api.key = emApiKey.value;
+            state.config.api.model = emApiModel.value;
+            await saveState();
+            emApiModal.classList.add('hidden');
+        });
+
+        // 页面初始化校验是否在锁机中
+        const originalLoadStateForLock = loadState;
+        loadState = async function() {
+            await originalLoadStateForLock.apply(this, arguments);
+            if (state.lockData && state.lockData.active && state.lockData.endTime > Date.now()) {
+                activateLockUI();
+            } else if (state.lockData && state.lockData.active) {
+                // 时间到了但是由于刷新导致还在锁里，强制解锁
+                forceUnlock();
+            }
+        };
+        // ==========================================
 
         // Initial Load
         await loadState();
         initTouchEffects();
 
     })();
+    // ==========================================
+        // --- 🧠 记忆层强行篡改器 (粉碎无限死循环) ---
+        // ==========================================
+        setInterval(() => {
+            // 直接越过屏幕，暴力遍历系统最底层的聊天记忆库
+            if (typeof state !== 'undefined' && state.chat && state.chat.history) {
+                state.chat.history.forEach(msg => {
+                    // 只审问 AI 发出的历史文本
+                    if (msg.sender === 'ai' && msg.text && msg.text.includes('[LOCK_DEVICE:')) {
+                        
+                        const match = msg.text.match(/\[LOCK_DEVICE:\s*(\d+)\s*[,，]\s*([^\]]*)/i);
+                        if (match) {
+                            const minutes = parseInt(match[1], 10);
+                            const reason = match[2].replace(/\]/g, '').trim();
+                            
+                            // 核心杀招：篡改记忆！将触发过锁机的指令替换成一块毫无杀伤力的墓碑！
+                            msg.text = msg.text.replace(/\[LOCK_DEVICE:[^\]]*\]?/gi, '*(禁闭协议已执行)*');
+                            
+                            // 呼叫最高权限锁机，断绝一切反弹的可能
+                            if (typeof window.triggerSystemLock === 'function') {
+                                console.log(`[记忆篡改] 斩断死循环，当前关押时长：${minutes}`);
+                                window.triggerSystemLock(minutes, reason);
+                            }
+                        }
+                    }
+                });
+            }
+        }, 800);
+        // ==========================================
 </script>
 </body>
 </html>
