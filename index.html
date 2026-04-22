@@ -5358,6 +5358,18 @@ function parseTagToMessage(tag) {
 
                 const starBtn = getEl('star-btn');
                 const starBubble = getEl('star-bubble');
+                // --- 🌟 手术刀补丁：强制剥夺羽毛按钮的灰色束缚，赋予全局统一高亮！ ---
+                if (openReaderBtn) {
+                    openReaderBtn.classList.remove('text-gray-400', 'text-gray-500', 'opacity-50', 'text-slate-400', 'text-slate-500');
+                    openReaderBtn.classList.add('text-white', 'hover:text-blue-300', 'transition-colors', 'duration-300');
+                    openReaderBtn.style.opacity = '1';
+                    const icon = openReaderBtn.querySelector('i');
+                    if(icon) {
+                        icon.style.color = 'inherit';
+                        icon.classList.remove('text-gray-400', 'text-gray-500');
+                    }
+                }
+                // --- 补丁结束 ---
 
                 let currentBookId = null;
                 let currentBookTitle = "未知书籍";
