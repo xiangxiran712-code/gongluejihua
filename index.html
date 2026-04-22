@@ -295,7 +295,7 @@
         .song-info { margin-bottom: 6px; }
         .song-info h3 { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
         .song-info p { font-size: 10px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .album-art { width: 50px; height: 50px; border-radius: 6px; background: linear-gradient(45deg, #ee9ca7, #ffdde1); overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.3); flex-shrink: 0; cursor: pointer; position: relative; transition: all 0.3s ease; }
+        .album-art { width: 50px; height: 50px; border-radius: 6px; background: transparent; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.2); flex-shrink: 0; cursor: pointer; position: relative; transition: all 0.3s ease; }
         .album-art:hover::after { content: '换封面'; position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.7); color: white; font-size: 9px; padding: 2px; text-align: center; }
         .album-art i { font-size: 20px; color: rgba(255, 255, 255, 0.8); }
         .album-art img { width: 100%; height: 100%; object-fit: cover; }
@@ -1004,7 +1004,7 @@
         .wb-header { padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: rgba(255, 255, 255, 0.05); transition: background 0.2s; }
         .wb-header:hover { background: rgba(255, 255, 255, 0.1); }
         .wb-title-area { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
-        .wb-title { font-weight: 600; color: #e0e7ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem; transition: all 0.3s; }
+        .wb-title { font-weight: 600; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem; transition: all 0.3s; }
         .wb-actions { display: flex; align-items: center; gap: 0.8rem; flex-shrink: 0; }
         .wb-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease; background: rgba(0,0,0,0.2); }
         .wb-body.expanded { max-height: 600px; padding: 1rem; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.05); }
@@ -1259,7 +1259,7 @@
                                     <!-- 动态角色名字状态按钮 -->
                                     <button id="status-ecg-btn" class="flex items-center justify-center px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 active:scale-95 border border-white/10 shadow-sm" title="查看TA的状态">
                                         <div class="w-2 h-2 rounded-full bg-green-400 mr-2 shadow-[0_0_5px_#4ade80]"></div>
-                                        <span id="chat-header-role-name" class="font-bold text-sm text-white tracking-wide truncate max-w-[120px]">TA</span>
+                                        <span id="chat-header-role-name" class="font-bold text-sm tracking-wide truncate max-w-[120px]" style="color: var(--text-color);">TA</span>
                                     </button>
                                 </div>
                                 
@@ -1327,7 +1327,7 @@
                                 <button id="multifunction-toggle-btn" class="p-3 rounded-full glass-container hover:bg-white/20 transition-colors"><i class="fas fa-plus"></i></button>
                                 <div class="flex-1 relative flex items-end">
                                     <textarea id="user-input" class="w-full p-3 pr-12 rounded-2xl glass-container border-none outline-none placeholder-gray-300 focus:ring-2 focus:ring-blue-400 transition-all duration-300 resize-none" placeholder="请输入消息..." rows="1" style="max-height: 120px;"></textarea>
-                                     <button id="send-btn" class="absolute right-2 bottom-2 p-2.5 text-pink-300 hover:text-pink-400 transition-colors duration-300 flex items-center justify-center">
+                                     <button id="send-btn" class="absolute right-2 bottom-2 p-2.5 transition-all duration-300 flex items-center justify-center hover:opacity-70 hover:scale-110" style="color: var(--text-color);">
     <i class="fas fa-heart"></i>
 </button>
                                 </div>
@@ -1452,6 +1452,21 @@
                                     <div class="flex items-center justify-between"><label for="theme-user-text">用户文字</label><input type="color" id="theme-user-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
                                     <div class="flex items-center justify-between"><label for="theme-ai-text">AI文字</label><input type="color" id="theme-ai-text" class="w-12 h-8 rounded-md bg-transparent border-none"></div>
                                 </div>
+                                <!-- 🎨 在这里插入！特殊功能颜色专属控制台 -->
+                                <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 mt-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-orange-400 flex items-center justify-center text-white shadow-lg">
+                                            <i class="fas fa-palette"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-bold text-white">特殊功能颜色</h3>
+                                            <p class="text-[0.65rem] text-indigo-200 opacity-80 mt-0.5">接管购物、记事本、日历等组件色调</p>
+                                        </div>
+                                    </div>
+                                    <input type="color" id="sui-special-color" value="#a855f7" class="w-10 h-10 rounded cursor-pointer border-0 bg-transparent">
+                                </div>
+                                <!-- 插入结束 -->
+                                
                              </div>
                             <div class="mt-6 pt-6 border-t border-white/20">
                                 <h2 class="text-xl font-bold mb-4">API 设置</h2>
@@ -5038,7 +5053,7 @@ function parseTagToMessage(tag) {
 
                 const body = document.createElement('div');
                 body.className = 'wb-body scrollable-content';
-                body.innerHTML = `<div class="text-[0.85rem] opacity-90 whitespace-pre-wrap font-mono text-indigo-100/90 leading-relaxed">${entry.content}</div>`;
+                body.innerHTML = `<div class="text-[0.85rem] opacity-90 whitespace-pre-wrap font-mono leading-relaxed" style="color: var(--text-color);">${entry.content}</div>`;
 
                 header.onclick = () => {
                     const isExpanded = body.classList.contains('expanded');
@@ -6433,6 +6448,75 @@ imageUploadInput.addEventListener('change', async (e) => {
             };
             reader.readAsText(file);
         });
+        
+        // --- 🎨 全局特殊功能颜色接管引擎 (终极核爆版) ---
+        const suiColorPicker = document.getElementById('sui-special-color');
+
+        const applySpecialColor = (color) => {
+            document.documentElement.style.setProperty('--sui-primary', color);
+            let styleTag = document.getElementById('sui-dynamic-colors');
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'sui-dynamic-colors';
+                document.head.appendChild(styleTag);
+            }
+            
+            // 极致狂暴的 CSS 劫持，精准打击每一个顽固的紫色/靛色元素！
+            styleTag.innerHTML = `
+                :root { --sui-sp: var(--sui-primary); }
+
+                /* 1. 日历核心组件全面接管 */
+                .mini-day.today { background: var(--sui-sp) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; color: #fff !important; }
+                .cal-day.active, .calendar-day.active { background: var(--sui-sp) !important; border-color: var(--sui-sp) !important; opacity: 0.9; box-shadow: 0 0 10px rgba(0,0,0,0.3) !important; color: #fff !important; }
+                #calendar-send-btn, #calendar-ai-star-btn { background-color: var(--sui-sp) !important; }
+                .text-indigo-200\\/60, .text-indigo-300\\/80, .text-indigo-200, .text-indigo-300, .text-indigo-400 { color: var(--sui-sp) !important; opacity: 0.9 !important; }
+
+                /* 2. SUI 购物 (精准刺杀价钱、分割线、引号) */
+                #sui-shopping-list .flex-shrink-0 > div:nth-child(2) > div:nth-child(2) { color: var(--sui-sp) !important; text-shadow: none !important; }
+                #sui-shopping-list .flex-shrink-0 > div:nth-child(3) > div:first-child { background: var(--sui-sp) !important; opacity: 0.6; height: 1.5px !important; }
+                #sui-shopping-list .flex-shrink-0 i { color: var(--sui-sp) !important; }
+
+                /* 3. SUI 浏览器 (标题、URL) */
+                #sui-browser-list .cursor-pointer > div:first-child { color: var(--sui-sp) !important; }
+                #sui-browser-list .cursor-pointer > div:nth-child(3) { color: var(--sui-sp) !important; opacity: 0.8 !important; }
+                #sui-browser-list .cursor-pointer:hover { border-color: var(--sui-sp) !important; }
+
+                /* 4. SUI 记事本 (侧边那一竖) */
+                #sui-notepad-list .group > div:first-child > div > div:first-child { background: var(--sui-sp) !important; }
+
+                /* 5. 终极内联样式抹杀器：拦截所有弹窗和隐藏节点内写死的紫色色值 */
+                [style*="#818cf8"], [style*="rgb(129, 140, 248)"], 
+                [style*="#a78bfa"], [style*="rgb(167, 139, 250)"],
+                [style*="#c084fc"], [style*="rgb(192, 132, 252)"] {
+                    color: var(--sui-sp) !important;
+                    border-color: var(--sui-sp) !important;
+                }
+                
+                /* 特殊弹窗左侧高亮边框与背景拦截 */
+                div[style*="border-left: 4px solid"] { border-left-color: var(--sui-sp) !important; }
+                div[style*="background: rgba(129, 140, 248"] { background: transparent !important; border: 1px solid var(--sui-sp) !important; }
+            `;
+        };
+
+        if (suiColorPicker) {
+            suiColorPicker.addEventListener('input', (e) => {
+                const newColor = e.target.value;
+                applySpecialColor(newColor);
+                state.suiSpecialColor = newColor; 
+                if (typeof saveState === 'function') saveState();
+            });
+        }
+        
+        // 绑定钩子，读取存档后自动变色
+        const originalLoadState = loadState;
+        loadState = async function() {
+            await originalLoadState.apply(this, arguments);
+            if (state.suiSpecialColor) {
+                if (suiColorPicker) suiColorPicker.value = state.suiSpecialColor;
+                applySpecialColor(state.suiSpecialColor);
+            }
+        };
+        // --- 引擎部署结束 ---
 
         // Initial Load
         await loadState();
