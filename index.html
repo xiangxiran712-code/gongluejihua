@@ -1066,6 +1066,18 @@
         }
         .book-item { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #818cf8; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s; }
         .book-item:hover { background: rgba(255,255,255,0.15); transform: translateX(5px); }
+        /* --- 灵魂书架：绝对色彩同化指令 --- */
+        /* 强行撕裂 JS 里写死的 text-white，注入全局主题血液 */
+        .book-item h3 {
+            color: var(--text-color) !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important; /* 强化文字的悬浮感，防止融入背景 */
+        }
+        
+        /* 顺手把下方的阅读进度也一并同化，赋予 70% 的透明度以保持视觉层次感 */
+        .book-item p {
+            color: var(--text-color) !important;
+            opacity: 0.7 !important;
+        }
         
         /* 发光呼吸星星按钮 - 加入 touch-action: none 彻底解决手机端拖动卡顿 */
         #star-btn { 
