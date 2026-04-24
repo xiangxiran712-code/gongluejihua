@@ -513,24 +513,50 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
+        /* --- 极致黑白：发送转账（黑底白字） --- */
         .transfer-bubble {
             width: 240px;
             padding: 0;
-            background: linear-gradient(135deg, #f9a825, #f57c00);
-            color: white;
+            background: #000000 !important; /* 绝对纯黑 */
+            color: #ffffff !important; /* 绝对纯白 */
             border-radius: 12px;
             overflow: hidden;
             cursor: pointer;
+            border: 2px solid #000000;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.15); /* 硬核实体阴影 */
         }
         .transfer-bubble.ai { border-radius: 12px 12px 12px 0; }
         .transfer-bubble.user { border-radius: 12px 12px 0 12px; }
         .transfer-content { padding: 12px; display: flex; align-items: center; gap: 12px; }
-        .transfer-content .fa-money-bill-transfer { font-size: 24px; }
-        .transfer-info h4 { font-weight: bold; font-size: 1rem; }
-        .transfer-info p { font-size: 0.8rem; opacity: 0.9; }
-        .transfer-footer { font-size: 0.75rem; padding: 4px 12px; background: rgba(0,0,0,0.1); }
+        .transfer-content .fa-money-bill-transfer { font-size: 24px; color: #ffffff !important; } 
+        .transfer-info h4 { font-weight: 900; font-size: 1.1rem; letter-spacing: 0.05em; color: #ffffff !important; margin: 0 0 2px 0; }
+        .transfer-info p { font-size: 0.8rem; font-weight: bold; color: #aaaaaa !important; margin: 0; }
+        .transfer-footer { font-size: 0.75rem; font-weight: bold; padding: 6px 12px; background: #1a1a1a !important; color: #ffffff !important; border-top: 1px solid #333333 !important; }
+        
+        /* --- 极致黑白：接收/退回转账（白底黑字） --- */
         .transfer-bubble.received, .transfer-bubble.returned {
-            background: linear-gradient(135deg, #78909c, #546e7a);
+            background: #ffffff !important; /* 绝对纯白 */
+            color: #000000 !important; /* 绝对纯黑 */
+            border: 2px solid #000000 !important; /* 粗暴的纯黑边框 */
+        }
+        /* 强制翻转接收状态下的图标和文字颜色 */
+        .transfer-bubble.received .transfer-content .fa-money-bill-transfer,
+        .transfer-bubble.returned .transfer-content .fa-money-bill-transfer {
+            color: #000000 !important; 
+        }
+        .transfer-bubble.received .transfer-info h4,
+        .transfer-bubble.returned .transfer-info h4 {
+            color: #000000 !important;
+        }
+        .transfer-bubble.received .transfer-info p,
+        .transfer-bubble.returned .transfer-info p {
+            color: #555555 !important;
+        }
+        .transfer-bubble.received .transfer-footer, 
+        .transfer-bubble.returned .transfer-footer {
+            background: #f8f8f8 !important;
+            color: #000000 !important;
+            border-top: 2px solid #000000 !important; /* 纯黑分割线 */
         }
 
         .voice-bubble {
@@ -992,13 +1018,20 @@
         .cal-msg-bubble.ai { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); align-self: flex-start; border-bottom-left-radius: 0; }
         .cal-msg-time { font-size: 0.65rem; opacity: 0.5; margin-top: 4px; }
         .cal-msg-bubble.user .cal-msg-time { text-align: right; }
-        /* --- 世界书与第二屏桌面图标样式 (优化版) --- */
+        /* --- 世界书与第二屏桌面图标样式 (优化版 - 边框复活版) --- */
         .desktop-dock { position: absolute; bottom: 4rem; left: 0; width: 100%; display: flex; justify-content: center; gap: 2.5rem; z-index: 20; }
         .desktop-icon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; background: transparent; border: none; cursor: pointer; outline: none; transition: all 0.3s ease; }
-        .desktop-icon-bg { width: 4.5rem; height: 4.5rem; border-radius: 1.2rem; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.25); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: rgba(255, 255, 255, 0.9); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); }
-        .desktop-icon-btn:hover .desktop-icon-bg { transform: translateY(-8px) scale(1.05); background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.4); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); color: #fff; }
-        .desktop-icon-label { font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); font-weight: 600; transition: color 0.3s; }
-        .desktop-icon-btn:hover .desktop-icon-label { color: #fff; }
+        
+        /* 战损修复：把你精美的毛玻璃外壳、边框和阴影原封不动地还给你！绝对不乱删了！ */
+        .desktop-icon-bg { width: 4.5rem; height: 4.5rem; border-radius: 1.2rem; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.25); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); }
+        .desktop-icon-btn:hover .desktop-icon-bg { transform: translateY(-8px) scale(1.05); background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.4); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
+        
+        /* 纳米级精准同化：只强制修改里面的图标，让它向全局主题文字色臣服！ */
+        .desktop-icon-bg i { color: var(--text-color) !important; text-shadow: none !important; -webkit-text-fill-color: var(--text-color) !important; }
+        
+        /* 下方的文字标签同步变色，保持阵型完美统一 */
+        .desktop-icon-label { font-size: 0.85rem; font-weight: 600; transition: transform 0.3s; color: var(--text-color) !important; text-shadow: none !important; }
+        .desktop-icon-btn:hover .desktop-icon-label { transform: scale(1.05); color: var(--text-color) !important; }
         /* --- 世界书折叠与开关UI样式 --- */
         .wb-entry { background: rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.15); overflow: hidden; transition: all 0.3s ease; }
         .wb-header { padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: rgba(255, 255, 255, 0.05); transition: background 0.2s; }
@@ -4416,13 +4449,15 @@ function parseTagToMessage(tag) {
             overlay.style.cssText = `position: absolute; inset: 0; background: rgba(255,255,255,0.15); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 99999; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.4s ease;`;
 
             const modal = document.createElement('div');
-            // 极致圆润、大留白的 INS 纯白卡片
-            modal.style.cssText = `width: 85%; max-width: 320px; background: rgba(255, 255, 255, 0.95); border-radius: 2rem; padding: 2.5rem 1.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.4); transform: translateY(15px) scale(0.95); transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; gap: 1.8rem; position: relative;`;
+            // 极致圆润、大留白的 INS 纯白卡片 (注入动态自适应与折叠空间)
+            modal.style.cssText = `width: 85%; max-width: 320px; max-height: 85vh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; background: rgba(255, 255, 255, 0.95); border-radius: 2rem; padding: 2.5rem 1.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.4); transform: translateY(15px) scale(0.95); transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; gap: 1.8rem; position: relative;`;
+            // 隐藏Webkit滚动条
+            modal.className = 'hide-scrollbar';
 
             modal.innerHTML = `
-                <div id="close-status-btn" style="position: absolute; top: 1.2rem; right: 1.2rem; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #94a3b8; transition: all 0.2s;"><i class="fas fa-times"></i></div>
+                <div id="close-status-btn" style="position: absolute; top: 1.2rem; right: 1.2rem; width: 32px; height: 32px; border-radius: 50%; background: #f8fafc; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #94a3b8; transition: all 0.2s; z-index: 10;"><i class="fas fa-times"></i></div>
                 
-                <div style="text-align: center; margin-bottom: -0.5rem;">
+                <div style="text-align: center; margin-bottom: -0.5rem; flex-shrink: 0;">
                     <div style="width: 64px; height: 64px; border-radius: 50%; background: #fff1f2; color: #fb7185; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; margin: 0 auto 1rem; box-shadow: 0 10px 25px rgba(251, 113, 133, 0.25);"><i class="fas fa-heartbeat"></i></div>
                     <h3 style="font-size: 1.2rem; font-weight: 800; color: #1e293b; letter-spacing: 0.02em; font-family: var(--custom-font);">TA的状态</h3>
                     <p style="font-size: 0.7rem; color: #cbd5e1; margin-top: 0.3rem; text-transform: uppercase; letter-spacing: 0.1em;">Current Vitals</p>
@@ -4432,30 +4467,30 @@ function parseTagToMessage(tag) {
                     <!-- 想法卡片 -->
                     <div style="background: #f8fafc; border-radius: 1.2rem; padding: 1.2rem; display: flex; align-items: flex-start; gap: 1rem;">
                         <div style="width: 32px; height: 32px; border-radius: 10px; background: #e0e7ff; color: #6366f1; display: flex; justify-content: center; align-items: center; flex-shrink: 0;"><i class="fas fa-comment-dots"></i></div>
-                        <div>
+                        <div style="flex: 1; min-width: 0;">
                             <div style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; margin-bottom: 0.3rem;">内心 OS</div>
-                            <div style="font-size: 0.95rem; color: #334155; font-weight: 500; line-height: 1.5;">${status.thoughts}</div>
+                            <div style="font-size: 0.95rem; color: #334155; font-weight: 500; line-height: 1.5; word-break: break-word; white-space: pre-wrap;">${status.thoughts}</div>
                         </div>
                     </div>
 
                     <!-- 双拼数据卡片 -->
                     <div style="display: flex; gap: 1rem;">
-                        <div style="flex: 1; background: #fff1f2; border-radius: 1.2rem; padding: 1.2rem 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;">
+                        <div style="flex: 1; min-width: 0; background: #fff1f2; border-radius: 1.2rem; padding: 1.2rem 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;">
                             <div style="font-size: 0.7rem; font-weight: 700; color: #fda4af;">好感度</div>
                             <div style="font-size: 1.6rem; font-weight: 800; color: #f43f5e; line-height: 1;">${status.affinity}<span style="font-size: 0.8rem; opacity: 0.6; margin-left: 2px;">%</span></div>
                         </div>
-                        <div style="flex: 1.2; background: #f0fdf4; border-radius: 1.2rem; padding: 1.2rem 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; text-align: center;">
+                        <div style="flex: 1.2; min-width: 0; background: #f0fdf4; border-radius: 1.2rem; padding: 1.2rem 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; text-align: center;">
                             <div style="font-size: 0.7rem; font-weight: 700; color: #6ee7b7;">穿着</div>
-                            <div style="font-size: 0.95rem; font-weight: 600; color: #059669; line-height: 1.3;">${status.clothing}</div>
+                            <div style="font-size: 0.95rem; font-weight: 600; color: #059669; line-height: 1.3; word-break: break-word;">${status.clothing}</div>
                         </div>
                     </div>
 
                     <!-- 地点卡片 -->
                     <div style="background: #fffbeb; border-radius: 1.2rem; padding: 1.2rem; display: flex; align-items: center; gap: 1rem;">
                         <div style="width: 32px; height: 32px; border-radius: 10px; background: #fef08a; color: #ca8a04; display: flex; justify-content: center; align-items: center; flex-shrink: 0;"><i class="fas fa-map-marker-alt"></i></div>
-                        <div>
+                        <div style="flex: 1; min-width: 0;">
                             <div style="font-size: 0.7rem; font-weight: 700; color: #eab308; margin-bottom: 0.2rem;">当前坐标</div>
-                            <div style="font-size: 1rem; color: #a16207; font-weight: 700;">${status.location}</div>
+                            <div style="font-size: 1rem; color: #a16207; font-weight: 700; word-break: break-word;">${status.location}</div>
                         </div>
                     </div>
                 </div>
@@ -5374,7 +5409,7 @@ function parseTagToMessage(tag) {
                 const chatHistoryContext = (state.chat.history || []).slice(-5).map(m => `${m.sender === 'user' ? '我' : roleName}: ${m.text || m.content || '未解析内容'}`).join('\n');
                 const pmHistoryContext = session.messages.map(m => `${m.speaker === 'netizen' ? session.senderName : (m.speaker === 'user' ? '我' : roleName)}: ${m.content}`).join('\n');
 
-                const prompt = `你现在要扮演【${speakerTarget}】在私信界面回复。\n当前世界观法则：${activeWb}\n主聊天近期记录参考：\n${chatHistoryContext}\n\n当前该条私信的历史上下文：\n${pmHistoryContext}\n\n指令：请直接输出【${speakerTarget}】要回复的一句话或一段话，不要任何前缀，符合其身份和语境（如果是网友，请保持其初始类型特征，如喷子、死忠粉、打广告的等）。用户刚才提供的情节提示词是："${text}"（如果提示词为空，请根据上下文自由发挥推进对话）。直接输出对话内容，不要带引号。`;
+                const prompt = `你现在要扮演【${speakerTarget}】在网络私信/短信界面回复。\n当前世界观法则：${activeWb}\n主聊天近期记录参考(仅作事件了解，【绝对禁止】模仿其行文格式)：\n${chatHistoryContext}\n\n当前私信上下文：\n${pmHistoryContext}\n\n！！！最高警告！！！：\n无论主聊天记录是什么格式（哪怕是第三人称小说描述），在这里【绝对禁止】任何动作描写、神态描写或小说叙事格式！必须是纯粹的、简短的“网络键盘侠/手机打字”口语化风格！\n\n指令：请直接输出【${speakerTarget}】要回复的话，不要任何前缀，符合其身份（如果是网友则保持喷子、乐子人等特征）。用户提示："${text}"（为空则自由推进）。直接输出纯文本对话内容，绝不带引号。`;
 
                 // 修复寻址：构建正确的 API 端点
                 let safeBaseUrl = state.config.api.baseUrl.replace(/\/+$/, '');
@@ -5427,7 +5462,7 @@ function parseTagToMessage(tag) {
             // 修复寻址：正确提取聊天记录
             const chatHistoryContext = (state.chat.history || []).slice(-10).map(m => `${m.sender === 'user' ? '我' : roleName}: ${m.text || m.content || '行动记录'}`).join('\n');
             
-            const prompt = `请生成5条随机的互联网私信，发给用户（我）或者角色（${roleName}）。\n当前世界观：${activeWb}\n近期主聊天记录（必须作为吃瓜或评价参考）：\n${chatHistoryContext}\n\n要求：\n1. 这5条私信必须类型极端多样，包含：正向狂热粉、极端负面喷子、吃瓜乐子人、发小广告的机器号。\n2. 必须返回一个纯粹的 JSON 数组格式（不要任何markdown代码块，不要其他引导文字）。格式严格如下：\n[{"senderName": "匿名网友昵称", "type": "类型标签(例如:吃瓜/广告/喷子)", "content": "私信的具体内容"}]\n请绝对确保 JSON 结构合法！`;
+            const prompt = `请生成5条随机的互联网私信，发给用户（我）或者角色（${roleName}）。\n当前世界观：${activeWb}\n近期主聊天记录（仅作吃瓜参考，【绝对禁止】模仿其文体格式）：\n${chatHistoryContext}\n\n！！！最高警告！！！：\n【绝对禁止】任何动作描写、神态描写或小说叙事风格！私信内容必须是纯正的、简短的“网络键盘侠/手机短信”口语化风格！\n\n要求：\n1. 这5条私信必须类型极端多样，包含：正向狂热粉、极端负面喷子、吃瓜乐子人、错发信息、抽象搞怪、发小广告的机器号等等。\n2. 必须返回一个纯粹的 JSON 数组格式（不要任何markdown代码块，不要其他引导文字）。格式严格如下：\n[{"senderName": "匿名网友昵称", "type": "类型标签(例如:吃瓜/广告/喷子)", "content": "私信的具体内容"}]\n请绝对确保 JSON 结构合法！`;
 
             // 修复寻址：构建正确的 API 端点
             let safeBaseUrl = state.config.api.baseUrl.replace(/\/+$/, '');
@@ -6590,6 +6625,7 @@ imageUploadInput.addEventListener('change', async (e) => {
                 styleTag = document.createElement('style');
                 styleTag.id = 'sui-dynamic-colors';
                 document.head.appendChild(styleTag);
+                
             }
             
             // 极致狂暴的 CSS 劫持，精准打击每一个顽固的紫色/靛色元素！
@@ -6614,6 +6650,22 @@ imageUploadInput.addEventListener('change', async (e) => {
 
                 /* 4. SUI 记事本 (侧边那一竖) */
                 #sui-notepad-list .group > div:first-child > div > div:first-child { background: var(--sui-sp) !important; }
+                
+                /* 4.1 SUI 聊天记录 (主角与路人色彩绝对重置) */
+                .sui-otherchat-item .bubble-me { background: var(--sui-sp) !important; color: #fff !important; }
+                .sui-otherchat-item .bubble-them { background: rgba(255, 255, 255, 0.95) !important; color: #1e293b !important; border: 1px solid rgba(0,0,0,0.1) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important; }
+                
+                /* 4.2 SUI 足迹 (时间线圈圈) */
+                .sui-footprint-item::before { border-color: var(--sui-sp) !important; }
+                
+                /* 4.3 桌面微型日历 (年月标题) */
+                #mini-calendar-title { color: var(--sui-sp) !important; }
+                
+                /* 4.4 图书馆书架 (竖线与图标容器) */
+                .book-item { border-left-color: var(--sui-sp) !important; }
+                .book-item > div > div:first-child { background: var(--sui-sp) !important; background-image: none !important; }
+
+                
 
                 /* 5. 终极内联样式抹杀器：拦截所有弹窗和隐藏节点内写死的紫色色值 */
                 [style*="#818cf8"], [style*="rgb(129, 140, 248)"], 
