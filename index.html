@@ -1430,10 +1430,22 @@
                                 <input type="text" id="role-gender" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="攻略角色性别">
                                 <textarea id="role-persona" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="角色详细人设、背景故事、性格特点..."></textarea>
                             </div>
-                             <div class="glass-container p-4 rounded-xl">
-                                <h2 class="text-xl font-bold mb-3">AI行为指令</h2>
-                                <textarea id="prompt-instructions" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none h-32 focus:ring-2 focus:ring-blue-400" placeholder="给AI的特殊指令, 例如：'请以口语化的方式回复' 或 '在回复中加入表情符号'"></textarea>
+                             <!-- ================= 新增：多角色切换与创建矩阵 ================= -->
+                            <div class="glass-container p-4 rounded-xl overflow-hidden relative">
+                                <h2 class="text-xl font-bold mb-3 flex items-center justify-between">
+                                    <span>灵魂矩阵</span>
+                                    <span class="text-xs font-normal text-indigo-300 opacity-80">滑动切换角色</span>
+                                </h2>
+                                <!-- 横向滑动容器：隐藏滚动条，支持原生弹性滑动 -->
+                                <div id="role-roster-container" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 py-2 items-center w-full" style="-webkit-overflow-scrolling: touch;">
+                                    <!-- 核心新建按钮：圆形加号 -->
+                                    <button id="add-new-role-btn" class="w-14 h-14 rounded-full border-2 border-dashed border-indigo-400/50 flex flex-col items-center justify-center text-indigo-400/70 hover:text-indigo-300 hover:border-indigo-300 hover:bg-indigo-400/10 transition-all flex-shrink-0 snap-start shadow-sm" title="唤醒新角色">
+                                        <i class="fas fa-plus text-xl"></i>
+                                    </button>
+                                    
+                                </div>
                             </div>
+                            <!-- ================= 矩阵区域结束 ================= -->
                             <button id="save-role-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300">保存角色设置</button>
                         </div>
                     </div>
@@ -1893,6 +1905,29 @@
     (async () => { // Wrap in an async IIFE to use top-level await
         const get = id => document.getElementById(id);
         
+        // ================= 新增：多存档核心管理引擎 =================
+        window.currentProfileId = localStorage.getItem('active_profile_id');
+        if (!window.currentProfileId) {
+            window.currentProfileId = 'legacy'; // 旧存档锚点
+            localStorage.setItem('active_profile_id', 'legacy');
+        }
+        
+        window.masterRoster = JSON.parse(localStorage.getItem('master_role_roster'));
+        if (!window.masterRoster) {
+            // 尝试提取旧档名字
+            let legacyName = '最初的TA';
+            try {
+                const legacyState = JSON.parse(localStorage.getItem('game_state_v5'));
+                if (legacyState && legacyState.role && legacyState.role.roleName) legacyName = legacyState.role.roleName;
+            } catch(e){}
+            window.masterRoster = [{ id: 'legacy', roleName: legacyName }];
+            localStorage.setItem('master_role_roster', JSON.stringify(window.masterRoster));
+        }
+        // 获取当前数据库名称（兼容旧档）
+        const activeDbName = window.currentProfileId === 'legacy' ? 'GameDataStore' : ('GameDataStore_' + window.currentProfileId);
+        const activeLsKey = window.currentProfileId === 'legacy' ? 'game_state_v5' : ('game_state_v5_' + window.currentProfileId);
+        // ==========================================================
+        
         const UILock = {
             _locked: false,
             _timeout: null,
@@ -1974,7 +2009,7 @@
                 });
             }
         };
-        await db.init('GameDataStore', ['assets', 'stickers', 'chatHistory', 'memories', 'diaries', 'suiData']);
+        await db.init(activeDbName, ['assets', 'stickers', 'chatHistory', 'memories', 'diaries', 'suiData']);
 
         let loadedFontFaces = new Set();
 
@@ -2155,7 +2190,15 @@
             if (stateToSave.music && stateToSave.music.playlist) {
                 stateToSave.music.playlist = stateToSave.music.playlist.map(song => ({ name: song.name }));
             }
-            localStorage.setItem('game_state_v5', JSON.stringify(stateToSave));
+            
+            // ================= 修复：世界书全局同步与冗余备份 =================
+            if (state.worldbook && state.worldbook.length > 0) {
+                localStorage.setItem('global_worldbook', JSON.stringify(state.worldbook));
+            }
+            // 不删除 stateToSave.worldbook，让每个角色自身也保留一份快照，防止误清空
+            // ==============================================================
+
+            localStorage.setItem(activeLsKey, JSON.stringify(stateToSave));
         } catch (e) {
             console.error("Failed to save state.", e);
             showDialog("保存失败", "数据无法保存，可能是浏览器存储空间已满。");
@@ -2165,11 +2208,11 @@
         async function loadState() {
         let savedState = null;
         try {
-            const rawState = localStorage.getItem('game_state_v5');
+            const rawState = localStorage.getItem(activeLsKey);
             if(rawState) savedState = JSON.parse(rawState);
         } catch (e) { 
             console.error("Failed to parse state from localStorage, possibly corrupt data.", e);
-            localStorage.removeItem('game_state_v5');
+            localStorage.removeItem(activeLsKey);
         }
 
         if (savedState) {
@@ -2186,7 +2229,22 @@
             mergedState.music = { ...defaultState.music, ...(savedState.music || {}) };
             mergedState.chat = { ...defaultState.chat, ...(savedState.chat || {}) };
             mergedState.ui = { ...defaultState.ui, ...(savedState.ui || {}) };
-            mergedState.worldbook = savedState.worldbook || [];
+            
+            // ================= 修复：世界书打捞与智能融合机制 =================
+            let parsedGlobalWb = [];
+            try { parsedGlobalWb = JSON.parse(localStorage.getItem('global_worldbook')) || []; } catch(e){}
+            
+            let localWb = savedState.worldbook || [];
+            
+            // 核心判定：谁的法则数据多、谁有效，就用谁的。优先保证不丢失！
+            if (parsedGlobalWb.length >= localWb.length) {
+                mergedState.worldbook = parsedGlobalWb;
+            } else {
+                mergedState.worldbook = localWb;
+                // 如果发现当前单体存档里有更多设定，反向反哺给全宇宙！
+                localStorage.setItem('global_worldbook', JSON.stringify(localWb));
+            }
+            // ==============================================================
 
             Object.assign(state, mergedState);
         }
@@ -2940,7 +2998,17 @@ ${existingNotes || '（今天还没有人留言）'}
             suiSubPages.forEach(p => p.style.display = 'none');
             showView('sui');
         });
-        roleBtn.addEventListener('click', () => { get('player-name').value = state.role.playerName; get('player-gender').value = state.role.playerGender; get('player-persona').value = state.role.playerPersona; get('role-name').value = state.role.roleName; get('role-gender').value = state.role.roleGender; get('role-persona').value = state.role.rolePersona; get('prompt-instructions').value = state.role.promptInstructions; showView('role'); });
+        roleBtn.addEventListener('click', () => { 
+            get('player-name').value = state.role.playerName || ''; 
+            get('player-gender').value = state.role.playerGender || ''; 
+            get('player-persona').value = state.role.playerPersona || ''; 
+            get('role-name').value = state.role.roleName || ''; 
+            get('role-gender').value = state.role.roleGender || ''; 
+            get('role-persona').value = state.role.rolePersona || ''; 
+            
+            if (window.renderRoleRoster) window.renderRoleRoster();
+            showView('role'); 
+        });
         settingsBtn.addEventListener('click', () => { 
             get('signature-input').value = state.config.signature; 
             apiBaseUrl.value = state.config.api.baseUrl; 
@@ -3063,8 +3131,18 @@ ${existingNotes || '（今天还没有人留言）'}
         });
 
         saveRoleBtn.addEventListener('click', async () => {
-            state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value; state.role.playerPersona = get('player-persona').value; state.role.roleName = get('role-name').value; state.role.roleGender = get('role-gender').value; state.role.rolePersona = get('role-persona').value; state.role.promptInstructions = get('prompt-instructions').value;
-            await saveState(); showToast('角色设置已保存');
+            state.role.playerName = get('player-name').value; state.role.playerGender = get('player-gender').value; state.role.playerPersona = get('player-persona').value; state.role.roleName = get('role-name').value; state.role.roleGender = get('role-gender').value; state.role.rolePersona = get('role-persona').value; 
+            
+            // 同步花名册名字
+            const currentProfile = window.masterRoster.find(p => p.id === window.currentProfileId);
+            if (currentProfile) {
+                currentProfile.roleName = state.role.roleName || 'TA';
+                localStorage.setItem('master_role_roster', JSON.stringify(window.masterRoster));
+            }
+            
+            await saveState(); 
+            if (window.renderRoleRoster) window.renderRoleRoster();
+            showToast('角色数据已锁定保存在当前平行宇宙');
         });
 
         async function toggleFullscreen() {
@@ -6531,7 +6609,7 @@ imageUploadInput.addEventListener('change', async (e) => {
                 showToast('正在提取底层存储，准备全量打包...');
                 const fullExport = {
                     version: APP_VERSION,
-                    state: JSON.parse(localStorage.getItem('game_state_v5') || '{}'),
+                    state: JSON.parse(localStorage.getItem(activeLsKey) || '{}'),
                     dbData: {}
                 };
                 
@@ -6593,7 +6671,7 @@ imageUploadInput.addEventListener('change', async (e) => {
                     showToast('正在重写底层数据库...');
                     
                     if (importedData.dbData) {
-                        localStorage.setItem('game_state_v5', JSON.stringify(importedData.state));
+                        localStorage.setItem(activeLsKey, JSON.stringify(importedData.state));
                         
                         const storeNames = ['assets', 'stickers', 'chatHistory', 'memories', 'diaries', 'suiData'];
                         for (const storeName of storeNames) {
@@ -6613,7 +6691,7 @@ imageUploadInput.addEventListener('change', async (e) => {
                             }
                         }
                     } else {
-                        localStorage.setItem('game_state_v5', JSON.stringify(importedData));
+                        localStorage.setItem(activeLsKey, JSON.stringify(importedData));
                     }
                     
                     showToast('全量数据重塑成功！世界即将重启...');
@@ -6934,13 +7012,184 @@ imageUploadInput.addEventListener('change', async (e) => {
             }
         };
         // ==========================================
+        // ==========================================
+        // --- 🔮 灵魂矩阵引擎：真·平行宇宙独立存档切换 ---
+        // ==========================================
+        window.renderRoleRoster = () => {
+            const container = document.getElementById('role-roster-container');
+            const addBtn = document.getElementById('add-new-role-btn');
+            if (!container || !addBtn) return;
+
+            container.innerHTML = '';
+            container.appendChild(addBtn);
+
+            window.masterRoster.forEach((profile) => {
+                const isActive = profile.id === window.currentProfileId;
+                const sphere = document.createElement('div');
+                
+                const lastName = (profile.roleName && profile.roleName.trim().length > 0) 
+                    ? profile.roleName.trim().substring(0, 1) 
+                    : '?';
+
+                // 剔除 shadow-lg 阴影类，保持极简白边
+                sphere.className = `relative w-14 h-14 rounded-full border-2 flex items-center justify-center text-white flex-shrink-0 snap-start cursor-pointer transition-all duration-400 active:scale-95 ${isActive ? 'border-white z-10' : 'border-transparent opacity-40 hover:opacity-80 hover:scale-105'}`;
+                
+                // 仅保留纯粹的底色填充
+                sphere.style.backgroundColor = isActive ? 'var(--sui-primary)' : '#334155';
+                // 光晕渲染引擎已被物理拆除，圆圈不再向外投射任何色彩
+
+                sphere.innerHTML = `<span class="text-xl font-black text-shadow-md">${lastName}</span>`;
+                
+                // --- 注入：长按摧毁协议 ---
+                let pressTimer = null;
+                let isLongPressTriggered = false;
+
+                const startPress = (e) => {
+                    isLongPressTriggered = false;
+                    pressTimer = setTimeout(async () => {
+                        isLongPressTriggered = true;
+                        if(navigator.vibrate) navigator.vibrate(50); // 震动反馈
+                        
+                        // 保护机制：不能把最后一个世界给删了
+                        if (window.masterRoster.length <= 1) {
+                            showToast('这是你世界上最后的一个锚点了，无法抹除。');
+                            return;
+                        }
+
+                        const confirmed = await showDialog('抹除灵魂', `确定要永久抹除【${profile.roleName || 'TA'}】的所有平行宇宙痕迹吗？<br><span style="color:#ef4444; font-size:0.8rem;">警告：其专属聊天、音乐、相册、日历数据将在物理层面上被彻底销毁！</span>`, { buttons: [{ text: '取消', value: false, class: 'bg-gray-500/50' }, { text: '彻底抹除', value: true, class: 'bg-red-500/80' }] });
+                        
+                        if (confirmed) {
+                            // 1. 从名单中除名
+                            window.masterRoster = window.masterRoster.filter(p => p.id !== profile.id);
+                            localStorage.setItem('master_role_roster', JSON.stringify(window.masterRoster));
+                            
+                            // 2. 物理毁灭数据库和存档键值
+                            const targetLsKey = profile.id === 'legacy' ? 'game_state_v5' : ('game_state_v5_' + profile.id);
+                            const targetDbName = profile.id === 'legacy' ? 'GameDataStore' : ('GameDataStore_' + profile.id);
+                            localStorage.removeItem(targetLsKey);
+                            indexedDB.deleteDatabase(targetDbName); // 根除IndexedDB碎片
+
+                            showToast(`【${profile.roleName || 'TA'}】已从世界线中抹除`);
+
+                            // 3. 如果删掉的是当前正在玩的角色，强行将灵魂拽回第一个可用角色
+                            if (isActive) {
+                                localStorage.setItem('active_profile_id', window.masterRoster[0].id);
+                                setTimeout(() => window.location.reload(), 800);
+                            } else {
+                                window.renderRoleRoster(); // 如果删的是别人，只需重绘圆圈即可
+                            }
+                        }
+                    }, 700); // 0.7秒长按判定
+                };
+
+                const cancelPress = () => {
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
+                    }
+                };
+
+                // 绑定多端兼容的滑动/点击判定
+                sphere.addEventListener('mousedown', startPress);
+                sphere.addEventListener('mouseup', cancelPress);
+                sphere.addEventListener('mouseleave', cancelPress);
+                sphere.addEventListener('touchstart', startPress, { passive: true });
+                sphere.addEventListener('touchend', cancelPress);
+                sphere.addEventListener('touchcancel', cancelPress);
+                sphere.addEventListener('contextmenu', e => e.preventDefault()); // 禁系统默认长按菜单
+
+                // 核心防御：如果是长按触发的，松开手指时阻断普通的点击切换事件
+                sphere.onclick = (e) => {
+                    if (isLongPressTriggered) {
+                        e.preventDefault();
+                        return;
+                    }
+                    window.switchRole(profile.id);
+                };
+
+                container.appendChild(sphere);
+            });
+        };
+
+        window.switchRole = async (targetProfileId) => {
+            if (window.currentProfileId === targetProfileId) return; 
+            
+            // 1. 保存当前进度并将当前名字同步给主名单
+            const currentProfile = window.masterRoster.find(p => p.id === window.currentProfileId);
+            if (currentProfile) {
+                currentProfile.roleName = get('role-name').value || state.role.roleName || 'TA';
+            }
+            localStorage.setItem('master_role_roster', JSON.stringify(window.masterRoster));
+            await saveState();
+
+            // 2. 更改激活档案锚点
+            localStorage.setItem('active_profile_id', targetProfileId);
+
+            // 3. 重启页面，实现绝对的物理级内存隔离（背景、音乐、计时器全清空）
+            showToast('正在接入平行宇宙锚点，系统重载中...');
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+        };
+
+        document.getElementById('add-new-role-btn').addEventListener('click', async () => {
+            const newName = await showDialog('创造新灵魂', '请为新的平行档案命名：', { input: true, placeholder: '输入角色姓名' });
+            if (!newName) return;
+
+            // 1. 更新并保存当前档案
+            const currentProfile = window.masterRoster.find(p => p.id === window.currentProfileId);
+            if (currentProfile) currentProfile.roleName = get('role-name').value || state.role.roleName || 'TA';
+            
+            // 2. 注册新档案 ID
+            const newProfileId = 'role_' + Date.now();
+            window.masterRoster.push({ id: newProfileId, roleName: newName });
+            localStorage.setItem('master_role_roster', JSON.stringify(window.masterRoster));
+            
+            await saveState();
+
+            // 3. 为新档案注入基础空壳（继承玩家属性，清空角色进度与其他一切痕迹）
+            const newLsKey = 'game_state_v5_' + newProfileId;
+            const newStateTemplate = JSON.parse(JSON.stringify(state)); 
+            
+            // 核心重置区域：除了基础API和玩家人设，全部强行抹除，做到100%纯净的物理隔离
+            newStateTemplate.chat.history = [];
+            newStateTemplate.chat.affinity = 0;
+            newStateTemplate.chat.status = { thoughts: '一切都很平静，波澜不惊', affinity: 0, clothing: '未特别留意', location: '未知地点' }; // 重置心电图状态栏
+            newStateTemplate.memories = [];
+            newStateTemplate.diaries = [];
+            newStateTemplate.sui = { shopping: [], browser: [], otherchat: [], album: [], notepad: [], footprints: [] };
+            newStateTemplate.music = { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 };
+            newStateTemplate.books = [];
+            
+            newStateTemplate.calendarNotes = {}; // 清空日历与桌面挂件留言
+            newStateTemplate.pmSessions = []; // 清空暗网动态与私信
+            newStateTemplate.starHistory = []; // 清空图书馆陪伴星星的记忆
+            newStateTemplate.worldbook = state.worldbook; // 【关键】将当前脑海里的世界书直接传授给新角色
+            newStateTemplate.lockData = { active: false, endTime: 0, reason: '', mode: 'phone' }; // 解除囚禁/锁机状态
+            
+            newStateTemplate.config.bgImage = null; // 重置壁纸
+            newStateTemplate.config.avatarImage = null; // 重置头像
+            newStateTemplate.config.avatarFrameImage = null; // 重点剥离前任的头像框！
+            
+            newStateTemplate.role.roleName = newName;
+            newStateTemplate.role.roleGender = '';
+            newStateTemplate.role.rolePersona = '';
+            
+            localStorage.setItem(newLsKey, JSON.stringify(newStateTemplate));
+            localStorage.setItem('active_profile_id', newProfileId);
+
+            showToast(`[${newName}] 的世界线已开辟，正在跃迁...`);
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+        });
+        // ==========================================
 
         // Initial Load
         await loadState();
         initTouchEffects();
 
-    })();
-    // ==========================================
+        // ==========================================
         // --- 🧠 记忆层强行篡改器 (粉碎无限死循环) ---
         // ==========================================
         setInterval(() => {
@@ -6969,6 +7218,7 @@ imageUploadInput.addEventListener('change', async (e) => {
             }
         }, 800);
         // ==========================================
+    })();
 </script>
 </body>
 </html>
