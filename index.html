@@ -1108,6 +1108,29 @@
         #star-bubble.show { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); pointer-events: auto; cursor: pointer; /* 核心修复：显示时允许点击 */ }
         #star-bubble.hide { opacity: 0; transform: translateY(-60%) translateX(15px) scale(0.9); pointer-events: none; }
         #star-bubble::after { content: ''; position: absolute; right: -8px; top: 15px; border-width: 8px 0 8px 8px; border-style: solid; border-color: transparent transparent transparent rgba(255,255,255,0.95); }
+        /* --- 全局统一线框按钮（特殊功能颜色接管） --- */
+        .btn-outline-custom {
+            background-color: transparent !important;
+            border-style: solid !important;
+            border-width: 1px !important;
+            border-color: var(--sui-primary, #818cf8) !important;
+            color: var(--sui-primary, #818cf8) !important;
+            font-weight: 700 !important;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.1) !important;
+            transition: all 0.3s ease !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+        }
+        .btn-outline-custom:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2) !important;
+            transform: translateY(-2px) !important;
+            border-color: var(--sui-primary, #818cf8) !important;
+            color: var(--sui-primary, #818cf8) !important;
+        }
+        .btn-outline-custom:active {
+            transform: scale(0.95) !important;
+        }
     </style>
 </head>
 <body>
@@ -1384,8 +1407,8 @@
                         </div>
                         <div id="chat-batch-actions" class="batch-actions-footer hidden">
                             <div class="flex w-full space-x-2">
-                                <button id="confirm-batch-delete-chat-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
-                                <button id="cancel-batch-delete-chat-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
+                                <button id="confirm-batch-delete-chat-btn" class="w-full p-3 rounded-md btn-outline-custom">删除选中</button>
+                                <button id="cancel-batch-delete-chat-btn" class="w-full p-3 rounded-md btn-outline-custom">取消</button>
                             </div>
                         </div>
                         
@@ -1399,8 +1422,8 @@
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="font-bold">表情包</h3>
                                 <div>
-                                    <button id="add-sticker-btn" class="px-3 py-1 text-sm bg-blue-500 rounded-full mr-2">添加</button>
-                                    <button id="close-sticker-drawer-btn" class="px-3 py-1 text-sm bg-gray-600 rounded-full">关闭</button>
+                                    <button id="add-sticker-btn" class="px-4 py-1.5 text-sm rounded-full btn-outline-custom mr-2">添加</button>
+                                    <button id="close-sticker-drawer-btn" class="px-4 py-1.5 text-sm rounded-full btn-outline-custom">关闭</button>
                                 </div>
                             </div>
                             <div id="sticker-grid" class="sticker-grid scrollable-content">
@@ -1446,7 +1469,7 @@
                                 </div>
                             </div>
                             <!-- ================= 矩阵区域结束 ================= -->
-                            <button id="save-role-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300">保存角色设置</button>
+                            <button id="save-role-btn" class="w-full p-3 rounded-md btn-outline-custom mt-4">保存角色设置</button>
                         </div>
                     </div>
 
@@ -1465,20 +1488,13 @@
                             <div class="mt-6 pt-6 border-t border-white/20">
                                 <h2 class="text-xl font-bold mb-4">外观设置</h2>
                                 <div class="flex space-x-2">
-                                    <button id="avatar-frame-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
-                                        选择头像框
-                                    </button>
-                                    <button id="bg-upload-btn" class="flex-grow p-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors duration-300">
-                                        选择背景图片
-                                    </button>
-                                    <button id="restore-appearance-btn" title="还原默认" class="p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors duration-300">
-                                        <i class="fas fa-undo"></i>
-                                    </button>
+                                    <button id="avatar-frame-upload-btn" class="flex-grow p-3 rounded-md btn-outline-custom">选择头像框</button>
+                                    <button id="bg-upload-btn" class="flex-grow p-3 rounded-md btn-outline-custom">选择背景图片</button>
+                                    <button id="restore-appearance-btn" title="还原默认" class="p-3 rounded-md btn-outline-custom"><i class="fas fa-undo"></i></button>
                                  </div>
                                  <div class="mt-4">
-                                    <button id="fullscreen-btn" class="w-full p-3 rounded-md bg-teal-600 text-white font-bold hover:bg-teal-700 transition-colors duration-300 flex items-center justify-center gap-2">
-                                        <i class="fas fa-expand"></i>
-                                        <span>全屏</span>
+                                    <button id="fullscreen-btn" class="w-full p-3 rounded-md btn-outline-custom flex items-center justify-center gap-2">
+                                        <i class="fas fa-expand"></i><span>全屏</span>
                                     </button>
                                 </div>
                              </div>
@@ -1489,7 +1505,7 @@
                                     <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="w-full p-3 rounded-md bg-white/20 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                 </div>
                                 <div class="flex space-x-2 mb-2">
-                                    <button id="manage-fonts-btn" class="flex-grow p-2 rounded-md bg-gray-600 text-white text-sm font-bold hover:bg-gray-700 transition-colors">管理字体</button>
+                                    <button id="manage-fonts-btn" class="flex-grow p-2 rounded-md btn-outline-custom text-sm">管理字体</button>
                                 </div>
                                 <div class="flex items-center justify-between mb-2">
                                     <label for="font-family-select">选择字体</label>
@@ -1552,14 +1568,14 @@
                             <div class="mt-6 pt-6 border-t border-white/20">
                                 <h2 class="text-xl font-bold mb-4">数据管理</h2>
                                 <div class="flex space-x-4">
-                                    <button id="export-data-btn" class="w-full p-3 rounded-md bg-green-600 text-white font-bold hover:bg-green-700 transition-colors duration-300">导出数据</button>
-                                    <button id="import-data-btn" class="w-full p-3 rounded-md bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors duration-300">导入数据</button>
+                                    <button id="export-data-btn" class="w-full p-3 rounded-md btn-outline-custom">导出数据</button>
+                                    <button id="import-data-btn" class="w-full p-3 rounded-md btn-outline-custom">导入数据</button>
                                 </div>
                                 <input type="file" id="import-file-input" class="hidden" accept=".json">
                                 <input type="file" id="image-upload-input" class="hidden" accept="image/*">
                             </div>
-                            <button id="open-custom-css-btn" class="w-full p-3 rounded-md bg-purple-600 text-white font-bold hover:bg-purple-700 transition-colors duration-300 mt-4"><i class="fas fa-magic"></i> 其他高级美化 (CSS)</button>
-                            <button id="save-settings-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300 mt-4">保存所有设置</button>
+                            <button id="open-custom-css-btn" class="w-full p-3 rounded-md btn-outline-custom mt-4"><i class="fas fa-magic"></i> 其他高级美化 (CSS)</button>
+                            <button id="save-settings-btn" class="w-full p-3 rounded-md btn-outline-custom mt-4">保存所有设置</button>
                         </div>
                     </div>
 
@@ -1585,7 +1601,7 @@
                                 <button id="reset-css-chatpage-btn" class="text-xs text-right text-gray-400 hover:text-white mt-1 transition-colors">载入原始界面模板</button>
                             </div>
 
-                            <button id="save-custom-css-btn" class="w-full p-3 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-300 mt-4 shadow-lg">注入代码并保存</button>
+                            <button id="save-custom-css-btn" class="w-full p-3 rounded-md btn-outline-custom mt-4">注入代码并保存</button>
                         </div>
                     </div>
                     
@@ -1601,8 +1617,8 @@
                         </div>
                         <div id="memory-list" class="glass-container p-4 w-full max-w-lg mx-auto flex-1 overflow-y-auto space-y-2 scrollable-content"></div>
                         <div id="memory-batch-actions" class="hidden w-full max-w-lg mx-auto mt-4 flex space-x-2">
-                            <button id="confirm-batch-delete-memories-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
-                            <button id="cancel-batch-delete-memories-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
+                            <button id="confirm-batch-delete-memories-btn" class="w-full p-3 rounded-md btn-outline-custom">删除选中</button>
+                            <button id="cancel-batch-delete-memories-btn" class="w-full p-3 rounded-md btn-outline-custom">取消</button>
                         </div>
                     </div>
 
@@ -1618,8 +1634,8 @@
                         </div>
                         <div id="diary-list-container" class="glass-container p-4 w-full max-w-2xl mx-auto flex-1 overflow-y-auto space-y-4 scrollable-content"></div>
                         <div id="diary-batch-actions" class="hidden w-full max-w-2xl mx-auto mt-4 flex space-x-2">
-                            <button id="confirm-batch-delete-diaries-btn" class="w-full p-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">删除选中</button>
-                            <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md bg-gray-600 text-white font-bold hover:bg-gray-700 transition-colors">取消</button>
+                            <button id="confirm-batch-delete-diaries-btn" class="w-full p-3 rounded-md btn-outline-custom">删除选中</button>
+                            <button id="cancel-batch-delete-btn" class="w-full p-3 rounded-md btn-outline-custom">取消</button>
                         </div>
                     </div>
 
@@ -1768,7 +1784,7 @@
                             </div>
                             <div class="flex gap-2">
                                 <textarea id="pm-input" class="flex-1 bg-black/40 text-white rounded-xl p-3 outline-none resize-none h-12 focus:ring-1 focus:ring-indigo-500 text-sm" placeholder="点击上方身份，输入回复或留空让AI发挥"></textarea>
-                                <button id="pm-send-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-4 font-bold transition-colors shadow-lg shadow-indigo-500/30">发送</button>
+                                <button id="pm-send-btn" class="btn-outline-custom rounded-xl px-4 transition-colors">发送</button>
                             </div>
                         </div>
                     </div>
@@ -2373,7 +2389,7 @@
                 buttons.forEach(btnInfo => {
                     const button = document.createElement('button');
                     button.textContent = btnInfo.text;
-                    button.className = `px-4 py-2 text-white rounded-md ${btnInfo.class}`;
+                    button.className = `px-4 py-2 rounded-lg btn-outline-custom`; // 强制使用统一的线框与特殊功能色
                     button.onclick = () => {
                         dialog.classList.add('hidden'); dialog.style.display = 'none';
                         let result;
