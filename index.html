@@ -5656,7 +5656,7 @@ function parseTagToMessage(tag) {
             // 修复寻址：正确提取聊天记录
             const chatHistoryContext = (state.chat.history || []).slice(-10).map(m => `${m.sender === 'user' ? '我' : roleName}: ${m.text || m.content || '行动记录'}`).join('\n');
             
-            const prompt = `请生成5条随机的互联网私信，发给用户（我）或者角色（${roleName}）。\n当前世界观：${activeWb}\n近期主聊天记录（仅作吃瓜参考，【绝对禁止】模仿其文体格式）：\n${chatHistoryContext}\n\n！！！最高警告！！！：\n【绝对禁止】任何动作描写、神态描写或小说叙事风格！私信内容必须是纯正的、简短的“网络键盘侠/手机短信”口语化风格！\n\n要求：\n1. 这5条私信必须类型极端多样，包含：正向狂热粉、极端负面喷子、吃瓜乐子人、错发信息、抽象搞怪、发小广告的机器号等等。\n2. 必须返回一个纯粹的 JSON 数组格式（不要任何markdown代码块，不要其他引导文字）。格式严格如下：\n[{"senderName": "匿名网友昵称", "type": "类型标签(例如:吃瓜/广告/喷子)", "content": "私信的具体内容"}]\n请绝对确保 JSON 结构合法！`;
+            const prompt = `请生成5条随机的互联网私信，发给用户（我）或者角色（${roleName}）。\n当前世界观：${activeWb}\n近期主聊天记录（仅作吃瓜参考，【绝对禁止】模仿其文体格式）：\n${chatHistoryContext}\n\n！！！最高警告！！！：\n【绝对禁止】任何动作描写、神态描写或小说叙事风格！私信内容必须是纯正的、简短的“网络键盘侠/手机短信”口语化风格！\n\n要求：\n1. 这5条私信必须类型极端多样，包含：正向狂热粉、极端负面喷子、吃瓜乐子人、错发信息、抽象搞怪、发小广告的机器号、文艺、中二、日常分享、提问，以上包括但不限制，请发挥想象。\n2. 必须返回一个纯粹的 JSON 数组格式（不要任何markdown代码块，不要其他引导文字）。格式严格如下：\n[{"senderName": "匿名网友昵称", "type": "类型标签(例如:吃瓜/广告/喷子)", "content": "私信的具体内容"}]\n请绝对确保 JSON 结构合法！`;
 
             // 修复寻址：构建正确的 API 端点
             let safeBaseUrl = state.config.api.baseUrl.replace(/\/+$/, '');
