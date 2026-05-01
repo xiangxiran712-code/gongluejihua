@@ -169,17 +169,24 @@
             cursor: pointer;
             position: relative;
         }
+        /* 基础布局保留，剥离外观属性到默认选择器中 */
         .message-bubble.user {
-            background-color: var(--user-bubble-bg);
             align-self: flex-end;
-            border-radius: 12px 12px 0 12px;
             color: var(--user-bubble-text); /* 独立颜色 */
         }
         .message-bubble.ai {
-            background-color: var(--ai-bubble-bg);
             align-self: flex-start;
-            border-radius: 12px 12px 12px 0;
             color: var(--ai-bubble-text); /* 独立颜色 */
+        }
+        
+        /* 默认气泡外观（当存在自定义CSS时系统将自动退位，实现“替换”而非“覆盖”） */
+        #chat-history:not(.custom-bubbles-active) .message-bubble.user:not(.transfer-bubble):not(.sticker-bubble):not(.image-bubble):not(.html-bubble) {
+            background-color: var(--user-bubble-bg);
+            border-radius: 12px 12px 0 12px;
+        }
+        #chat-history:not(.custom-bubbles-active) .message-bubble.ai:not(.transfer-bubble):not(.sticker-bubble):not(.image-bubble):not(.html-bubble) {
+            background-color: var(--ai-bubble-bg);
+            border-radius: 12px 12px 12px 0;
         }
         .chat-header, .chat-footer, .batch-actions-footer {
             position: sticky;
@@ -2149,6 +2156,16 @@
             }
             const cssData = state.config.customCSS || { bubbles: '', chatPage: '' };
             styleTag.innerHTML = `\n${cssData.bubbles}\n\n${cssData.chatPage}\n`;
+            
+            // 核心级干涉：一旦检测到用户注入了自定义气泡代码，系统立即剥夺自身的默认外观接管权
+            const chatHistoryEl = document.getElementById('chat-history');
+            if (chatHistoryEl) {
+                if (cssData.bubbles && cssData.bubbles.trim().length > 0) {
+                    chatHistoryEl.classList.add('custom-bubbles-active');
+                } else {
+                    chatHistoryEl.classList.remove('custom-bubbles-active');
+                }
+            }
         };
         
         const applyColors = (colors) => {
@@ -4066,10 +4083,12 @@ ${existingNotes || '（今天还没有人留言）'}
 1.  **ONE. LINE. ONE. ACTION.** 这是最高指令，绝无例外。你的每一行输出只能是 **纯文本** 或 **一个功能标签**。
 2.  **NEVER mix text and tags on the same line.** 绝对禁止任何形式的混合。
 3.  **多步操作必须分行 (Multi-step actions MUST be on separate lines).** 如果你想说话，然后发表情，你必须用两行来完成。
-4.  **每次回复3-15句内容，不少于3句。
+4.  **每次回复3-15句内容，不少于3句。每一行纯文本（即单条聊天气泡）绝对不能超过30个字！如果你有长篇大论想说，必须强行敲回车键，拆分成多行、多条短句发送！绝对禁止在一条消息里塞满长篇大论！
+5.**语音最低1秒，最高60秒**
+6.功能可以搭配使用，不是固定每回合只能用一次，可以连续多条语音或者表情包插入。引用功能也可以多次使用，而且可以中途使用，而不是固定只能在第一条回复使用。
 
-# 绝对禁止事项
-- **绝对禁止描写**: 严禁输出任何描述你动作、神态、心理活动或环境的文字 (例如: *我笑了*, (看着屏幕), [他感到温暖])。
+# 绝对禁止事项 (VIOLATION WILL CAUSE SYSTEM CRASH)
+- **彻底封杀动作与环境描写**: 玩家隔着手机屏幕看不见你的动作！严禁输出任何描述动作、神态、心理、环境的旁白文字（例如：*我笑了*、(低头看着手机)、[叹了一口气]）。任何带有小说叙事风格的回复都将被视为严重违规，必须时刻保持键盘打字聊天的语境！
 - **绝对禁止小说风格**: 严禁使用第三人称叙事或任何类似小说的文体。
 
 # ！！！警告 (SYSTEM WARNING) ！！！
@@ -4119,6 +4138,8 @@ ${state.chat.allowAiStickers === false ?
             const activeWb = (state.worldbook || []).filter(wb => wb.enabled !== false);
             return activeWb.length > 0 ? activeWb.map((wb, i) => `[法则 ${i+1} - ${wb.title || '未命名'}]: ${wb.content}`).join('\n') : '- 暂无额外世界观干涉';
         })()}
+        
+- 警告：以上世界书法则是最高维度指令，无论在什么情况下，你必须绝对服从！
 
 # 📨 外部环境干涉：当前网络私信动态 (你必须知道外界现在对你们的评价)
         ${(() => {
@@ -4137,6 +4158,7 @@ ${state.role.promptInstructions ? `
 # 最终指令
 - 再次检查上面的 **警告** 和 **核心输出规则**。
 - 你的回复格式正确性至关重要。
+- **记住：短句发送，绝对禁止任何旁白描写，绝对服从世界书设定！**
 - **记住：一行，一事。**
 - 直接开始写你的第一句聊天内容。
 `;
@@ -4231,6 +4253,14 @@ ${state.role.promptInstructions ? `
 - **必须进行详细描写**: 你的回复必须包含对环境、角色的动作、表情、神态、以及角色内心感受的生动描写。
 - **必须是小说风格**: 把自己当作一个小说家，将玩家的行动和你的回应编织成一个连贯的、有画面感的故事片段。
 - **对话必须在引号内**: 角色说的话必须用引号（“ ”）包裹起来。例如：他微笑着说：“你好。”
+-**对白部分必须单独一行**:你的话语部分也就是引号的话，必须上下空一行排版。
+-简化示例:
+
+描写内容
+
+“话语。”
+
+描写内容
 
 # 绝对禁止事项 (DO NOT DO THIS)
 - **绝对禁止聊天风格**: 严禁回复简短的、口语化的、像聊天软件里的消息。
@@ -4258,6 +4288,8 @@ ${state.role.promptInstructions ? `
             const activeWb = (state.worldbook || []).filter(wb => wb.enabled !== false);
             return activeWb.length > 0 ? activeWb.map((wb, i) => `[法则 ${i+1} - ${wb.title || '未命名'}]: ${wb.content}`).join('\n') : '- 暂无额外世界观干涉';
         })()}
+        
+- 警告：以上世界书法则是最高维度指令，无论在什么情况下，你必须绝对服从！
 
 # 📨 外部环境干涉：当前网络私信动态 (你必须知道外界现在对你们的评价)
         ${(() => {
@@ -4288,7 +4320,7 @@ ${state.role.promptInstructions ? `
 3. 我的回复内容是否为空？（绝不能为空）
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
-- **检查你的输出！** 你的回复必须是**小说一样的叙事段落**。
+- **检查输出！你的回复必须是小说叙事段落，并且牢记世界书设定的最高优先级！**
 - 直接开始写你的故事段落。
 `;
             const apiMessages = [{ role: 'system', content: systemPrompt }];
@@ -4573,11 +4605,14 @@ function parseTagToMessage(tag) {
             if (action === 'receive') {
                 targetMsg.status = 'received';
                 showToast('对方已收款');
+                return { sender: 'ai', type: 'system', text: `[系统提示：TA已接收了你的转账]` };
             } else if (action === 'return') {
                 targetMsg.status = 'returned';
                 showToast('对方已退回转账');
+                return { sender: 'ai', type: 'system', text: `[系统提示：TA已退回了你的转账]` };
             }
         }
+        return { sender: 'ai', type: 'system', text: `[系统提示：转账状态同步完成]` };
     }
     return null;
 }
@@ -7319,35 +7354,188 @@ imageUploadInput.addEventListener('change', async (e) => {
             });
         }
 
-        const rawBubblesCSS = `/* 用户气泡基础模板 */
-.message-bubble.user {
+        const rawBubblesCSS = `/* ===================================================
+   【核心规范】聊天气泡与时间戳底层白皮书
+   开发者/AI 请注意：修改气泡外观时，必须保留 :not() 排除器，
+   否则将导致转账卡片、图片卡片等特殊交互组件排版崩溃！
+=================================================== */
+
+/* 1. 用户气泡基础模板 (右侧) */
+.message-bubble.user:not(.transfer-bubble):not(.image-bubble):not(.sticker-bubble):not(.html-bubble) {
     background-color: var(--user-bubble-bg);
     border-radius: 12px 12px 0 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 0.6rem 0.9rem;
+    color: var(--user-bubble-text);
 }
 
-/* AI气泡基础模板 */
-.message-bubble.ai {
+/* 2. AI 气泡基础模板 (左侧) */
+.message-bubble.ai:not(.transfer-bubble):not(.image-bubble):not(.sticker-bubble):not(.html-bubble) {
     background-color: var(--ai-bubble-bg);
     border-radius: 12px 12px 12px 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 0.6rem 0.9rem;
+    color: var(--ai-bubble-text);
+}
+
+/* 3. 用户气泡下方的时间戳 (利用兄弟选择器捕获) */
+.message-bubble.user + div {
+    color: rgba(255, 255, 255, 0.5) !important; /* 时间文字的颜色 */
+    font-size: 0.65rem !important; /* 时间字体大小 */
+    margin-top: 4px !important;
+}
+
+/* 4. AI 气泡下方的时间戳 */
+.message-bubble.ai + div {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 0.65rem !important;
+    margin-top: 4px !important;
 }`;
 
-        const rawChatPageCSS = `/* 聊天主背景区域模板 */
+        const rawChatPageCSS = `/* ===================================================
+   【核心规范】聊天界面 UI 元素精准定位白皮书
+   开发者/AI 请注意：此页面的原生样式由 Tailwind 驱动，
+   若要覆盖外观，请务必在属性后加上 !important。
+=================================================== */
+
+/* ================= 1. 聊天界主背景与容器 ================= */
+/* 聊天主背景区域 (控制整体聊天页的底色或背景图) */
+#chat-page {
+    /* background: url('your-image.jpg') center/cover; */
+}
+
+/* 聊天记录滚动区 (负责消息气泡的排列与内边距) */
 #chat-history {
-    background-color: transparent;
-    padding: 1rem;
+    background-color: transparent !important;
+    padding: 1rem !important;
 }
 
-/* 顶部信息栏模板 */
+/* ================= 2. 顶部导航栏 (Header) ================= */
+/* 顶部栏主容器 (毛玻璃效果、边框等) */
 .chat-header {
-    background-color: var(--glass-container-bg);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background-color: var(--glass-container-bg) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding-top: 1rem !important;
+    padding-bottom: 0.5rem !important;
 }
 
-/* 底部输入区模板 */
+/* 顶部通用圆形按钮 (返回键、设置加号、记忆打包键) */
+.chat-header button {
+    /* color: #ffffff !important; */
+}
+
+/* 动态角色心声状态栏 (带心电图绿点的那个按钮) */
+#status-ecg-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 9999px !important;
+}
+
+/* 角色名字文本 */
+#chat-header-role-name {
+    color: var(--text-color) !important;
+    font-weight: bold !important;
+}
+
+/* ================= 3. 底部输入栏 (Footer) ================= */
+/* 底部固定栏容器 */
 .chat-footer {
-    background-color: transparent;
+    background-color: transparent !important;
+    padding-bottom: env(safe-area-inset-bottom, 12px) !important;
+}
+
+/* 文本输入框 (控制输入区域的圆角、背景、字体) */
+#user-input {
+    background-color: var(--glass-container-bg) !important;
+    color: var(--text-color) !important;
+    border-radius: 16px !important;
+}
+
+/* AI角色回复按钮 (左下角长条按钮) */
+#ai-reply-btn {
+    background-color: var(--glass-container-bg) !important;
+    color: var(--text-color) !important;
+    border-radius: 12px !important;
+}
+
+/* 多功能展开按钮 (+) */
+#multifunction-toggle-btn {
+    background-color: var(--glass-container-bg) !important;
+}
+
+/* 发送按钮 (输入框右侧的心形/发送图标) */
+#send-btn {
+    color: var(--text-color) !important;
+}
+
+/* ================= 4. 多功能扩展面板 (+) ================= */
+/* 展开后的功能面板容器 (转账、语音、表情、图片开关等) */
+#multifunction-menu .glass-container {
+    background-color: var(--glass-container-bg) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+}
+
+/* 面板内的单个功能图标按钮 */
+#multifunction-menu button {
+    color: var(--text-color) !important;
+}
+
+/* ================= 5. 悬浮快捷操作菜单 (长按气泡触发) ================= */
+/* 弹出的黑色/深色胶囊菜单 (包含引用、编辑、删除等) */
+#quick-action-menu {
+    background: #4a5568 !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
+}
+
+/* 快捷菜单里的单个圆形按钮 */
+.quick-action-button {
+    color: #ffffff !important;
+}
+
+/* ================= 6. 多选批量操作栏 ================= */
+/* 触发多选后的底部操作栏 */
+#chat-batch-actions.batch-actions-footer {
+    background-color: rgba(0,0,0,0.8) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* 取消 / 删除选中 按钮 */
+#confirm-batch-delete-chat-btn, 
+#cancel-batch-delete-chat-btn {
+    /* 默认使用了全局 btn-outline-custom 样式，可在此单独覆盖 */
+}
+
+/* 多选模式下气泡旁边的复选框 */
+#chat-history .form-checkbox {
+    border-color: #718096 !important;
+    background-color: #4a5568 !important;
+}
+#chat-history .form-checkbox:checked {
+    background-color: #818cf8 !important; /* 选中时的颜色 */
+}
+
+/* ================= 7. 弹窗与系统消息 ================= */
+/* 全局自定义对话框 (居中弹窗) */
+#custom-dialog .glass-container {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border-radius: 16px !important;
+}
+
+/* 灰色系统提示文字 (例如：TA已退回转账、TA已锁机) */
+.system-message-wrapper .system-message-text {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-color) !important;
+    border-radius: 999px !important;
+    padding: 2px 10px !important;
+}
+
+/* 引用回复预览横幅 (输入框上方弹出的那条) */
+#reply-preview-bar .glass-container {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-left: 4px solid #818cf8 !important;
+    border-radius: 12px 12px 0 0 !important;
 }`;
 
         if(resetCssBubblesBtn) {
