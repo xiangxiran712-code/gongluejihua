@@ -4338,17 +4338,26 @@ ${state.role.promptInstructions ? `
                 if (msg.sender === 'user' || msg.sender === 'ai') {
                     if (msg.text) {
                         const role = msg.sender === 'user' ? 'user' : 'assistant';
-                        apiMessages.push({ role, content: msg.text });
+                        // 核心修复 1：给上下文打上强烈的剧情模式烙印，防止大模型误以为这是普通聊天记录
+                        let formattedContent = msg.text;
+                        if (role === 'user') {
+                            formattedContent = `【${state.role.playerName || '玩家'} 的行动/话语】：\n${msg.text}`;
+                        }
+                        apiMessages.push({ role, content: formattedContent });
                     }
                 }
             });
 
-            // 【终极API护城河】：剧情模式同理，强制塞入剧情推进指令！
+            // 【终极API护城河】：对抗大模型的“近因遗忘症”
             if (apiMessages.length === 0 || apiMessages[apiMessages.length - 1].role !== 'user') {
+                // 情况A：玩家没说话，强制让AI推进剧情
                 apiMessages.push({
                     role: 'user',
-                    content: '[系统强制引导]：玩家当前没有采取行动。请你作为叙述者，继续推进剧情，描写角色的动作或主动说出的话！'
+                    content: '[系统强制引导]：玩家当前没有采取行动。请你作为叙述者，继续推进剧情，描写角色的动作或主动说出的话！\n\n【最高指令】：必须输出丰富的小说描写（环境、动作、神态），对话用引号包裹，严禁只发一句话！别忘了末尾的[STATUS]标签！'
                 });
+            } else {
+                // 核心修复 2：情况B：玩家说了话。必须在玩家最后一条消息的末尾，死死焊上输出格式的“夺命连环催”！
+                apiMessages[apiMessages.length - 1].content += '\n\n[系统强制指令]：请立即以上帝视角/叙述者身份，输出一段【包含丰富环境动作描写、对话用引号包裹的小说段落】响应玩家。绝对禁止像聊天软件那样只回复干巴巴的对白！别忘了末尾单独一行的 [STATUS] 标签！';
             }
 
             return apiMessages;
