@@ -4496,6 +4496,16 @@ ${state.role.promptInstructions ? `
                     .replace(/\[AFFINITY_CHANGE:(-?\d+)\]/ig, '') // 兼容清理旧标签防止模型犯病
                     .trim();
 
+                // --- 物理级防御装甲一：彻底碾碎违规表情包 ---
+                if (state.chat.allowAiStickers === false) {
+                    // 只要开关关闭，无论AI发什么疯，直接在字符串层面把表情标签物理抹除
+                    contentForParsing = contentForParsing.replace(/\[USE_STICKER[^\]]*\]/ig, '');
+                }
+                
+                // --- 物理级防御装甲二：强制切断长篇大论 ---
+                // 强行在句号、叹号、问号后面加上换行符，把它强制切成一条条短消息
+                contentForParsing = contentForParsing.replace(/([。！？\.\!\?])(?!\n)(?!\])/g, '$1\n').trim();
+
                 if (!contentForParsing) {
                     await saveState(); 
                     return;
