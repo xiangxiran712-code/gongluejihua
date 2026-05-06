@@ -1231,6 +1231,25 @@
         
         /* 修复商品卡片被砍断的问题 */
         #mall-content-home { grid-auto-rows: max-content; }
+        /* 第三屏图标与文字全色彩继承 */
+#open-soul-btn, #open-mall-btn, #open-mall-btn + button {
+    color: var(--text-color) !important;
+}
+
+#open-soul-btn i, #open-mall-btn i, #open-mall-btn + button i {
+    color: var(--text-color) !important;
+}
+
+/* 即使在 Hover 状态下也强制锁定文字色 */
+#open-soul-btn:hover *, #open-mall-btn:hover *, #open-mall-btn + button:hover * {
+    color: var(--text-color) !important;
+}
+
+/* 修正线条颜色 */
+#open-soul-btn .w-8.h-\[1px\] {
+    background-color: var(--text-color) !important;
+    opacity: 0.3;
+}
     </style>
 </head>
 <body>
@@ -1365,35 +1384,35 @@
                         </div> <!-- 结束第二屏 -->
 
                         <!-- 第三屏：留白·雅致空间 (极简组件页) -->
-                        <div class="w-full h-full flex-shrink-0 snap-start flex flex-col p-6 pt-16 relative items-center justify-center">
-                            
-                            <!-- 新中式极简风：拾光卡片 -->
-                            <div id="open-soul-btn" class="w-full max-w-[85%] p-8 rounded-[2rem] border-[0.5px] border-white/20 bg-white/5 backdrop-blur-md flex flex-col items-center justify-center shadow-[0_8px_32px_rgba(255,255,255,0.02)] transition-all duration-500 hover:bg-white/10 group cursor-pointer">
-                                <div class="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
-                                    <i class="fa-solid fa-leaf text-white/70 text-xl"></i>
-                                </div>
-                                <h3 class="text-lg font-medium tracking-[0.3em] text-white/90 font-[var(--custom-font)] mb-3 ml-2">拾光</h3>
-                                <div class="w-8 h-[1px] bg-white/20 mb-5"></div>
-                                <p class="text-xs text-white/50 tracking-widest text-center leading-loose">
-                                    万物皆有裂痕<br>那是光照进来的地方
-                                </p>
-                            </div>
+<div class="w-full h-full flex-shrink-0 snap-start flex flex-col p-6 pt-16 relative items-center justify-center" style="color: var(--text-color);">
+    
+    <!-- 新中式极简风：拾光卡片 -->
+    <div id="open-soul-btn" class="w-full max-w-[85%] p-8 rounded-[2rem] border-[0.5px] bg-white/5 backdrop-blur-md flex flex-col items-center justify-center shadow-sm transition-all duration-500 hover:bg-white/10 group cursor-pointer" style="border-color: currentColor; border-opacity: 0.2;">
+        <div class="w-12 h-12 rounded-full border flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500" style="border-color: currentColor; opacity: 0.6;">
+            <i class="fa-solid fa-leaf text-xl" style="color: inherit;"></i>
+        </div>
+        <h3 class="text-lg font-medium tracking-[0.3em] font-[var(--custom-font)] mb-3 ml-2" style="color: inherit;">拾光</h3>
+        <div class="w-8 h-[1px] mb-5" style="background-color: currentColor; opacity: 0.2;"></div>
+        <p class="text-xs tracking-widest text-center leading-loose" style="color: inherit; opacity: 0.6;">
+            万物皆有裂痕<br>那是光照进来的地方
+        </p>
+    </div>
 
-                            <!-- 现代简约风：轻量级功能入口 -->
-                            <div class="flex gap-8 mt-12">
-                                <button id="open-mall-btn" class="flex flex-col items-center gap-3 group outline-none">
-                                    <div class="w-14 h-14 rounded-2xl bg-transparent border border-white/20 flex items-center justify-center text-white/50 group-hover:bg-white/10 group-hover:text-white transition-all duration-300 shadow-sm group-active:scale-95">
-                                        <i class="fa-solid fa-wind text-xl"></i>
-                                    </div>
-                                    <span class="text-[0.65rem] tracking-[0.2em] text-white/40 group-hover:text-white/80 transition-colors ml-1">听风</span>
-                                </button>
-                                <button class="flex flex-col items-center gap-3 group outline-none">
-                                    <div class="w-14 h-14 rounded-2xl bg-transparent border border-white/20 flex items-center justify-center text-white/50 group-hover:bg-white/10 group-hover:text-white transition-all duration-300 shadow-sm group-active:scale-95">
-                                        <i class="fa-solid fa-mug-hot text-xl"></i>
-                                    </div>
-                                    <span class="text-[0.65rem] tracking-[0.2em] text-white/40 group-hover:text-white/80 transition-colors ml-1">煮茶</span>
-                                </button>
-                            </div>
+    <!-- 现代简约风：轻量级功能入口 -->
+    <div class="flex gap-8 mt-12">
+        <button id="open-mall-btn" class="flex flex-col items-center gap-3 group outline-none">
+            <div class="w-14 h-14 rounded-2xl bg-transparent border flex items-center justify-center transition-all duration-300 shadow-sm group-active:scale-95" style="border-color: currentColor; opacity: 0.5; color: inherit;">
+                <i class="fa-solid fa-wind text-xl"></i>
+            </div>
+            <span class="text-[0.65rem] tracking-[0.2em] transition-colors ml-1" style="color: inherit; opacity: 0.6;">听风</span>
+        </button>
+        <button class="flex flex-col items-center gap-3 group outline-none">
+            <div class="w-14 h-14 rounded-2xl bg-transparent border flex items-center justify-center transition-all duration-300 shadow-sm group-active:scale-95" style="border-color: currentColor; opacity: 0.5; color: inherit;">
+                <i class="fa-solid fa-mug-hot text-xl"></i>
+            </div>
+            <span class="text-[0.65rem] tracking-[0.2em] transition-colors ml-1" style="color: inherit; opacity: 0.6;">煮茶</span>
+        </button>
+    </div>
 
                             <!-- 底部滑动指示器 (第三屏) -->
                             <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30 pointer-events-none">
