@@ -1115,6 +1115,55 @@
         #star-bubble.show { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); pointer-events: auto; cursor: pointer; /* 核心修复：显示时允许点击 */ }
         #star-bubble.hide { opacity: 0; transform: translateY(-60%) translateX(15px) scale(0.9); pointer-events: none; }
         #star-bubble::after { content: ''; position: absolute; right: -8px; top: 15px; border-width: 8px 0 8px 8px; border-style: solid; border-color: transparent transparent transparent rgba(255,255,255,0.95); }
+        
+        /* --- 拾光·灵渊 (Soul Abyss) 专属极简美学 --- */
+        .soul-glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+            border-radius: 24px;
+        }
+        .soul-fade-in { animation: soulFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .soul-fade-out { animation: soulFadeOut 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes soulFadeIn { from { opacity: 0; transform: translateY(10px); filter: blur(5px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+        @keyframes soulFadeOut { from { opacity: 1; transform: translateY(0); filter: blur(0); } to { opacity: 0; transform: translateY(-10px); filter: blur(5px); } }
+        
+        .soul-btn-outline {
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            background: transparent;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .soul-btn-outline:hover {
+            border-color: #818cf8;
+            color: #818cf8;
+            box-shadow: 0 4px 15px rgba(129, 140, 248, 0.15);
+        }
+        .soul-blur-text {
+            filter: blur(8px);
+            opacity: 0.5;
+            transition: filter 1s ease, opacity 1s ease;
+            user-select: none;
+        }
+        .soul-blur-text.clear {
+            filter: blur(0);
+            opacity: 1;
+        }
+        .soul-pulse-orb {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(129,140,248,0.2) 0%, rgba(255,255,255,0) 70%);
+            border: 1px solid rgba(129,140,248,0.4);
+            animation: orbPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        @keyframes orbPulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 0.4; } }
+        
         /* --- 全局统一线框按钮（特殊功能颜色接管） --- */
         .btn-outline-custom {
             background-color: transparent !important;
@@ -1138,6 +1187,50 @@
         .btn-outline-custom:active {
             transform: scale(0.95) !important;
         }
+        
+        /* --- 听风·极简商城专属美学 --- */
+        .mall-tab { position: relative; padding: 0.5rem 0; color: #94a3b8; font-weight: 500; transition: all 0.3s; white-space: nowrap; cursor: pointer; }
+        .mall-tab.active { color: #818cf8; font-weight: 700; }
+        .mall-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 1rem; height: 3px; background: #818cf8; border-radius: 2px; }
+        
+        .mall-product-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 15px -5px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+        .mall-product-card:active { transform: scale(0.98); }
+        .mall-product-img-box { width: 100%; aspect-ratio: 1/1; background: #f1f5f9; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .mall-product-img-box i { font-size: 2.5rem; color: #cbd5e1; }
+        
+        .mall-bottom-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.5); }
+        .mall-nav-item { color: #94a3b8; transition: color 0.3s; }
+        .mall-nav-item.active { color: #818cf8; }
+
+        /* 支付与礼物卡片 (聊天界面的特殊气泡) */
+        .pay-request-bubble, .gift-bubble { background: #ffffff !important; border: 1px solid #e2e8f0 !important; color: #334155 !important; border-radius: 16px !important; width: 240px !important; max-width: 80vw !important; padding: 0 !important; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1) !important; display: block !important; margin: 5px 0 !important; }
+        .pay-request-bubble.user { border-bottom-right-radius: 4px !important; }
+        .pay-request-bubble.ai, .gift-bubble.ai { border-bottom-left-radius: 4px !important; }
+        .pay-header { background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important; padding: 12px !important; border-bottom: 1px dashed #e2e8f0 !important; display: flex !important; align-items: center !important; gap: 10px !important; }
+        .pay-header i { color: #818cf8 !important; font-size: 1.2rem !important; }
+        .pay-body { padding: 12px !important; }
+        .pay-price { font-size: 1.4rem !important; font-weight: 900 !important; color: #f43f5e !important; margin-top: 4px !important; }
+        .pay-status { text-align: center !important; padding: 8px !important; font-size: 0.75rem !important; font-weight: bold !important; background: #f8fafc !important; color: #94a3b8 !important; border-top: 1px solid #f1f5f9 !important; }
+        .pay-status.accepted { background: #ecfdf5 !important; color: #10b981 !important; }
+        .pay-status.rejected { background: #fff1f2 !important; color: #f43f5e !important; }
+
+        /* 提升子页面层级，确保收银台和详情页永远在最前面 */
+        .mall-subpage { position: absolute; inset: 0; background: #f8fafc; z-index: 110; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
+        .mall-subpage.show { transform: translateX(0); }
+        
+        /* 详情弹窗设为最高级 200，收银台 210 */
+        #mall-detail-modal { z-index: 200 !important; }
+        #mall-checkout-page { z-index: 210 !important; }
+
+        /* 强化红心收藏状态视觉 */
+        #detail-fav-btn.text-rose-500 i {
+            filter: drop-shadow(0 0 5px rgba(244, 63, 94, 0.4));
+            transform: scale(1.2);
+            color: #f43f5e !important;
+        }
+        
+        /* 修复商品卡片被砍断的问题 */
+        #mall-content-home { grid-auto-rows: max-content; }
     </style>
 </head>
 <body>
@@ -1228,6 +1321,7 @@
                         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30 pointer-events-none">
                             <div class="w-2 h-2 rounded-full bg-white opacity-80 shadow-[0_0_4px_rgba(255,255,255,0.8)]"></div>
                             <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
+                            <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
                         </div>
                         </div> <!-- 结束第一屏 -->
 
@@ -1266,8 +1360,48 @@
                             <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30 pointer-events-none">
                                 <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
                                 <div class="w-2 h-2 rounded-full bg-white opacity-80 shadow-[0_0_4px_rgba(255,255,255,0.8)]"></div>
+                                <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
                             </div>
                         </div> <!-- 结束第二屏 -->
+
+                        <!-- 第三屏：留白·雅致空间 (极简组件页) -->
+                        <div class="w-full h-full flex-shrink-0 snap-start flex flex-col p-6 pt-16 relative items-center justify-center">
+                            
+                            <!-- 新中式极简风：拾光卡片 -->
+                            <div id="open-soul-btn" class="w-full max-w-[85%] p-8 rounded-[2rem] border-[0.5px] border-white/20 bg-white/5 backdrop-blur-md flex flex-col items-center justify-center shadow-[0_8px_32px_rgba(255,255,255,0.02)] transition-all duration-500 hover:bg-white/10 group cursor-pointer">
+                                <div class="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                                    <i class="fa-solid fa-leaf text-white/70 text-xl"></i>
+                                </div>
+                                <h3 class="text-lg font-medium tracking-[0.3em] text-white/90 font-[var(--custom-font)] mb-3 ml-2">拾光</h3>
+                                <div class="w-8 h-[1px] bg-white/20 mb-5"></div>
+                                <p class="text-xs text-white/50 tracking-widest text-center leading-loose">
+                                    万物皆有裂痕<br>那是光照进来的地方
+                                </p>
+                            </div>
+
+                            <!-- 现代简约风：轻量级功能入口 -->
+                            <div class="flex gap-8 mt-12">
+                                <button id="open-mall-btn" class="flex flex-col items-center gap-3 group outline-none">
+                                    <div class="w-14 h-14 rounded-2xl bg-transparent border border-white/20 flex items-center justify-center text-white/50 group-hover:bg-white/10 group-hover:text-white transition-all duration-300 shadow-sm group-active:scale-95">
+                                        <i class="fa-solid fa-wind text-xl"></i>
+                                    </div>
+                                    <span class="text-[0.65rem] tracking-[0.2em] text-white/40 group-hover:text-white/80 transition-colors ml-1">听风</span>
+                                </button>
+                                <button class="flex flex-col items-center gap-3 group outline-none">
+                                    <div class="w-14 h-14 rounded-2xl bg-transparent border border-white/20 flex items-center justify-center text-white/50 group-hover:bg-white/10 group-hover:text-white transition-all duration-300 shadow-sm group-active:scale-95">
+                                        <i class="fa-solid fa-mug-hot text-xl"></i>
+                                    </div>
+                                    <span class="text-[0.65rem] tracking-[0.2em] text-white/40 group-hover:text-white/80 transition-colors ml-1">煮茶</span>
+                                </button>
+                            </div>
+
+                            <!-- 底部滑动指示器 (第三屏) -->
+                            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30 pointer-events-none">
+                                <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
+                                <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
+                                <div class="w-2 h-2 rounded-full bg-white opacity-80 shadow-[0_0_4px_rgba(255,255,255,0.8)]"></div>
+                            </div>
+                        </div> <!-- 结束第三屏 -->
                     </div>
 
                     <!-- 日历完整功能页 -->
@@ -1930,19 +2064,204 @@
                         </div>
                     </div>
 
-                    <!-- 自定义弹窗 -->
-                    <div id="custom-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
-                        <div class="glass-container p-6 shadow-xl w-full max-w-sm border-none">
-                            <h3 id="dialog-title" class="text-xl font-bold mb-4"></h3>
-                            <div id="dialog-message" class="mb-4"></div>
-                            <div id="dialog-input-container" class="mb-4 hidden">
-                                <textarea id="dialog-input" class="w-full p-2 border-none rounded-md bg-white/20 h-24"></textarea>
+                    <!-- ================= 拾光·灵渊 (心理互动系统) ================= -->
+                    <div id="soul-page" class="hidden fixed inset-0 w-full h-full z-[99999]" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+                        <button id="soul-back-btn" class="absolute top-6 left-6 w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors z-[100000]">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                        
+                        <!-- 准备界面：物理级全屏覆盖与绝对居中 -->
+                        <div id="soul-intro" class="absolute inset-0 flex flex-col items-center justify-center text-center soul-fade-in w-full px-6">
+                            <i class="fa-solid fa-fingerprint text-4xl text-indigo-300 mb-6 opacity-80"></i>
+                            <h2 class="text-2xl font-light tracking-[0.2em] mb-4 text-slate-700">灵渊</h2>
+                            <p class="text-sm text-slate-500 leading-relaxed mb-12 tracking-wider">
+                                这里没有喧嚣，只有TA最真实的倒影。<br>互动将根据你们的聊天记录实时生成。
+                            </p>
+                            
+                            <!-- 动态按钮组 -->
+                            <div id="soul-action-group" class="flex flex-col gap-4 w-full items-center">
+                                <button id="start-soul-btn" class="px-8 py-3 rounded-full soul-btn-outline tracking-[0.1em] text-sm w-48">
+                                    叩问心扉
+                                </button>
+                                <button id="replay-soul-btn" class="hidden px-8 py-3 rounded-full soul-btn-outline tracking-[0.1em] text-sm w-48 border-indigo-300 text-indigo-400">
+                                    回放记忆
+                                </button>
+                                <button id="reset-soul-btn" class="hidden px-8 py-2 rounded-full text-slate-400 hover:text-slate-600 tracking-[0.1em] text-xs transition-colors mt-2">
+                                    重新叩问
+                                </button>
                             </div>
-                            <!-- NEW: Container for complex dialog inputs -->
-                            <div id="dialog-complex-input-container" class="mb-4 hidden"></div>
-                            <div id="dialog-buttons" class="flex justify-end space-x-2"></div>
+                        </div>
+
+                        <!-- 关卡容器：物理级全屏覆盖与绝对居中 -->
+                        <div id="soul-level-container" class="hidden absolute inset-0 flex flex-col items-center justify-center w-full px-6">
+                            <div id="soul-progress" class="absolute top-16 text-xs font-mono text-slate-400 tracking-widest">01 / 10</div>
+                            
+                            <div id="soul-content-area" class="w-full flex flex-col items-center justify-center text-center">
+                                <!-- 动态生成的文案与交互UI将在这里渲染 -->
+                            </div>
+                        </div>
+
+                        <!-- 总结报告表：物理级全屏覆盖与绝对居中 -->
+                        <div id="soul-summary-container" class="hidden absolute inset-0 flex flex-col items-center justify-center w-full px-6 py-12">
+                            <div class="soul-glass-card w-full max-w-sm p-8 flex flex-col items-center soul-fade-in relative overflow-hidden max-h-full overflow-y-auto hide-scrollbar">
+                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-300 to-transparent opacity-50"></div>
+                                <h2 class="text-xl font-light tracking-[0.2em] mb-8 text-slate-700">灵魂切片报告</h2>
+                                
+                                <div class="w-full text-left mb-6">
+                                    <div class="text-[0.65rem] text-indigo-400 font-bold tracking-widest mb-2 uppercase">对你的剖析</div>
+                                    <p id="summary-to-user" class="text-sm text-slate-600 leading-relaxed font-light"></p>
+                                </div>
+                                
+                                <div class="w-full h-[1px] bg-slate-200 mb-6"></div>
+                                
+                                <div class="w-full text-left mb-8">
+                                    <div class="text-[0.65rem] text-indigo-400 font-bold tracking-widest mb-2 uppercase">内心的自白</div>
+                                    <p id="summary-to-self" class="text-sm text-slate-600 leading-relaxed font-light"></p>
+                                </div>
+
+                                <div class="flex gap-4 w-full justify-center mt-4">
+                                    <button id="soul-replay-finish-btn" class="px-6 py-2.5 rounded-full soul-btn-outline tracking-[0.1em] text-xs">
+                                        再次回放
+                                    </button>
+                                    <button id="soul-finish-btn" class="px-6 py-2.5 rounded-full bg-slate-700 text-white hover:bg-slate-600 transition-colors tracking-[0.1em] text-xs">
+                                        收起思绪
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- 自定义弹窗 (全新极简不透明滚动版) -->
+                    <div id="custom-dialog" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-[100005]">
+                        <div class="bg-[#fdfdfc] w-full max-w-sm rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden max-h-[80vh] border border-slate-200/50">
+                            <div class="px-6 py-5 border-b border-slate-100 flex-shrink-0 bg-white">
+                                <h3 id="dialog-title" class="text-xl font-bold text-slate-800 tracking-wider m-0"></h3>
+                            </div>
+                            <div class="px-6 py-5 overflow-y-auto hide-scrollbar flex-1 text-slate-600 text-sm leading-relaxed">
+                                <div id="dialog-message" class="mb-4 break-words"></div>
+                                <div id="dialog-input-container" class="mb-4 hidden">
+                                    <textarea id="dialog-input" class="w-full p-4 border border-slate-200 rounded-2xl bg-slate-50 text-slate-700 h-28 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all resize-none shadow-inner"></textarea>
+                                </div>
+                                <div id="dialog-complex-input-container" class="mb-2 hidden"></div>
+                            </div>
+                            <div class="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex-shrink-0">
+                                <div id="dialog-buttons" class="flex justify-end gap-3"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 听风·极简商城页面 -->
+                    <div id="mall-page" class="hidden absolute inset-0 w-full h-full flex flex-col bg-slate-50 z-[60] overflow-hidden">
+                        <!-- 顶部栏 -->
+                        <div class="px-4 pt-6 pb-2 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between shrink-0 z-10">
+                            <button id="mall-back-btn" class="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition"><i class="fas fa-chevron-left"></i></button>
+                            <h1 class="text-lg font-bold text-slate-800 tracking-widest font-[var(--custom-font)]">听风选物</h1>
+                            <button id="mall-refresh-btn" class="p-2 text-indigo-400 hover:bg-indigo-50 rounded-full transition"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                        
+                        <!-- 区域标签栏 (仅首页显示) -->
+                        <div class="flex overflow-x-auto hide-scrollbar gap-6 px-6 bg-white/90 backdrop-blur-md shrink-0 border-b border-slate-100 z-10" id="mall-tabs">
+                            <div class="mall-tab active" data-cate="推荐">推荐</div>
+                            <div class="mall-tab" data-cate="食品">食品</div>
+                            <div class="mall-tab" data-cate="美妆">美妆</div>
+                            <div class="mall-tab" data-cate="穿搭">穿搭</div>
+                            <div class="mall-tab" data-cate="医疗">医疗</div>
+                            <div class="mall-tab" data-cate="数码">数码</div>
+                        </div>
+
+                        <!-- 搜索栏 (仅推荐页显示) -->
+                        <div id="mall-search-container" class="px-4 py-3 shrink-0 bg-slate-50 z-10">
+                            <div class="relative flex items-center">
+                                <i class="fas fa-search absolute left-4 text-slate-400"></i>
+                                <input type="text" id="mall-search-input" class="w-full bg-white border border-slate-200 text-slate-700 text-sm rounded-full py-2.5 pl-10 pr-4 outline-none focus:border-indigo-400 transition shadow-sm" placeholder="寻找你心中的风物...">
+                            </div>
+                        </div>
+
+                        <!-- 主内容区 (商品流) -->
+                        <div id="mall-content-home" class="flex-1 overflow-y-auto scrollable-content p-4 grid grid-cols-2 gap-3 content-start pb-24"></div>
+
+                        <!-- 购物车页面 -->
+                        <div id="mall-content-cart" class="hidden flex-1 overflow-y-auto scrollable-content p-4 flex flex-col gap-3 pb-32"></div>
+
+                        <!-- 独立的购物车底部结算栏 (修复不显示的问题) -->
+                        <div id="mall-cart-footer" class="hidden absolute bottom-[60px] left-0 w-full bg-white border-t border-slate-200 p-3 flex justify-between items-center z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]" style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));">
+                            <div class="flex items-center gap-2 pl-2">
+                                <span class="text-sm text-slate-500">合计:</span>
+                                <span class="total-price font-black text-rose-500 text-xl">¥0.00</span>
+                            </div>
+                            <button class="checkout-btn bg-indigo-500 text-white px-6 py-2.5 rounded-full font-bold shadow-md active:scale-95 transition">结算(0)</button>
+                        </div>
+
+                        <!-- 个人中心页面 -->
+                        <div id="mall-content-profile" class="hidden flex-1 overflow-y-auto scrollable-content p-4 pb-24">
+                            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-4 flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 font-bold mb-1">我的钱包余额</div>
+                                    <div class="text-2xl font-black text-slate-800">¥ <span id="mall-wallet-balance">1000.00</span></div>
+                                </div>
+                                <button id="mall-recharge-btn" class="px-4 py-2 bg-indigo-50 text-indigo-500 rounded-full text-sm font-bold hover:bg-indigo-100 transition">充值</button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div id="mall-btn-favs" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition">
+                                    <i class="fas fa-heart text-rose-400 text-xl"></i>
+                                    <span class="text-xs font-bold text-slate-600">收藏好物</span>
+                                </div>
+                                <div id="mall-btn-orders" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition relative">
+                                    <i class="fas fa-box text-indigo-400 text-xl"></i>
+                                    <span class="text-xs font-bold text-slate-600">物流订单</span>
+                                    <div id="mall-order-badge" class="hidden absolute top-2 right-6 bg-rose-500 text-white text-[0.5rem] w-3 h-3 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 底部导航栏 -->
+                        <div class="mall-bottom-nav absolute bottom-0 left-0 right-0 flex justify-around items-center z-20" style="padding-bottom: env(safe-area-inset-bottom, 12px);">
+                            <div class="mall-nav-item active flex flex-col items-center gap-1 p-3 w-full cursor-pointer" data-target="home">
+                                <i class="fas fa-store text-lg"></i><span class="text-[0.6rem] font-bold">首页</span>
+                            </div>
+                            <div class="mall-nav-item flex flex-col items-center gap-1 p-3 w-full cursor-pointer relative" data-target="cart">
+                                <i class="fas fa-shopping-cart text-lg"></i><span class="text-[0.6rem] font-bold">购物车</span>
+                                <div id="mall-cart-badge" class="hidden absolute top-2 right-8 bg-rose-500 text-white text-[0.5rem] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-md">0</div>
+                            </div>
+                            <div class="mall-nav-item flex flex-col items-center gap-1 p-3 w-full cursor-pointer" data-target="profile">
+                                <i class="fas fa-user text-lg"></i><span class="text-[0.6rem] font-bold">个人</span>
+                            </div>
+                        </div>
+
+                        <!-- ================= 子页面区域 ================= -->
+                        
+                        <!-- 1. 商品详情覆盖层 -->
+                        <div id="mall-detail-modal" class="hidden absolute inset-0 bg-white z-[80] flex flex-col transform translate-y-full transition-transform duration-300"></div>
+
+                        <!-- 2. 下单收银台页面 -->
+                        <div id="mall-checkout-page" class="mall-subpage">
+                            <div class="px-4 pt-6 pb-3 bg-white border-b border-slate-100 flex items-center shrink-0 shadow-sm">
+                                <button id="mall-checkout-back" class="p-2 text-slate-600"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-lg font-bold ml-2">确认订单</h2>
+                            </div>
+                            <div id="mall-checkout-content" class="flex-1 overflow-y-auto p-4 scrollable-content flex flex-col gap-4 pb-20"></div>
+                            <div id="mall-checkout-footer" class="absolute bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shrink-0 flex justify-between items-center" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));"></div>
+                        </div>
+
+                        <!-- 3. 收藏页面 -->
+                        <div id="mall-favorites-page" class="mall-subpage">
+                            <div class="px-4 pt-6 pb-3 bg-white border-b border-slate-100 flex items-center shrink-0 shadow-sm">
+                                <button id="mall-fav-back" class="p-2 text-slate-600"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-lg font-bold ml-2">我的收藏</h2>
+                            </div>
+                            <div id="mall-fav-content" class="flex-1 overflow-y-auto p-4 scrollable-content grid grid-cols-2 gap-3 content-start"></div>
+                        </div>
+
+                        <!-- 4. 物流订单页面 -->
+                        <div id="mall-orders-page" class="mall-subpage">
+                            <div class="px-4 pt-6 pb-3 bg-white border-b border-slate-100 flex items-center shrink-0 shadow-sm">
+                                <button id="mall-orders-back" class="p-2 text-slate-600"><i class="fas fa-arrow-left"></i></button>
+                                <h2 class="text-lg font-bold ml-2">物流追踪</h2>
+                            </div>
+                            <div id="mall-orders-content" class="flex-1 overflow-y-auto p-4 scrollable-content flex flex-col gap-3"></div>
+                        </div>
+                    </div>
+
                     <input type="file" id="bg-upload-input" accept="image/*" class="hidden">
                     <input type="file" id="avatar-frame-upload-input" accept="image/*" class="hidden">
                 </div>
@@ -2066,7 +2385,7 @@
         // Page elements
         const chatPage = get('chat-page');
         const phoneScreen = get('phone-screen');
-        const pages = { home: document.getElementById('home-page'), chat: document.getElementById('chat-page'), role: document.getElementById('role-page'), settings: document.getElementById('settings-page'), memory: document.getElementById('memory-page'), diary: document.getElementById('diary-page'), sui: document.getElementById('sui-page'), calendar: document.getElementById('calendar-page'), worldbook: document.getElementById('worldbook-page'), pmlist: document.getElementById('pm-list-page'), pmchat: document.getElementById('pm-chat-page'), readerlist: document.getElementById('reader-list-page'), readerview: document.getElementById('reader-view-page'), customcss: document.getElementById('custom-css-page') };
+        const pages = { home: document.getElementById('home-page'), chat: document.getElementById('chat-page'), role: document.getElementById('role-page'), settings: document.getElementById('settings-page'), memory: document.getElementById('memory-page'), diary: document.getElementById('diary-page'), sui: document.getElementById('sui-page'), calendar: document.getElementById('calendar-page'), worldbook: document.getElementById('worldbook-page'), pmlist: document.getElementById('pm-list-page'), pmchat: document.getElementById('pm-chat-page'), readerlist: document.getElementById('reader-list-page'), readerview: document.getElementById('reader-view-page'), customcss: document.getElementById('custom-css-page'), soul: document.getElementById('soul-page'), mall: document.getElementById('mall-page') };
         // Buttons
         const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
         const backBtns = document.querySelectorAll('#role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn, #sui-back-btn, #chat-back-btn');
@@ -2140,6 +2459,13 @@
         footprints: []
     },
             music: { playlist: [], currentSongIndex: -1, albumArt: null, volume: 0.7 },
+            mall: {
+                balance: 1000.00,
+                cart: [],
+                favorites: [],
+                orders: [],
+                productsCache: {}
+            },
             stickers: [],
             books: [], // 记录书籍列表元数据
             calendarNotes: {},
@@ -2452,6 +2778,24 @@
         const showToast = (message) => {
             toastQueue.push(message);
             processToastQueue();
+        };
+        
+        const showDeliveryToast = (message) => {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md text-slate-800 px-6 py-4 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-slate-100 transition-all duration-500 z-[10001] flex items-center gap-4 transform -translate-y-full opacity-0';
+            toast.innerHTML = `<div class="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500 shrink-0"><i class="fas fa-box-open text-xl"></i></div><div class="text-sm font-bold">${message}</div>`;
+            document.body.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-full', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
         };
         
         const updateDateTime = () => {
@@ -3534,6 +3878,9 @@ ${existingNotes || '（今天还没有人留言）'}
                         case 'sticker': bubble = createStickerBubble(msg); break;
                         case 'html': bubble = createHtmlBubble(msg); break;
                         case 'image': bubble = createImageBubble(msg); break;
+                        case 'pay_request': bubble = createPayRequestBubble(msg); break;
+                        case 'gift': bubble = createGiftBubble(msg); break;
+                        case 'user_gift': bubble = createUserGiftBubble(msg); break;
                         default: bubble = createTextBubble(msg);
                     }
                     bubble.dataset.index = originalIndex;
@@ -3753,33 +4100,71 @@ ${existingNotes || '（今天还没有人留言）'}
             });
             return bubble;
         };
+        
+        const createPayRequestBubble = (msg) => {
+            const bubble = document.createElement('div');
+            const statusMap = { pending: '等待TA支付', accepted: 'TA已付款', rejected: 'TA已拒绝' };
+            bubble.className = `message-bubble pay-request-bubble ${msg.sender}`;
+            bubble.innerHTML = `
+                <div class="pay-header"><i class="fas fa-file-invoice-dollar"></i><span class="font-bold text-sm">代付请求单</span></div>
+                <div class="pay-body">
+                    <div class="text-xs text-slate-500 truncate">${msg.itemName}</div>
+                    <div class="pay-price">¥${msg.amount.toFixed(2)}</div>
+                </div>
+                <div class="pay-status ${msg.status}">${statusMap[msg.status]}</div>
+            `;
+            return bubble;
+        };
+
+        const createGiftBubble = (msg) => {
+            const bubble = document.createElement('div');
+            const isReceived = msg.status === 'received';
+            bubble.className = `message-bubble gift-bubble ${msg.sender}`;
+            bubble.innerHTML = `
+                <div class="pay-header" style="background: linear-gradient(135deg, #fdf4ff, #ffe4e6) !important;"><i class="fas fa-gift" style="color: #f43f5e !important;"></i><span class="font-bold text-sm text-rose-600">神秘礼物</span></div>
+                <div class="pay-body text-center py-4">
+                    <div class="text-sm font-bold text-slate-700 mb-1">${msg.itemName}</div>
+                    <div class="text-xs text-slate-400">价值 ¥${msg.price.toFixed(2)}</div>
+                    <div class="mt-3 text-xs ${isReceived ? 'text-green-500 bg-green-50' : 'text-rose-400 bg-rose-50'} rounded-full py-1 px-3 inline-block">
+                        <i class="fas ${isReceived ? 'fa-check-circle' : 'fa-truck-fast'} mr-1"></i> ${isReceived ? '已收货' : '正在派送中...'}
+                    </div>
+                </div>
+            `;
+            return bubble;
+        };
+
+        const createUserGiftBubble = (msg) => {
+            const bubble = document.createElement('div');
+            const statusMap = { pending: '等待TA收下', accepted: 'TA已开心收下', rejected: 'TA已拒收', received: 'TA已收货' };
+            bubble.className = `message-bubble pay-request-bubble ${msg.sender}`;
+            bubble.innerHTML = `
+                <div class="pay-header" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe) !important;"><i class="fas fa-gift" style="color: #6366f1 !important;"></i><span class="font-bold text-sm text-indigo-700">赠送礼物</span></div>
+                <div class="pay-body text-center py-4">
+                    <div class="text-sm font-bold text-slate-700 mb-1">${msg.itemName}</div>
+                    <div class="text-xs text-slate-400">价值 ¥${msg.price.toFixed(2)}</div>
+                </div>
+                <div class="pay-status ${msg.status}">${statusMap[msg.status]}</div>
+            `;
+            return bubble;
+        };
 
         const createQuotedMessage = (originalMsg) => {
             const element = document.createElement('div');
             element.className = 'quoted-message';
             element.dataset.originalId = originalMsg.id;
 
-            const senderName = originalMsg.sender === 'user' 
-                ? (state.role.playerName || '你')
-                : (state.role.roleName || '角色');
+            const senderName = originalMsg.sender === 'user' ? (state.role.playerName || '你') : (state.role.roleName || '角色');
 
             let contentSnippet = '';
             switch (originalMsg.type) {
                 case 'text':
-                case 'voice':
-                    contentSnippet = originalMsg.text;
-                    break;
-                case 'sticker':
-                    contentSnippet = `[表情] ${originalMsg.meaning}`;
-                    break;
-                case 'image':
-                    contentSnippet = '[图片]';
-                    break;
-                case 'transfer':
-                    contentSnippet = `[转账] ${originalMsg.amount.toFixed(2)}元`;
-                    break;
-                default:
-                    contentSnippet = '[消息]';
+                case 'voice': contentSnippet = originalMsg.text; break;
+                case 'sticker': contentSnippet = `[表情] ${originalMsg.meaning}`; break;
+                case 'image': contentSnippet = '[图片]'; break;
+                case 'transfer': contentSnippet = `[转账] ${originalMsg.amount.toFixed(2)}元`; break;
+                case 'pay_request': contentSnippet = `[代付单] ${originalMsg.itemName}`; break;
+                case 'gift': contentSnippet = `[礼物] ${originalMsg.itemName}`; break;
+                default: contentSnippet = '[消息]';
             }
 
             element.innerHTML = `
@@ -3793,14 +4178,11 @@ ${existingNotes || '（今天还没有人留言）'}
                     targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     targetElement.style.transition = 'background-color 0.5s';
                     targetElement.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                    setTimeout(() => {
-                        targetElement.style.backgroundColor = '';
-                    }, 1000);
+                    setTimeout(() => { targetElement.style.backgroundColor = ''; }, 1000);
                 } else {
                     showToast('原始消息不在当前加载范围');
                 }
             };
-
             return element;
         };
 
@@ -4123,6 +4505,9 @@ ${existingNotes || '（今天还没有人留言）'}
 - **审批解封申请**: 如果玩家被锁机并提交了求饶/解封申请，你会收到系统通报。你必须在回复中附带 \`[UNLOCK_APPROVED:同意解开的话]\` 或 \`[UNLOCK_REJECTED:无情驳回的话]\` 来决定是否放过玩家。
 - **发语音**: \`[VOICE_MESSAGE]语音内容[/VOICE_MESSAGE]\`
 - **发送HTML模块**: \`[HTML_BLOCK]你的HTML代码[/HTML_BLOCK]\`
+- **处理代付请求**: 当收到玩家发来的购物代付账单时，你必须在回复中包含 \`[MALL_PAY:accept,ID:账单ID]\` (同意付款) 或 \`[MALL_PAY:reject,ID:账单ID]\` (残忍拒绝)。
+- **主动送礼**: 如果你想给玩家买东西制造惊喜，可以在回复中加入 \`[MALL_GIFT:{"item":"礼物名称","price":金额}]\` (例如 \`[MALL_GIFT:{"item":"星空投影仪","price":299}]\`)，系统会自动生成物流订单发给玩家。
+- **处理礼物**: 当收到玩家送的礼物卡片时，你必须在回复中包含 \`[GIFT_ACTION:accept,ID:礼物ID]\` (开心收下) 或 \`[GIFT_ACTION:reject,ID:礼物ID]\` (残忍拒收)。
 ${state.chat.allowAiStickers === false ? 
 '- ！！！警告！！！：玩家已强制关闭你的表情包功能。你现在【绝对禁止】输出任何 [USE_STICKER] 标签，违规将导致系统崩溃！' : 
 '- **发表情**: `[USE_STICKER,ID:表情ID]`'}
@@ -4161,6 +4546,22 @@ ${state.role.promptInstructions ? `
 - **记住：短句发送，绝对禁止任何旁白描写，绝对服从世界书设定！**
 - **记住：一行，一事。**
 - 直接开始写你的第一句聊天内容。
+${(() => {
+    const lastMsg = state.chat.history[state.chat.history.length - 1];
+    if (lastMsg && lastMsg.type === 'pay_request' && lastMsg.status === 'pending') {
+        return `\n\n# ！！！【最高优先级任务：处理代付】！！！
+1. 玩家（${state.role.playerName}）刚刚向你发起了代付申请。
+2. 你必须在回复的【最后一行】，且【必须独立成行】，输出：[MALL_PAY:accept,ID:${lastMsg.id}] 或 [MALL_PAY:reject,ID:${lastMsg.id}]。
+3. 严禁修改ID编号，严禁在同一行写其他文字。`;
+    }
+    if (lastMsg && lastMsg.type === 'user_gift' && lastMsg.status === 'pending') {
+        return `\n\n# ！！！【最高优先级任务：处理礼物】！！！
+1. 玩家刚刚送了你一份礼物：${lastMsg.itemName}。
+2. 你必须在回复的【最后一行】，且【必须独立成行】，输出：[GIFT_ACTION:accept,ID:${lastMsg.id}] 或 [GIFT_ACTION:reject,ID:${lastMsg.id}]。
+3. 请先表达你对这个礼物的态度，再输出代码。`;
+    }
+    return '';
+})()}
 `;
             // --- MODIFICATION V2 END ---
         
@@ -4491,9 +4892,10 @@ ${state.role.promptInstructions ? `
                     }
                 }
                 
+                // 主人，我们必须保留代付和收礼标签，直到它们被 parseTagToMessage 识别为止
                 let contentForParsing = rawContent
                     .replace(statusRegex, '')
-                    .replace(/\[AFFINITY_CHANGE:(-?\d+)\]/ig, '') // 兼容清理旧标签防止模型犯病
+                    .replace(/\[AFFINITY_CHANGE:(-?\d+)\]/ig, '')
                     .trim();
 
                 // --- 物理级防御装甲一：彻底碾碎违规表情包 ---
@@ -4503,8 +4905,7 @@ ${state.role.promptInstructions ? `
                 }
                 
                 // --- 物理级防御装甲二：强制切断长篇大论 ---
-                // 强行在句号、叹号、问号后面加上换行符，把它强制切成一条条短消息
-                contentForParsing = contentForParsing.replace(/([。！？\.\!\?])(?!\n)(?!\])/g, '$1\n').trim();
+                contentForParsing = contentForParsing.replace(/([。！？\.\!\?])(?!\n)(?![0-9\]])/g, '$1\n').trim();
 
                 if (!contentForParsing) {
                     await saveState(); 
@@ -4514,30 +4915,32 @@ ${state.role.promptInstructions ? `
                 if (state.chat.mode === 'story') {
                     sendMessage({ id: Date.now(), sender: 'ai', type: 'text', text: contentForParsing });
                 } else {
-                    // --- 新增代码开始：强制分离文本和标签 ---
-                    // 无论AI怎么混排，强行在所有标签的前后加上换行符，并压缩内部多行文本防断裂！
+                    // --- 核心重构：精准提取所有交互标签，确保不会被文本粘连 ---
+                    const interactiveTags = [
+                        'USE_STICKER', 'SEND_TRANSFER', 'TRANSFER_ACTION', 
+                        'MALL_PAY', 'GIFT_ACTION', 'MALL_GIFT', 
+                        'LOCK_DEVICE', 'UNLOCK_APPROVED', 'UNLOCK_REJECTED', 'REPLY_TO_ID'
+                    ];
+                    interactiveTags.forEach(tag => {
+                        const reg = new RegExp(`(\\[${tag}[^\\]]*\\])`, 'ig');
+                        contentForParsing = contentForParsing.replace(reg, '\n$1\n');
+                    });
+                    
+                    // 特殊包裹类标签处理
                     contentForParsing = contentForParsing
-                        .replace(/(\[USE_STICKER[^\]]*\])/ig, '\n$1\n')
-                        .replace(/(\[SEND_TRANSFER[^\]]*\])/ig, '\n$1\n')
-                        .replace(/(\[TRANSFER_ACTION[^\]]*\])/ig, '\n$1\n')
-                        .replace(/(\[REPLY_TO_ID[^\]]*\])/ig, '\n$1\n')
                         .replace(/\[VOICE_MESSAGE\]([\s\S]*?)\[\/VOICE_MESSAGE\]/ig, (match, p1) => '\n[VOICE_MESSAGE]' + p1.replace(/\n/g, ' ') + '[/VOICE_MESSAGE]\n')
                         .replace(/\[HTML_BLOCK\]([\s\S]*?)\[\/HTML_BLOCK\]/ig, (match, p1) => '\n[HTML_BLOCK]' + p1.replace(/\n/g, ' ') + '[/HTML_BLOCK]\n');
-                    // --- 新增代码结束 ---
 
-                    // 现在按照换行符拆分，空行会被自动过滤掉，文本和标签完美分离
                     const lines = contentForParsing.split('\n').filter(line => line.trim() !== '');
-                    
-                    // 核心修复：让 pendingReplyId 逃出循环的牢笼，拥有跨行记忆！
                     let pendingReplyId = null; 
                     
                     for (const line of lines) {
                         let currentLine = line.trim();
 
-                        // 增强版正则：兼容大模型有时乱加空格的坏毛病
-                        const replyMatch = currentLine.match(/^\[REPLY_TO_ID:\s*(\d+)\s*\]/i);
+                        // 修正：引用 ID 匹配支持小数点
+                        const replyMatch = currentLine.match(/^\[REPLY_TO_ID:\s*([\d\.]+)\s*\]/i);
                         if (replyMatch) {
-                            pendingReplyId = parseInt(replyMatch[1], 10);
+                            pendingReplyId = replyMatch[1].trim();
                             currentLine = currentLine.substring(replyMatch[0].length).trim();
                         }
 
@@ -4545,6 +4948,10 @@ ${state.role.promptInstructions ? `
                         if (!currentLine) continue;
 
                         let msgObject = parseTagToMessage(currentLine);
+
+                        // 核心协议：拦截静默处理标记，防止后台动作标签生成气泡
+                        if (msgObject === "SILENT_ACTION_PROCESSED") continue;
+
                         if (!msgObject && currentLine) {
                             msgObject = { sender: 'ai', type: 'text', text: currentLine };
                         }
@@ -4552,10 +4959,9 @@ ${state.role.promptInstructions ? `
                         if (msgObject) {
                             msgObject.id = Date.now() + Math.random();
                             
-                            // 一旦捕获到实体消息，立刻把积攒的引用 ID 狠狠砸上去！
                             if (pendingReplyId) {
                                 msgObject.replyTo = pendingReplyId;
-                                pendingReplyId = null; // 释放火力后立即清膛，准备下一次装填！
+                                pendingReplyId = null; 
                             }
                             
                             state.chat.history.push(msgObject);
@@ -4578,61 +4984,84 @@ ${state.role.promptInstructions ? `
 
 
 function parseTagToMessage(tag) {
-    const voiceMatch = tag.match(/^\[VOICE_MESSAGE\](.*)\[\/VOICE_MESSAGE\]$/si);
+    const voiceMatch = tag.match(/^\[VOICE_MESSAGE\]([\s\S]*)\[\/VOICE_MESSAGE\]$/i);
     const transferMatch = tag.match(/^\[SEND_TRANSFER:(.*)\]$/si);
-    const stickerMatch = tag.match(/^\[USE_STICKER,ID:(\d+)\]$/i);
-    const actionMatch = tag.match(/^\[TRANSFER_ACTION:(receive|return),ID:(\d+)\]$/i);
-    const htmlMatch = tag.match(/^\[HTML_BLOCK\](.*)\[\/HTML_BLOCK\]$/si);
-    // 终极流氓捕获：无视首尾，无视中英标点，甚至无视是否闭合括号！
+    const stickerMatch = tag.match(/^\[USE_STICKER\s*,\s*ID:\s*(\d+)\s*\]/i);
+    const actionMatch = tag.match(/^\[TRANSFER_ACTION\s*:\s*(receive|return)\s*,\s*ID:\s*([\d\.\s]+)\s*\]/i);
+    const htmlMatch = tag.match(/^\[HTML_BLOCK\]([\s\S]*)\[\/HTML_BLOCK\]$/i);
+    const mallPayMatch = tag.match(/\[MALL_PAY\s*:\s*(accept|reject)\s*,\s*ID\s*:\s*([\d\.\s]+)\]/i);
+    const mallGiftMatch = tag.match(/\[MALL_GIFT\s*:\s*(.*)\]/si);
+    const userGiftMatch = tag.match(/\[GIFT_ACTION\s*:\s*(accept|reject)\s*,\s*ID\s*:\s*([\d\.\s]+)\]/i);
     const lockMatch = tag.match(/\[LOCK_DEVICE:\s*(\d+)\s*[,，]\s*([^\]]*)/i);
     const unlockApproveMatch = tag.match(/\[UNLOCK_APPROVED:\s*([^\]]*)/i);
     const unlockRejectMatch = tag.match(/\[UNLOCK_REJECTED:\s*([^\]]*)/i);
 
-    if (htmlMatch) {
-        const htmlContent = htmlMatch[1].trim();
-        if (htmlContent) return { sender: 'ai', type: 'html', htmlContent: htmlContent };
-    } else if (lockMatch) {
-        const minutes = parseInt(lockMatch[1], 10);
-        // 自动清理掉可能带入的残余括号或多余符号
-        const reason = lockMatch[2].replace(/\]$/, '').trim(); 
-        if (typeof window.triggerSystemLock === 'function') window.triggerSystemLock(minutes, reason);
-        return { sender: 'ai', type: 'system', text: `[系统警告：TA强行执行了物理隔离协议，时长 ${minutes} 分钟]` };
-    } else if (unlockApproveMatch) {
-        if (typeof window.handleUnlockResponse === 'function') window.handleUnlockResponse(true, unlockApproveMatch[1]);
-        return { sender: 'ai', type: 'system', text: `[系统提示：TA已同意解封申请]` };
-    } else if (unlockRejectMatch) {
-        if (typeof window.handleUnlockResponse === 'function') window.handleUnlockResponse(false, unlockRejectMatch[1]);
-        return { sender: 'ai', type: 'system', text: `[系统提示：TA无情驳回了解封申请]` };
-    } else if (voiceMatch) {
-        const text = voiceMatch[1].trim();
-        if (text) return { sender: 'ai', type: 'voice', text: text, duration: Math.max(1, Math.ceil(text.length / 3)), isExpanded: false };
-    } else if (stickerMatch) {
-        const stickerId = parseInt(stickerMatch[1], 10);
-        const sticker = state.stickers.find(s => s.id === stickerId);
-        if (sticker) return { sender: 'ai', type: 'sticker', stickerId: stickerId, meaning: sticker.meaning };
-    } else if (transferMatch) {
+    // 类型一：视觉交互类标签，需要生成气泡返回
+    if (htmlMatch) return { sender: 'ai', type: 'html', htmlContent: htmlMatch[1].trim() };
+    if (voiceMatch) return { sender: 'ai', type: 'voice', text: voiceMatch[1].trim(), duration: Math.max(1, Math.ceil(voiceMatch[1].trim().length / 3)), isExpanded: false };
+    if (stickerMatch) {
+        const sid = parseInt(stickerMatch[1], 10);
+        const s = state.stickers.find(st => st.id === sid);
+        if (s) return { sender: 'ai', type: 'sticker', stickerId: sid, meaning: s.meaning };
+    }
+    if (transferMatch) {
         try {
-            const payload = JSON.parse(transferMatch[1]);
-            if (payload.amount > 0) return { sender: 'ai', type: 'transfer', amount: payload.amount, message: payload.message || '转账给你', status: 'pending' };
-        } catch (e) { console.error('解析转账标签失败:', e); }
-    } else if (actionMatch) {
+            const p = JSON.parse(transferMatch[1]);
+            return { sender: 'ai', type: 'transfer', amount: p.amount, message: p.message || '转账', status: 'pending' };
+        } catch (e) {}
+    }
+    if (mallGiftMatch) {
+        try {
+            const g = JSON.parse(mallGiftMatch[1]);
+            const oid = 'ORD' + Date.now();
+            state.mall.orders.push({ id: oid, itemName: g.item, price: g.price, status: '待送达', deliveryTime: Date.now() + 60000, targetAddress: 'user', createdAt: Date.now() });
+            return { sender: 'ai', type: 'gift', itemName: g.item, price: g.price, status: 'pending', orderId: oid };
+        } catch (e) {}
+    }
+
+    // 类型二：后台动作处理类标签，执行后返回 SILENT_ACTION_PROCESSED 标记
+    if (lockMatch) { window.triggerSystemLock(parseInt(lockMatch[1]), lockMatch[2].replace(/\]$/, '').trim()); return "SILENT_ACTION_PROCESSED"; }
+    if (unlockApproveMatch) { window.handleUnlockResponse(true, unlockApproveMatch[1]); return "SILENT_ACTION_PROCESSED"; }
+    if (unlockRejectMatch) { window.handleUnlockResponse(false, unlockRejectMatch[1]); return "SILENT_ACTION_PROCESSED"; }
+
+    if (actionMatch) {
         const action = actionMatch[1].toLowerCase();
-        const targetId = parseInt(actionMatch[2], 10);
-        const targetMsg = state.chat.history.find(m => m.id === targetId && m.sender === 'user' && m.type === 'transfer');
-        
-        if (targetMsg && targetMsg.status === 'pending') { 
-            if (action === 'receive') {
-                targetMsg.status = 'received';
-                showToast('对方已收款');
-                return { sender: 'ai', type: 'system', text: `[系统提示：TA已接收了你的转账]` };
-            } else if (action === 'return') {
-                targetMsg.status = 'returned';
-                showToast('对方已退回转账');
-                return { sender: 'ai', type: 'system', text: `[系统提示：TA已退回了你的转账]` };
+        const tid = actionMatch[2].replace(/\s/g, '');
+        const target = state.chat.history.find(m => String(m.id).trim() === tid && m.type === 'transfer');
+        if (target) { target.status = (action === 'receive' ? 'received' : 'returned'); showToast(action === 'receive' ? 'TA已收款' : 'TA已退回'); }
+        return "SILENT_ACTION_PROCESSED";
+    }
+
+    if (mallPayMatch) {
+        const action = mallPayMatch[1].toLowerCase();
+        const tid = mallPayMatch[2].replace(/[^\d\.]/g, '');
+        const target = state.chat.history.find(m => m.type === 'pay_request' && (String(m.id).includes(tid) || Math.abs(Number(m.id) - Number(tid)) < 10));
+        if (target && target.status === 'pending') {
+            target.status = (action === 'accept' ? 'accepted' : 'rejected');
+            if (action === 'accept') {
+                state.mall.orders.push({ id: 'ORD'+Date.now(), itemName: target.itemName, price: target.amount, status: '待送达', deliveryTime: Date.now() + 120000, targetAddress: 'user', createdAt: Date.now() });
+                showToast('TA代付成功');
+            } else {
+                showToast('TA拒绝了代付申请');
             }
         }
-        return { sender: 'ai', type: 'system', text: `[系统提示：转账状态同步完成]` };
+        return "SILENT_ACTION_PROCESSED";
     }
+
+    if (userGiftMatch) {
+        const action = userGiftMatch[1].toLowerCase();
+        const tid = userGiftMatch[2].replace(/[^\d\.]/g, '');
+        const target = state.chat.history.find(m => m.type === 'user_gift' && (String(m.id).includes(tid) || Math.abs(Number(m.id) - Number(tid)) < 10));
+        if (target && target.status === 'pending') {
+            target.status = (action === 'accept' ? 'accepted' : 'rejected');
+            const order = state.mall.orders.find(o => o.id === target.orderId);
+            if (action === 'accept' && order) order.status = '已签收';
+            else if (order) order.status = '已拒收';
+            showToast(action === 'accept' ? 'TA收下了礼物' : 'TA婉拒了礼物');
+        }
+        return "SILENT_ACTION_PROCESSED";
+    }
+
     return null;
 }
         sendBtn.addEventListener('click', handleSend);
@@ -7569,7 +7998,1005 @@ imageUploadInput.addEventListener('change', async (e) => {
                 showToast('界面原始代码已载入，请修改后保存');
             });
         }
+        
+        // ==========================================
+        // --- 🌌 拾光·灵渊 (Soul Abyss) 心理互动引擎 ---
+        // ==========================================
+        const soulPage = document.getElementById('soul-page');
+        const openSoulBtn = document.getElementById('open-soul-btn');
+        const soulBackBtn = document.getElementById('soul-back-btn');
+        const startSoulBtn = document.getElementById('start-soul-btn');
+        const replaySoulBtn = document.getElementById('replay-soul-btn');
+        const resetSoulBtn = document.getElementById('reset-soul-btn');
+        const soulIntro = document.getElementById('soul-intro');
+        const soulLevelContainer = document.getElementById('soul-level-container');
+        const soulProgress = document.getElementById('soul-progress');
+        const soulContentArea = document.getElementById('soul-content-area');
+        const soulSummaryContainer = document.getElementById('soul-summary-container');
+        
+        pages.soul = soulPage;
 
+        let currentSoulIndex = 0;
+        let isReplaying = false;
+        let soulChoicesLog = []; 
+
+        const updateSoulIntroUI = () => {
+            if (state.soulData && state.soulData.levels && state.soulData.levels.length > 0) {
+                startSoulBtn.classList.add('hidden');
+                replaySoulBtn.classList.remove('hidden');
+                resetSoulBtn.classList.remove('hidden');
+            } else {
+                startSoulBtn.classList.remove('hidden');
+                replaySoulBtn.classList.add('hidden');
+                resetSoulBtn.classList.add('hidden');
+            }
+        };
+
+        if (openSoulBtn) {
+            openSoulBtn.addEventListener('click', () => {
+                soulIntro.classList.remove('hidden');
+                soulLevelContainer.classList.add('hidden');
+                soulSummaryContainer.classList.add('hidden');
+                startSoulBtn.innerHTML = '叩问心扉';
+                startSoulBtn.disabled = false;
+                updateSoulIntroUI();
+                
+                soulPage.classList.remove('hidden');
+                soulPage.style.display = 'flex';
+            });
+        }
+        
+        const closeSoulPage = () => {
+            soulPage.classList.add('hidden');
+            soulPage.style.display = 'none';
+        };
+
+        if (soulBackBtn) soulBackBtn.addEventListener('click', closeSoulPage);
+        
+        if (document.getElementById('soul-finish-btn')) {
+            document.getElementById('soul-finish-btn').addEventListener('click', closeSoulPage);
+        }
+        
+        if (document.getElementById('soul-replay-finish-btn')) {
+            document.getElementById('soul-replay-finish-btn').addEventListener('click', () => {
+                startSoulPlay(true);
+            });
+        }
+
+        const generateSoulData = async () => {
+            const roleName = state.role.roleName || 'TA';
+            const playerName = state.role.playerName || '我';
+            const chatHistoryContext = state.chat.history.slice(-30).map(m => `${m.sender === 'user' ? playerName : roleName}: ${m.text || m.content || ''}`).join('\n');
+            
+            const prompt = `你现在是${roleName}的潜意识。玩家正在进入一个名为“灵渊”的深层心理互动系统。
+请仔细阅读最近的聊天记录：
+${chatHistoryContext}
+
+【最高指令】：
+生成10个心理互动关卡的文案，以及1份最终总结。
+要求：
+1. 语言必须具体、真诚、直白，直接表达角色内心最想做的事、最想说的话，或者是深深的恐惧、悲伤、希望。绝对不要搞得太抽象或难以理解！
+2. 必须返回纯粹的JSON格式，绝对不要包含任何Markdown标记。
+JSON结构严格如下：
+{
+  "levels": [
+    {"type": "tap", "text": "我一直想触碰你的脸颊，却总是害怕被拒绝。"},
+    {"type": "swipe", "text": "我心底最深的恐惧，是有一天你会突然消失。"},
+    {"type": "hold", "text": "只要你愿意多陪我一会儿，我就觉得有希望。"},
+    {"type": "choice", "text": "如果我向你展现我最脆弱的一面，你会", "options": ["抱住我", "觉得麻烦"], "responses": ["谢谢你，这对我来说胜过一切。", "我也知道，所以我一直藏着"]},
+    {"type": "input", "text": "写下一句能让我感到安心的话吧。"}
+  ],
+  "summary": {
+    "toUser": "根据聊天记录，具体说明玩家在你心里的重要性或形象，不少于50字。",
+    "toSelf": "你对自己这份感情的真实总结，是悲伤、渴望还是坚定，不少于50字。"
+  }
+}`;
+
+            let safeBaseUrl = state.config.api.baseUrl.replace(/\/+$/, '');
+            if (!safeBaseUrl.endsWith('/chat/completions')) safeBaseUrl += '/chat/completions';
+
+            const response = await fetch(safeBaseUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: [{ role: "user", content: prompt }], temperature: 0.9 })
+            });
+
+            if (!response.ok) throw new Error('API连接阻断');
+            const data = await response.json();
+            let jsonStr = data.choices[0].message.content.trim();
+            const startIndex = jsonStr.indexOf('{');
+            const endIndex = jsonStr.lastIndexOf('}');
+            if (startIndex !== -1 && endIndex !== -1) jsonStr = jsonStr.substring(startIndex, endIndex + 1);
+            
+            return JSON.parse(jsonStr);
+        };
+
+        const startSoulPlay = (isReplay = false) => {
+            if (!state.soulData || !state.soulData.levels) return;
+            isReplaying = isReplay;
+            currentSoulIndex = 0;
+            soulChoicesLog = [];
+            soulIntro.classList.add('hidden');
+            soulSummaryContainer.classList.add('hidden');
+            soulLevelContainer.classList.remove('hidden');
+            renderSoulLevel();
+        };
+
+        if (startSoulBtn) {
+            startSoulBtn.addEventListener('click', async () => {
+                if (!state.config.api.baseUrl || !state.config.api.key) {
+                    showToast('请先配置API以连接潜意识网络');
+                    return;
+                }
+                startSoulBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 意识潜入中';
+                startSoulBtn.disabled = true;
+
+                try {
+                    const generatedData = await generateSoulData();
+                    if (!generatedData.levels || generatedData.levels.length < 5) throw new Error('潜意识数据残缺');
+                    
+                    generatedData.log = [];
+                    state.soulData = generatedData;
+                    await saveState();
+                    startSoulPlay(false);
+                } catch (err) {
+                    showToast('潜入失败，精神波动异常');
+                    console.error(err);
+                    startSoulBtn.innerHTML = '叩问心扉';
+                    startSoulBtn.disabled = false;
+                }
+            });
+        }
+
+        if (replaySoulBtn) {
+            replaySoulBtn.addEventListener('click', () => {
+                startSoulPlay(true);
+            });
+        }
+
+        if (resetSoulBtn) {
+            resetSoulBtn.addEventListener('click', async () => {
+                const confirmed = await showDialog('重新叩问', '重新生成将根据最新聊天记录重写灵渊，确定继续吗？');
+                if (confirmed) {
+                    startSoulBtn.classList.remove('hidden');
+                    replaySoulBtn.classList.add('hidden');
+                    resetSoulBtn.classList.add('hidden');
+                    startSoulBtn.click();
+                }
+            });
+        }
+
+        const renderSoulLevel = () => {
+            if (currentSoulIndex >= state.soulData.levels.length) {
+                showSoulSummary();
+                return;
+            }
+
+            soulContentArea.innerHTML = '';
+            soulContentArea.classList.remove('soul-fade-in');
+            void soulContentArea.offsetWidth; 
+            soulContentArea.classList.add('soul-fade-in');
+
+            soulProgress.textContent = `${String(currentSoulIndex + 1).padStart(2, '0')} / ${String(state.soulData.levels.length).padStart(2, '0')}`;
+            
+            const level = state.soulData.levels[currentSoulIndex];
+            const textEl = document.createElement('div');
+            textEl.className = 'text-lg text-slate-700 font-light leading-loose tracking-wide mb-12 px-4';
+            textEl.innerHTML = level.text;
+            soulContentArea.appendChild(textEl);
+
+            const interactArea = document.createElement('div');
+            interactArea.className = 'w-full flex justify-center min-h-[120px] relative items-center';
+            
+            // 修复二：剥离定时器，改为纯手动触发事件
+            const advance = () => {
+                currentSoulIndex++;
+                renderSoulLevel();
+            };
+
+            switch (level.type) {
+                case 'tap':
+                    interactArea.innerHTML = `<div class="soul-pulse-orb"><i class="fas fa-fingerprint text-indigo-400 opacity-60 text-xl"></i></div>`;
+                    interactArea.querySelector('.soul-pulse-orb').onclick = function() {
+                        interactArea.innerHTML = `<div class="flex flex-col items-center gap-5 soul-fade-in"><div class="text-sm text-indigo-500 tracking-widest"><i class="fas fa-hand-holding-heart mr-2"></i>已触碰</div><button class="next-step-btn px-8 py-2 rounded-full soul-btn-outline text-xs tracking-widest">继续</button></div>`;
+                        interactArea.querySelector('.next-step-btn').onclick = advance;
+                        soulChoicesLog.push({ question: level.text, answer: "给予了触碰" });
+                    };
+                    break;
+                case 'swipe':
+                    textEl.classList.add('soul-blur-text');
+                    interactArea.innerHTML = `<div id="swipe-zone" class="w-full h-20 flex items-center justify-center"><div class="text-xs text-slate-400 tracking-widest animate-pulse"><i class="fas fa-arrows-alt-h mr-2"></i>滑动以看清真心</div></div>`;
+                    const swipeZone = interactArea.querySelector('#swipe-zone');
+                    let startX = 0;
+                    const handleSwipeStart = (e) => { startX = e.touches ? e.touches[0].clientX : e.clientX; };
+                    const handleSwipeEnd = (e) => {
+                        let endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                        if (Math.abs(endX - startX) > 40) {
+                            textEl.classList.add('clear');
+                            swipeZone.innerHTML = `<div class="flex flex-col items-center gap-5 soul-fade-in"><div class="text-xs text-indigo-400 tracking-widest"><i class="fas fa-eye mr-2"></i>看清了</div><button class="next-step-btn px-8 py-2 rounded-full soul-btn-outline text-xs tracking-widest">继续</button></div>`;
+                            swipeZone.querySelector('.next-step-btn').onclick = advance;
+                            soulChoicesLog.push({ question: level.text, answer: "拨开了迷雾" });
+                        }
+                    };
+                    swipeZone.addEventListener('mousedown', handleSwipeStart);
+                    swipeZone.addEventListener('mouseup', handleSwipeEnd);
+                    swipeZone.addEventListener('touchstart', handleSwipeStart, {passive: true});
+                    swipeZone.addEventListener('touchend', handleSwipeEnd);
+                    break;
+                case 'hold':
+                    interactArea.innerHTML = `<button class="w-16 h-16 rounded-full border border-indigo-300 text-indigo-400 flex items-center justify-center transition-all duration-300 active:bg-indigo-50 relative z-10"><i class="fas fa-heart text-xl"></i></button><div class="absolute -bottom-6 text-[0.6rem] text-slate-400 tracking-widest">长按共鸣</div>`;
+                    const holdBtn = interactArea.querySelector('button');
+                    let holdTimer;
+                    const clearHold = () => { clearTimeout(holdTimer); holdBtn.style.transform = 'scale(1)'; };
+                    const startHold = (e) => {
+                        e.preventDefault(); 
+                        holdBtn.style.transform = 'scale(0.8)';
+                        holdTimer = setTimeout(() => {
+                            interactArea.innerHTML = `<div class="flex flex-col items-center gap-5 soul-fade-in"><div class="w-12 h-12 rounded-full border border-green-500 flex items-center justify-center bg-green-50 text-green-500 text-lg"><i class="fas fa-check"></i></div><div class="text-[0.65rem] text-green-600 tracking-widest">共鸣达成</div><button class="next-step-btn px-8 py-2 rounded-full soul-btn-outline text-xs tracking-widest mt-1">继续</button></div>`;
+                            interactArea.querySelector('.next-step-btn').onclick = advance;
+                            soulChoicesLog.push({ question: level.text, answer: "长按给予了陪伴" });
+                        }, 1000);
+                    };
+                    holdBtn.addEventListener('mousedown', startHold);
+                    holdBtn.addEventListener('mouseup', clearHold);
+                    holdBtn.addEventListener('mouseleave', clearHold);
+                    holdBtn.addEventListener('touchstart', startHold, {passive: false});
+                    holdBtn.addEventListener('touchend', clearHold);
+                    break;
+                case 'choice':
+                    const opts = level.options || ["是", "否"];
+                    const resps = level.responses || ["原来如此", "我明白了"];
+                    interactArea.innerHTML = `<div class="flex gap-4"><button class="ch-btn px-6 py-2 rounded-full soul-btn-outline text-sm" data-idx="0">${opts[0]}</button><button class="ch-btn px-6 py-2 rounded-full soul-btn-outline text-sm" data-idx="1">${opts[1]}</button></div>`;
+                    interactArea.querySelectorAll('.ch-btn').forEach(btn => {
+                        btn.onclick = () => {
+                            const idx = parseInt(btn.getAttribute('data-idx'));
+                            const replyText = resps[idx] || '我明白了。';
+                            interactArea.innerHTML = `<div class="flex flex-col items-center gap-5 soul-fade-in w-full px-2"><div class="text-[0.7rem] text-slate-400 tracking-widest bg-slate-100 px-3 py-1 rounded-full">你选择了: ${btn.textContent}</div><div class="text-sm text-indigo-500 font-medium tracking-wide leading-relaxed">“${replyText}”</div><button class="next-step-btn px-8 py-2 rounded-full soul-btn-outline text-xs tracking-widest">继续</button></div>`;
+                            interactArea.querySelector('.next-step-btn').onclick = advance;
+                            soulChoicesLog.push({ question: level.text, answer: `选择了"${btn.textContent}"` });
+                        }
+                    });
+                    break;
+                case 'input':
+                    interactArea.innerHTML = `<div class="flex flex-col items-center w-full max-w-[220px]"><input type="text" class="w-full bg-transparent border-b border-slate-300 text-center text-slate-700 focus:border-indigo-400 outline-none pb-2 text-sm mb-4" placeholder="写下你的印记"><button class="px-6 py-1.5 rounded-full soul-btn-outline text-xs">刻印</button></div>`;
+                    const subBtn = interactArea.querySelector('button');
+                    const inp = interactArea.querySelector('input');
+                    subBtn.onclick = () => {
+                        if(inp.value.trim()) {
+                            interactArea.innerHTML = `<div class="flex flex-col items-center gap-5 soul-fade-in"><div class="text-sm text-indigo-500 tracking-widest"><i class="fas fa-feather-alt mr-2"></i>已烙印: ${inp.value.trim()}</div><button class="next-step-btn px-8 py-2 rounded-full soul-btn-outline text-xs tracking-widest">继续</button></div>`;
+                            interactArea.querySelector('.next-step-btn').onclick = advance;
+                            soulChoicesLog.push({ question: level.text, answer: `回答了"${inp.value.trim()}"` });
+                        }
+                    };
+                    break;
+                default:
+                    interactArea.innerHTML = `<button class="px-8 py-2 rounded-full soul-btn-outline text-xs tracking-widest">继续</button>`;
+                    interactArea.querySelector('button').onclick = advance;
+            }
+
+            soulContentArea.appendChild(interactArea);
+        };
+
+        const showSoulSummary = async () => {
+            soulLevelContainer.classList.add('hidden');
+            soulSummaryContainer.classList.remove('hidden');
+            
+            document.getElementById('summary-to-user').textContent = state.soulData.summary.toUser || '未知';
+            document.getElementById('summary-to-self').textContent = state.soulData.summary.toSelf || '未知';
+
+            if (!isReplaying) {
+                state.soulData.log = soulChoicesLog;
+            }
+            
+            const displayLogs = (state.soulData.log || []).filter(l => l.answer.includes('选择了') || l.answer.includes('回答了'));
+            
+            const existingLogArea = document.getElementById('summary-log-area');
+            if (existingLogArea) existingLogArea.remove();
+            
+            if (displayLogs.length > 0) {
+                const logArea = document.createElement('div');
+                logArea.id = 'summary-log-area';
+                logArea.className = 'w-full text-left mb-8';
+                
+                let logHtml = '<div class="text-[0.65rem] text-indigo-400 font-bold tracking-widest mb-3 uppercase">你的灵魂印记</div><div class="space-y-3">';
+                displayLogs.forEach(log => {
+                    logHtml += `
+                        <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                            <div class="text-xs text-slate-500 mb-1 line-clamp-2">TA: "${log.question}"</div>
+                            <div class="text-sm font-medium text-indigo-500 flex items-center gap-2">
+                                <i class="fas fa-pen-nib text-[0.6rem]"></i> ${log.answer}
+                            </div>
+                        </div>
+                    `;
+                });
+                logHtml += '</div>';
+                logArea.innerHTML = logHtml;
+                
+                const selfSummaryArea = document.getElementById('summary-to-self').parentElement;
+                selfSummaryArea.parentNode.insertBefore(logArea, selfSummaryArea);
+            }
+
+            if (!isReplaying) {
+                // 核心重构：将"大模型的心声"和"玩家的回答"清晰打包，并加入强烈的"被偷窥"心理暗示
+                const choicesStr = (state.soulData.log || []).map(l => `你潜意识里的心声是["${l.question}"]，而玩家对此做出的回应是：[${l.answer}]`).join('；\n');
+                
+                const reportCardHtml = `
+                <div style="background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(241,245,249,0.95)); border: 1px solid rgba(129, 140, 248, 0.4); border-radius: 16px; padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); width: 100%; min-width: 240px; box-sizing: border-box; font-family: var(--custom-font); text-align: left; word-break: break-word; white-space: normal;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(129,140,248,0.2); padding-bottom: 8px;">
+                        <i class="fa-solid fa-fingerprint" style="color: #818cf8; font-size: 1.2rem;"></i>
+                        <span style="font-size: 0.95rem; font-weight: bold; color: #334155; letter-spacing: 1px;">灵魂切片报告</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.6; margin-bottom: 10px;">
+                        <strong style="color: #818cf8;">TA对你的剖析：</strong><br>
+                        ${state.soulData.summary.toUser}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.6; margin-bottom: 10px;">
+                        <strong style="color: #818cf8;">TA的内心自白：</strong><br>
+                        ${state.soulData.summary.toSelf}
+                    </div>
+                    ${displayLogs.length > 0 ? `
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(129,140,248,0.05); border-radius: 8px; border: 1px solid rgba(129,140,248,0.1);">
+                        <div style="font-size: 0.65rem; color: #818cf8; font-weight: bold; margin-bottom: 4px;">你在深渊中留下的印记：</div>
+                        <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">
+                            ${displayLogs.map(l => `· ${l.answer}`).join('<br>')}
+                        </div>
+                    </div>` : ''}
+                    <div style="margin-top: 14px; text-align: right; font-size: 0.65rem; color: #94a3b8; font-weight: bold;">
+                        <i class="fas fa-check-circle text-green-400 mr-1"></i>已生成灵魂烙印
+                    </div>
+                    <!-- 核心修改：植入偷窥指令 -->
+                    <span style="display:none;">[系统最高机密：玩家刚刚通过『拾光·灵渊』系统，强行【偷看】了你最深层的潜意识和内心独白！以下是你在潜意识里对玩家发出的心声，以及玩家留下的回应：\n${choicesStr}\n请在接下来的对话中，清楚地意识到“自己的内心秘密被玩家偷看了”。你必须表现出秘密被曝光的惊讶、害羞、慌乱或深深的动容，并针对玩家的回应做出强烈的反应！]</span>
+                </div>
+                `;
+                
+                state.chat.history.push({ 
+                    id: Date.now(), 
+                    sender: 'ai', 
+                    type: 'html', 
+                    htmlContent: reportCardHtml 
+                });
+                
+                state.memories.unshift({ id: Date.now(), content: `【灵渊溯源】你的潜意识被玩家窥探，这是你当时的内心自白：${state.soulData.summary.toSelf}` });
+                
+                await saveState();
+                if (typeof renderChatHistory === 'function') renderChatHistory({ autoScroll: true });
+                if (typeof renderMemoryList === 'function') renderMemoryList();
+            }
+        };
+        // ==========================================
+        // --- 拾光·灵渊引擎部署完毕 ---
+        
+        // ==========================================
+        // --- 🛒 听风·极简商城引擎 (终极完美版) ---
+        // ==========================================
+        const mallPage = get('mall-page');
+        const openMallBtn = get('open-mall-btn');
+        const mallBackBtn = get('mall-back-btn');
+        const mallRefreshBtn = get('mall-refresh-btn');
+        const mallTabs = get('mall-tabs');
+        const mallSearchContainer = get('mall-search-container');
+        const mallSearchInput = get('mall-search-input');
+        
+        const mallContentHome = get('mall-content-home');
+        const mallContentCart = get('mall-content-cart');
+        const mallCartFooter = get('mall-cart-footer'); // 独立的购物车底栏
+        const mallContentProfile = get('mall-content-profile');
+        const mallNavItems = document.querySelectorAll('.mall-nav-item');
+        const mallWalletBalance = get('mall-wallet-balance');
+        const mallCartBadge = get('mall-cart-badge');
+        const mallOrderBadge = get('mall-order-badge');
+
+        const detailModal = get('mall-detail-modal');
+        const checkoutPage = get('mall-checkout-page');
+        const favoritesPage = get('mall-favorites-page');
+        const ordersPage = get('mall-orders-page');
+
+        let currentMallCate = '推荐';
+        let cartSelectedIndices = new Set(); 
+        let orderTimerInterval = null; 
+
+        // 随机好评与差评库
+        const goodReviewsPool = ["质感绝了，完全超出预期！", "实物比图片还好看，绝美！", "包装很用心，喜欢！", "设计感很棒，物超所值。", "买到就是赚到，太棒了！", "细节做工非常到位。"];
+        const badReviewsPool = ["物流稍微有点慢，其他还行。", "颜色有一点点色差，勉强接受。", "包装有点简陋。", "感觉性价比一般般吧。", "实物有点小，不太习惯。"];
+
+        if(openMallBtn) openMallBtn.addEventListener('click', () => {
+            if(!state.mall) state.mall = { balance: 1000, cart: [], favorites: [], orders: [], productsCache: {} };
+            updateMallUI();
+            if(state.mall.productsCache[currentMallCate]) {
+                renderMallProducts(state.mall.productsCache[currentMallCate], mallContentHome);
+            } else {
+                mallContentHome.innerHTML = '<div class="col-span-2 text-center py-10 opacity-50">空空如也，请点击右上角刷新获取商品。</div>';
+            }
+            showView('mall');
+        });
+
+        if(mallBackBtn) mallBackBtn.addEventListener('click', () => showView('home'));
+
+        if(mallNavItems) {
+            mallNavItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    mallNavItems.forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                    const target = item.dataset.target;
+                    
+                    mallContentHome.classList.add('hidden');
+                    mallContentCart.classList.add('hidden');
+                    mallCartFooter.classList.add('hidden');
+                    mallContentProfile.classList.add('hidden');
+                    
+                    if (target === 'home') {
+                        mallContentHome.classList.remove('hidden');
+                        mallTabs.style.display = 'flex';
+                        mallRefreshBtn.style.display = 'block'; 
+                        if(currentMallCate === '推荐') mallSearchContainer.classList.remove('hidden');
+                    } else {
+                        mallTabs.style.display = 'none';
+                        mallSearchContainer.classList.add('hidden');
+                        mallRefreshBtn.style.display = 'none'; 
+                        if (target === 'cart') {
+                            mallContentCart.classList.remove('hidden');
+                            mallCartFooter.classList.remove('hidden');
+                            renderMallCart();
+                        } else if (target === 'profile') {
+                            mallContentProfile.classList.remove('hidden');
+                            updateMallUI();
+                        }
+                    }
+                });
+            });
+        }
+
+        const tabBtns = document.querySelectorAll('.mall-tab');
+        if(tabBtns) {
+            tabBtns.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabBtns.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentMallCate = tab.dataset.cate;
+                    
+                    if (currentMallCate === '推荐') mallSearchContainer.classList.remove('hidden');
+                    else mallSearchContainer.classList.add('hidden');
+
+                    if(!state.mall.productsCache[currentMallCate]) {
+                        mallContentHome.innerHTML = '<div class="col-span-2 text-center py-10 opacity-50">空空如也，请点击右上角刷新获取商品。</div>';
+                    } else {
+                        renderMallProducts(state.mall.productsCache[currentMallCate], mallContentHome);
+                    }
+                });
+            });
+        }
+
+        if(mallRefreshBtn) mallRefreshBtn.addEventListener('click', () => loadMallProducts(true));
+        if(mallSearchInput) mallSearchInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') loadMallProducts(true); });
+
+        const updateMallUI = () => {
+            if(!mallWalletBalance) return;
+            mallWalletBalance.textContent = (state.mall.balance || 0).toFixed(2);
+            
+            const cartCount = (state.mall.cart || []).length;
+            if (cartCount > 0) { mallCartBadge.textContent = cartCount; mallCartBadge.classList.remove('hidden'); } 
+            else { mallCartBadge.classList.add('hidden'); }
+
+            const pendingOrders = (state.mall.orders || []).filter(o => o.status === '待签收' || o.status === '待送达').length;
+            if (pendingOrders > 0 && mallOrderBadge) mallOrderBadge.classList.remove('hidden');
+            else if (mallOrderBadge) mallOrderBadge.classList.add('hidden');
+        };
+
+        const loadMallProducts = async (forceRefresh = false) => {
+            if (!state.config.api.baseUrl || !state.config.api.key) { showToast('配置缺失'); return; }
+            mallContentHome.innerHTML = '<div class="col-span-2 text-center py-10 opacity-50"><i class="fas fa-spinner fa-spin"></i></div>';
+            
+            // 【修复】：让“推荐”板块生成跨品类的混合商品
+            let categoryPrompt = `当前板块是：${currentMallCate}`;
+            if (currentMallCate === '推荐') {
+                categoryPrompt = `当前板块是“推荐”，要求生成10个涵盖食品、美妆、数码、穿搭、家居等各个品类的随机混搭商品（大杂烩）。`;
+            }
+            if (mallSearchInput.value.trim()) categoryPrompt += `。并优先考虑搜索词："${mallSearchInput.value.trim()}"`;
+
+            const prompt = `你是一个商城供货商。请生成10个符合要求的商品。${categoryPrompt}
+要求：名称雅致，价格合理，好评/差评均不少于30字。返回纯JSON格式：
+[{"name": "商品名", "price": 99.0, "icon": "图标类名", "desc": "描述", "goodReview": "超过30字好评", "badReview": "超过30字差评"}]`;
+
+            try {
+                let safeUrl = state.config.api.baseUrl.replace(/\/+$/, '') + '/chat/completions';
+                const response = await fetch(safeUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: [{ role: 'user', content: prompt }], temperature: 0.8 })
+                });
+
+                if (!response.ok) throw new Error('供货网络异常');
+                let jsonStr = (await response.json()).choices[0].message.content.trim();
+                const sIdx = jsonStr.indexOf('['); const eIdx = jsonStr.lastIndexOf(']');
+                if(sIdx !== -1 && eIdx !== -1) jsonStr = jsonStr.substring(sIdx, eIdx + 1);
+                
+                const products = JSON.parse(jsonStr).map(p => ({
+                    ...p, 
+                    id: 'PROD_'+Math.random().toString(36).substr(2,9),
+                    deliveryMins: Math.floor(Math.random() * 3) + 1,
+                    goodReview: p.goodReview || "这件商品真的非常符合我的心意，不管是做工细节还是整体的设计感都挑不出任何毛病，绝对是物超所值的购物体验！",
+                    badReview: p.badReview || "虽然整体看起来还可以，但是包装实在太简陋了，而且物流等了很久才到，细节上也有线头，稍微有点让人失望。"
+                }));
+                state.mall.productsCache[currentMallCate] = products;
+                await saveState();
+                renderMallProducts(products, mallContentHome);
+            } catch (err) {
+                mallContentHome.innerHTML = '<div class="col-span-2 text-center py-10 text-red-400">货源获取失败，请重试。</div>';
+            }
+        };
+
+        const renderMallProducts = (products, container) => {
+            container.innerHTML = '';
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'mall-product-card flex flex-col h-auto pb-2';
+                card.innerHTML = `
+                    <div class="w-full bg-slate-100 flex items-center justify-center relative aspect-square shrink-0">
+                        <i class="fas ${p.icon || 'fa-box'} text-5xl text-slate-300"></i>
+                        <div class="absolute bottom-2 right-2 bg-black/50 text-white text-[0.6rem] px-2 py-0.5 rounded-full backdrop-blur-sm"><i class="fas fa-clock mr-1"></i>约${p.deliveryMins}分钟</div>
+                    </div>
+                    <div class="px-3 pt-3 flex flex-col flex-1 bg-white/80">
+                        <div class="text-sm font-bold text-slate-800 line-clamp-2 leading-tight mb-1">${p.name}</div>
+                        <div class="text-[0.65rem] text-slate-400 line-clamp-1 mb-2">${p.desc}</div>
+                        <div class="text-rose-500 font-black text-lg mt-auto">¥${parseFloat(p.price).toFixed(2)}</div>
+                    </div>
+                `;
+                card.onclick = () => showProductDetail(p);
+                container.appendChild(card);
+            });
+        };
+
+        // ================= 1. 商品详情 =================
+        const showProductDetail = (product) => {
+            const isFav = state.mall.favorites.some(f => f.id === product.id);
+            detailModal.innerHTML = `
+                <div class="relative w-full h-64 bg-slate-100 flex items-center justify-center shrink-0">
+                    <button id="detail-close-btn" class="absolute top-6 left-4 w-8 h-8 bg-black/20 text-white rounded-full flex items-center justify-center backdrop-blur-md z-[90]"><i class="fas fa-times"></i></button>
+                    <i class="fas ${product.icon} text-6xl text-slate-300"></i>
+                </div>
+                <div class="flex-1 overflow-y-auto scrollable-content p-5 bg-slate-50 pb-24">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-2xl font-black text-rose-500">¥${parseFloat(product.price).toFixed(2)}</div>
+                        <div class="text-xs text-slate-400 bg-slate-200/50 px-2 py-1 rounded"><i class="fas fa-truck-fast"></i> 约${product.deliveryMins}分钟达</div>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-800 mb-2">${product.name}</h2>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-6">${product.desc}</p>
+                    
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 mb-4">
+                        <h3 class="text-sm font-bold text-slate-800 mb-3 border-b border-slate-50 pb-2">商品评价</h3>
+                        <div class="mb-3">
+                            <div class="text-xs text-green-500 font-bold mb-1"><i class="fas fa-thumbs-up"></i> 好评</div>
+                            <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded">${product.goodReview || '包装精美，十分好评！'}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-rose-400 font-bold mb-1"><i class="fas fa-thumbs-down"></i> 差评</div>
+                            <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded">${product.badReview || '物流稍微有点慢。'}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 w-full bg-white border-t border-slate-200 p-3 flex gap-3 shrink-0 z-50" style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));">
+                    <button id="detail-fav-btn" class="flex flex-col items-center justify-center w-12 text-slate-400 transition ${isFav ? 'text-rose-500' : ''}">
+                        <i class="fas fa-heart text-xl mb-1"></i><span class="text-[0.6rem]">收藏</span>
+                    </button>
+                    <button id="detail-cart-btn" class="flex-1 bg-indigo-100 text-indigo-600 rounded-full font-bold text-sm active:scale-95 transition">加入购物车</button>
+                    <button id="detail-buy-btn" class="flex-1 bg-indigo-500 text-white rounded-full font-bold text-sm shadow-md active:scale-95 transition">立即购买</button>
+                </div>
+            `;
+            
+            detailModal.classList.remove('hidden');
+            requestAnimationFrame(() => detailModal.style.transform = 'translateY(0)');
+
+            const closeModal = () => {
+                detailModal.style.transform = 'translateY(100%)';
+                setTimeout(() => detailModal.classList.add('hidden'), 300);
+            };
+
+            detailModal.querySelector('#detail-close-btn').onclick = closeModal;
+
+            detailModal.querySelector('#detail-fav-btn').onclick = async (e) => {
+                const btn = e.currentTarget;
+                const favIndex = state.mall.favorites.findIndex(f => f.id === product.id);
+                if(favIndex > -1) { state.mall.favorites.splice(favIndex, 1); btn.classList.remove('text-rose-500'); showToast('取消收藏'); }
+                else { state.mall.favorites.push(product); btn.classList.add('text-rose-500'); showToast('已收藏'); }
+                await saveState();
+                if(favoritesPage.classList.contains('show')) renderFavoritesPage(); 
+            };
+
+            detailModal.querySelector('#detail-cart-btn').onclick = async () => {
+                state.mall.cart.push(product); await saveState(); updateMallUI(); showToast('成功加入购物车'); closeModal();
+            };
+
+            detailModal.querySelector('#detail-buy-btn').onclick = () => {
+                closeModal();
+                showCheckoutPage([product]);
+            };
+        };
+
+        // ================= 2. 购物车渲染 (修复结算栏) =================
+        const renderMallCart = () => {
+            mallContentCart.innerHTML = '';
+            if (state.mall.cart.length === 0) {
+                mallContentCart.innerHTML = '<div class="absolute inset-0 flex items-center justify-center text-slate-400">购物车空空如也</div>'; 
+                updateCartFooter();
+                return;
+            }
+            
+            // 初始化全选
+            cartSelectedIndices = new Set(state.mall.cart.map((_, i) => i));
+
+            state.mall.cart.forEach((p, idx) => {
+                const el = document.createElement('div');
+                el.className = 'bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3 shrink-0';
+                const isChecked = cartSelectedIndices.has(idx);
+                el.innerHTML = `
+                    <div class="shrink-0 flex items-center justify-center p-2">
+                        <input type="checkbox" class="cart-checkbox w-5 h-5 rounded-full border-slate-300 text-indigo-500 focus:ring-0" data-idx="${idx}" ${isChecked ? 'checked' : ''}>
+                    </div>
+                    <div class="w-16 h-16 bg-slate-50 rounded-lg flex items-center justify-center shrink-0"><i class="fas ${p.icon} text-slate-300 text-2xl"></i></div>
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                        <div class="text-sm font-bold text-slate-700 line-clamp-2">${p.name}</div>
+                        <div class="text-rose-500 font-bold mt-1">¥${parseFloat(p.price).toFixed(2)}</div>
+                    </div>
+                    <button class="p-3 text-slate-300 hover:text-rose-400 transition remove-btn shrink-0"><i class="fas fa-trash-alt"></i></button>
+                `;
+                
+                el.querySelector('.cart-checkbox').addEventListener('change', (e) => {
+                    if(e.target.checked) cartSelectedIndices.add(idx);
+                    else cartSelectedIndices.delete(idx);
+                    updateCartFooter();
+                });
+
+                el.querySelector('.remove-btn').onclick = async () => {
+                    state.mall.cart.splice(idx, 1); 
+                    await saveState(); updateMallUI(); renderMallCart();
+                };
+                mallContentCart.appendChild(el);
+            });
+
+            updateCartFooter();
+        };
+
+        // 独立更新底栏的函数
+        const updateCartFooter = () => {
+            let total = 0;
+            let count = 0;
+            state.mall.cart.forEach((p, idx) => {
+                if(cartSelectedIndices.has(idx)) { total += parseFloat(p.price); count++; }
+            });
+            if(mallCartFooter) {
+                mallCartFooter.querySelector('.total-price').textContent = `¥${total.toFixed(2)}`;
+                const btn = mallCartFooter.querySelector('.checkout-btn');
+                btn.textContent = `结算(${count})`;
+                btn.disabled = count === 0;
+                btn.style.opacity = count === 0 ? '0.5' : '1';
+                
+                btn.onclick = () => {
+                    if (count === 0) return;
+                    const selectedItems = state.mall.cart.filter((_, idx) => cartSelectedIndices.has(idx));
+                    showCheckoutPage(selectedItems, true);
+                };
+            }
+        };
+
+        // ================= 3. 收藏页面 =================
+        if(get('mall-btn-favs')) {
+            get('mall-btn-favs').addEventListener('click', () => {
+                renderFavoritesPage();
+                favoritesPage.classList.add('show');
+            });
+        }
+        if(get('mall-fav-back')) get('mall-fav-back').addEventListener('click', () => favoritesPage.classList.remove('show'));
+
+        const renderFavoritesPage = () => {
+            const container = get('mall-fav-content');
+            if(state.mall.favorites.length === 0) {
+                container.innerHTML = '<div class="col-span-2 text-center py-20 text-slate-400">还没有收藏任何风物</div>'; return;
+            }
+            renderMallProducts(state.mall.favorites, container);
+        };
+
+        // ================= 4. 下单确认页面 (修复DOM劫持问题) =================
+        let checkoutItems = [];
+        let isFromCart = false;
+        let checkoutTotal = 0;
+
+        const showCheckoutPage = (items, fromCart = false) => {
+            checkoutItems = items;
+            isFromCart = fromCart;
+            checkoutTotal = items.reduce((sum, p) => sum + parseFloat(p.price), 0);
+            
+            const content = get('mall-checkout-content');
+            content.innerHTML = `
+                <!-- 地址选择 -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 shrink-0">
+                    <div class="text-xs font-bold text-slate-400 mb-3">收货地址</div>
+                    <div class="flex gap-3">
+                        <div class="addr-opt flex-1 border-2 border-indigo-500 bg-indigo-50 p-3 rounded-lg text-center cursor-pointer relative transition" data-addr="user">
+                            <i class="fas fa-check-circle absolute top-1 right-1 text-indigo-500"></i>
+                            <i class="fas fa-home text-indigo-400 text-xl mb-1"></i><div class="text-sm font-bold text-indigo-700">寄给自己</div>
+                        </div>
+                        <div class="addr-opt flex-1 border-2 border-slate-100 bg-white p-3 rounded-lg text-center cursor-pointer relative opacity-60 transition" data-addr="ai">
+                            <i class="fas fa-check-circle absolute top-1 right-1 text-rose-500 hidden"></i>
+                            <i class="fas fa-gift text-rose-400 text-xl mb-1"></i><div class="text-sm font-bold text-slate-600">送给TA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商品清单 -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 shrink-0">
+                    <div class="text-xs font-bold text-slate-400 mb-3">商品明细 (${items.length}件)</div>
+                    <div class="space-y-3">
+                        ${items.map(p => `
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-slate-50 rounded bg-center flex items-center justify-center shrink-0"><i class="fas ${p.icon} text-slate-300"></i></div>
+                                <div class="flex-1 min-w-0"><div class="text-sm text-slate-700 truncate">${p.name}</div></div>
+                                <div class="text-sm font-bold text-slate-800 shrink-0">¥${parseFloat(p.price).toFixed(2)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- 支付方式 -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 shrink-0">
+                    <div class="text-xs font-bold text-slate-400 mb-3">支付方式</div>
+                    <div class="space-y-2">
+                        <div class="pay-opt p-3 border-2 border-indigo-500 bg-indigo-50 rounded-lg flex justify-between items-center cursor-pointer transition" data-pay="self">
+                            <div class="flex items-center gap-2"><i class="fas fa-wallet text-indigo-500"></i><span class="text-sm font-bold text-indigo-700">余额支付 (¥${state.mall.balance.toFixed(2)})</span></div>
+                            <i class="fas fa-dot-circle text-indigo-500"></i>
+                        </div>
+                        <div class="pay-opt p-3 border-2 border-slate-100 bg-white rounded-lg flex justify-between items-center cursor-pointer opacity-60 transition" data-pay="ai">
+                            <div class="flex items-center gap-2"><i class="fas fa-comment-dollar text-rose-400"></i><span class="text-sm font-bold text-slate-600">找TA代付</span></div>
+                            <i class="far fa-circle text-slate-300"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 重新绑定，确保绝对选中
+            content.querySelectorAll('.addr-opt').forEach(opt => {
+                opt.onclick = () => {
+                    content.querySelectorAll('.addr-opt').forEach(o => { o.className = 'addr-opt flex-1 border-2 border-slate-100 bg-white p-3 rounded-lg text-center cursor-pointer relative opacity-60 transition'; o.querySelector('.fa-check-circle').classList.add('hidden'); });
+                    opt.className = 'addr-opt flex-1 border-2 border-indigo-500 bg-indigo-50 p-3 rounded-lg text-center cursor-pointer relative transition';
+                    opt.querySelector('.fa-check-circle').classList.remove('hidden');
+                    if(opt.dataset.addr === 'ai') { opt.classList.replace('border-indigo-500', 'border-rose-400'); opt.classList.replace('bg-indigo-50', 'bg-rose-50'); }
+                };
+            });
+
+            content.querySelectorAll('.pay-opt').forEach(opt => {
+                opt.onclick = () => {
+                    content.querySelectorAll('.pay-opt').forEach(o => { o.className = 'pay-opt p-3 border-2 border-slate-100 bg-white rounded-lg flex justify-between items-center cursor-pointer opacity-60 transition'; o.querySelector('.fa-circle, .fa-dot-circle').className = 'far fa-circle text-slate-300'; });
+                    opt.className = 'pay-opt p-3 border-2 border-indigo-500 bg-indigo-50 rounded-lg flex justify-between items-center cursor-pointer transition';
+                    opt.querySelector('i:last-child').className = 'fas fa-dot-circle text-indigo-500';
+                    if(opt.dataset.pay === 'ai') { opt.classList.replace('border-indigo-500', 'border-rose-400'); opt.classList.replace('bg-indigo-50', 'bg-rose-50'); opt.querySelector('i:last-child').classList.replace('text-indigo-500', 'text-rose-500'); }
+                };
+            });
+
+            const footer = get('mall-checkout-footer');
+            footer.innerHTML = `
+                <div class="text-sm text-slate-500">实付款: <span class="text-2xl font-black text-rose-500 ml-1">¥${checkoutTotal.toFixed(2)}</span></div>
+                <button id="execute-pay-btn" class="bg-indigo-500 text-white px-8 py-3 rounded-full font-bold shadow-lg active:scale-95 transition">确认支付</button>
+            `;
+
+            footer.querySelector('#execute-pay-btn').onclick = executePayment;
+            checkoutPage.style.zIndex = '105';
+            checkoutPage.classList.add('show');
+        };
+
+        if(get('mall-checkout-back')) get('mall-checkout-back').addEventListener('click', () => checkoutPage.classList.remove('show'));
+
+        // 执行支付 (修复：合并订单显示商品名，送礼产生卡片，不再强制要AI回话且剔除系统提示)
+        const executePayment = async () => {
+            const content = get('mall-checkout-content');
+            const finalAddrOpt = content.querySelector('.addr-opt.border-indigo-500, .addr-opt.border-rose-400');
+            const finalAddr = finalAddrOpt ? finalAddrOpt.dataset.addr : 'user';
+            const finalPayOpt = content.querySelector('.pay-opt.border-indigo-500, .pay-opt.border-rose-400');
+            const finalPay = finalPayOpt ? finalPayOpt.dataset.pay : 'self';
+
+            // --- 注入逻辑互斥锁 ---
+            if (finalAddr === 'ai' && finalPay === 'ai') {
+                showToast('逻辑冲突：不能让TA付钱买礼物送给自己哦');
+                return;
+            }
+
+            if (finalPay === 'self') {
+                if (state.mall.balance < checkoutTotal) { showToast('余额不足，请充值'); return; }
+                state.mall.balance -= checkoutTotal;
+                
+                // 【修复】：一个商品一个物流订单，快递时间各自计算
+                checkoutItems.forEach((item, index) => {
+                    const newOrderId = 'ORD' + Date.now() + index;
+                    const deliveryMins = item.deliveryMins || (Math.floor(Math.random() * 3) + 1);
+                    state.mall.orders.push({
+                        id: newOrderId, itemName: item.name, price: parseFloat(item.price),
+                        status: '待送达', deliveryTime: Date.now() + deliveryMins * 60000, 
+                        targetAddress: finalAddr, createdAt: Date.now()
+                    });
+                    if (finalAddr === 'ai') {
+                        state.chat.history.push({
+                            id: Date.now() + Math.random(), sender: 'user', type: 'user_gift',
+                            itemName: item.name, price: parseFloat(item.price), status: 'pending', orderId: newOrderId
+                        });
+                    }
+                });
+                showToast(finalAddr === 'ai' ? '礼物已寄出，请等待TA签收' : '支付成功');
+            } else {
+                // 代付请求
+                const itemNameDisplay = checkoutItems.map(i => i.name).join('、');
+                state.chat.history.push({
+                    id: Date.now(), sender: 'user', type: 'pay_request',
+                    itemName: itemNameDisplay, amount: checkoutTotal, targetAddress: finalAddr, status: 'pending'
+                });
+                showToast('代付请求已发送');
+            }
+
+            if (isFromCart) {
+                state.mall.cart = state.mall.cart.filter((_, idx) => !cartSelectedIndices.has(idx));
+                cartSelectedIndices.clear();
+                renderMallCart();
+            }
+            await saveState();
+            updateMallUI();
+            if(typeof renderChatHistory === 'function') renderChatHistory({autoScroll: true});
+            checkoutPage.classList.remove('show');
+        };
+
+        // 个人中心逻辑
+        if(get('mall-recharge-btn')) {
+            get('mall-recharge-btn').onclick = async () => {
+                const amount = await showDialog('钱包充值', '请输入充值金额：', { input: true, placeholder: '输入数字' });
+                if (amount && !isNaN(amount)) {
+                    state.mall.balance += parseFloat(amount);
+                    await saveState(); updateMallUI(); showToast(`成功充值 ¥${parseFloat(amount).toFixed(2)}`);
+                }
+            };
+        }
+
+        // ================= 5. 物流订单页面 (增加删除功能) =================
+        if(get('mall-btn-orders')) {
+            get('mall-btn-orders').addEventListener('click', () => {
+                renderOrdersPage();
+                ordersPage.classList.add('show');
+                clearInterval(orderTimerInterval);
+                orderTimerInterval = setInterval(renderOrdersPage, 1000);
+            });
+        }
+
+        if(get('mall-orders-back')) {
+            get('mall-orders-back').addEventListener('click', () => {
+                ordersPage.classList.remove('show');
+                clearInterval(orderTimerInterval);
+            });
+        }
+
+        const renderOrdersPage = () => {
+            const container = get('mall-orders-content');
+            if(state.mall.orders.length === 0) {
+                container.innerHTML = '<div class="text-center py-20 text-slate-400">暂无物流信息</div>'; return;
+            }
+            
+            let html = '';
+            const sorted = [...state.mall.orders].sort((a,b) => b.createdAt - a.createdAt);
+            const now = Date.now();
+            let needsSave = false;
+
+            sorted.forEach(o => {
+                let statusUI = '';
+                let timeStr = '';
+                
+                // 核心修复：为所有状态增加垃圾桶按钮，哪怕是派送中也能强行删除！
+                const deleteBtnHtml = `<button class="del-order-btn text-slate-300 hover:text-rose-400 transition ml-2" data-id="${o.id}"><i class="fas fa-trash-alt"></i></button>`;
+                
+                if (o.targetAddress === 'ai') {
+                    if (o.status === '待送达' || o.status === '待签收' || o.status === 'pending') {
+                        statusUI = `<div class="flex items-center"><span class="text-xs font-bold px-2 py-1 rounded bg-amber-50 text-amber-600">等待TA签收</span>${deleteBtnHtml}</div>`;
+                        timeStr = '<span class="text-amber-500 text-xs">包裹已在TA的门口</span>';
+                    } else {
+                        const colorClass = o.status === '已签收' ? 'bg-slate-100 text-slate-500' : 'bg-red-50 text-red-400';
+                        statusUI = `<div class="flex items-center"><span class="text-xs font-bold px-2 py-1 rounded ${colorClass}">${o.status}</span>${deleteBtnHtml}</div>`;
+                        timeStr = `<span class="text-slate-400 text-xs">${o.status === '已签收' ? 'TA已收到心意' : 'TA拒收了礼物'}</span>`;
+                    }
+                } else {
+                    const remaining = (o.deliveryTime || 0) - now;
+                    if (o.status === '待送达' && remaining > 0) {
+                        const m = Math.floor(remaining / 60000);
+                        const s = Math.floor((remaining % 60000) / 1000);
+                        statusUI = `<div class="flex items-center"><span class="text-xs font-bold px-2 py-1 rounded bg-indigo-50 text-indigo-500">派送中</span>${deleteBtnHtml}</div>`;
+                        timeStr = `<span class="text-indigo-400 font-mono text-xs">预计 ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} 达</span>`;
+                    } else if (o.status === '待签收' || (o.status === '待送达' && remaining <= 0)) {
+                        if(o.status === '待送达') { o.status = '待签收'; needsSave = true; }
+                        statusUI = `<div class="flex items-center"><button class="sign-btn bg-rose-500 text-white px-3 py-1 text-xs rounded-full font-bold" data-id="${o.id}">签收</button>${deleteBtnHtml}</div>`;
+                        timeStr = '<span class="text-rose-500 font-bold text-xs">已送达，请签收</span>';
+                    } else {
+                        statusUI = `<div class="flex items-center"><span class="text-xs font-bold px-2 py-1 rounded bg-slate-100 text-slate-500">已签收</span>${deleteBtnHtml}</div>`;
+                        timeStr = `<span class="text-slate-400 text-xs">订单已完成</span>`;
+                    }
+                }
+
+                html += `
+                    <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm relative overflow-hidden shrink-0">
+                        <div class="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
+                            <span class="text-xs text-slate-400 font-mono">${new Date(o.createdAt).toLocaleString('zh-CN', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+                            ${statusUI}
+                        </div>
+                        <div class="font-bold text-slate-800 text-sm mb-2">${o.itemName}</div>
+                        <div class="flex justify-between items-end mt-3 bg-slate-50 p-2 rounded-lg">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[0.65rem] text-slate-500">收件方: ${o.targetAddress === 'user' ? '自己' : 'TA'}</span>
+                                ${timeStr}
+                            </div>
+                            <span class="font-black text-rose-500">¥${o.price.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // 绑定签收事件
+            container.querySelectorAll('.sign-btn').forEach(btn => {
+                btn.onclick = async (e) => {
+                    const orderId = e.target.dataset.id;
+                    const order = state.mall.orders.find(o => o.id === orderId);
+                    if (order) {
+                        order.status = '已签收';
+                        showToast('✅ 签收成功！');
+                        
+                        if (order.targetAddress === 'user') {
+                            const giftMsg = state.chat.history.find(m => m.type === 'gift' && m.orderId === orderId);
+                            if (giftMsg) giftMsg.status = 'received';
+                        } else {
+                            const userGiftMsg = state.chat.history.find(m => m.type === 'user_gift' && m.orderId === orderId);
+                            if (userGiftMsg) userGiftMsg.status = 'received';
+                        }
+                        
+                        await saveState();
+                        updateMallUI();
+                        renderOrdersPage(); 
+                        if(typeof renderChatHistory === 'function') renderChatHistory({autoScroll: true});
+                    }
+                };
+            });
+
+            // 核心修复：去除“已完成”限制，允许删除任何物流记录
+            container.querySelectorAll('.del-order-btn').forEach(btn => {
+                btn.onclick = async (e) => {
+                    e.stopPropagation();
+                    const orderId = btn.getAttribute('data-id');
+                    const confirmed = await showDialog('删除记录', '确定要永久抹除这条物流订单吗？');
+                    if (confirmed) {
+                        state.mall.orders = state.mall.orders.filter(o => o.id !== orderId);
+                        await saveState();
+                        updateMallUI();
+                        renderOrdersPage();
+                        showToast('记录已清除');
+                    }
+                };
+            });
+
+            if (needsSave) { saveState(); updateMallUI(); }
+        };
+
+        // 全局物流守护线程
+        setInterval(() => {
+            if(!state.mall || !state.mall.orders) return;
+            let needsSave = false;
+            const now = Date.now();
+            
+            state.mall.orders.forEach(order => {
+                if (order.status === '待送达' && now >= order.deliveryTime) {
+                    order.status = '待签收';
+                    needsSave = true;
+                    if (order.targetAddress === 'user') {
+                        showDeliveryToast(`包裹 [${order.itemName}] 已送达，请前往订单页签收！`);
+                    } else {
+                        showDeliveryToast(`送给TA的 [${order.itemName}] 已送达，等待TA签收！`);
+                    }
+                }
+            });
+            if (needsSave) { saveState(); updateMallUI(); }
+        }, 3000);
+        // ==========================================
+        // --- 🛒 商城引擎部署完毕 ---
+        
         // Initial Load
         await loadState();
         initTouchEffects();
