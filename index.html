@@ -1250,6 +1250,51 @@
     background-color: var(--text-color) !important;
     opacity: 0.3;
 }
+
+/* --- 煮茶·沉浸陪伴系统专属美学 --- */
+@keyframes floatUpEmoji {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    20% { opacity: 1; transform: translateY(-30px) scale(1.2); }
+    80% { opacity: 0.8; transform: translateY(-100px) scale(1); }
+    100% { transform: translateY(-150px) scale(0.5); opacity: 0; }
+}
+.companion-emoji-float {
+    position: absolute;
+    animation: floatUpEmoji 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    font-size: 2.5rem;
+    pointer-events: none;
+    z-index: 100;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+}
+.avatar-zoom-in {
+    transform: scale(1.3) translateY(5%);
+}
+#companion-dialog-box {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.3);
+}
+#companion-dialog-box::before {
+    display: none;
+}
+.companion-part-tag {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+.companion-part-tag.active {
+    background: rgba(129, 140, 248, 0.3);
+    border-color: #818cf8;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
+}
+.companion-setting-block {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 1rem;
+}
     </style>
 </head>
 <body>
@@ -1406,7 +1451,7 @@
             </div>
             <span class="text-[0.65rem] tracking-[0.2em] transition-colors ml-1" style="color: inherit; opacity: 0.6;">听风</span>
         </button>
-        <button class="flex flex-col items-center gap-3 group outline-none">
+        <button id="open-companion-btn" class="flex flex-col items-center gap-3 group outline-none cursor-pointer">
             <div class="w-14 h-14 rounded-2xl bg-transparent border flex items-center justify-center transition-all duration-300 shadow-sm group-active:scale-95" style="border-color: currentColor; opacity: 0.5; color: inherit;">
                 <i class="fa-solid fa-mug-hot text-xl"></i>
             </div>
@@ -1706,12 +1751,17 @@
                                 
                              </div>
                             <div class="mt-6 pt-6 border-t border-white/20">
-                                <h2 class="text-xl font-bold mb-4">API 设置</h2>
+                                <h2 class="text-xl font-bold mb-4">文本大模型 API</h2>
                                 <input type="text" id="api-baseurl" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="API Base URL (例如: https://api.openai.com/v1)">
-                                <input type="text" id="api-key" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="API 密钥">
+                                <input type="text" id="api-key" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="文本 API 密钥">
                                 <input type="text" id="api-model" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="模型名称 (例如: gpt-3.5-turbo)">
                                 <input type="number" id="api-max-context" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="最大上下文消息数 (建议 20)">
                                 
+                                <h2 class="text-xl font-bold mb-4 mt-6">语音识别 API (Whisper)</h2>
+                                <input type="text" id="stt-api-baseurl" class="w-full p-3 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="语音 API Base URL (同上或填入代理接口)">
+                                <input type="text" id="stt-api-key" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="语音 API 密钥">
+                                <input type="text" id="stt-api-model" class="w-full p-3 mt-2 rounded-md bg-white/20 placeholder-gray-300 focus:outline-none" placeholder="语音模型名称 (默认: whisper-1)">
+
                                 <!-- 全新注入：模型温度情绪调节阀 -->
                                 <div class="flex items-center justify-between mt-4 bg-white/10 p-4 rounded-md">
                                     <div class="flex flex-col">
@@ -2281,6 +2331,140 @@
                         </div>
                     </div>
 
+                    <!-- ================= 煮茶·沉浸陪伴系统 ================= -->
+                    <div id="companion-page" class="hidden absolute inset-0 w-full h-full bg-slate-900 z-[70] overflow-hidden flex flex-col font-[var(--custom-font)]">
+                        <!-- 立绘渲染层 -->
+                        <div id="companion-avatar-container" class="absolute inset-0 flex items-center justify-center transition-transform duration-1000 cubic-bezier(0.16, 1, 0.3, 1)">
+                            <img id="companion-avatar" src="https://placehold.co/800x1200/1e293b/94a3b8?text=等待灵魂注入" class="max-h-[90%] max-w-[95%] object-contain pointer-events-none drop-shadow-2xl opacity-90 transition-opacity duration-500">
+                        </div>
+                        
+                        <!-- 情感交互特效层 -->
+                        <div id="companion-emoji-layer" class="absolute inset-0 pointer-events-none z-10 overflow-hidden"></div>
+                        
+                        <!-- 顶层指挥中枢 -->
+                        <div class="absolute top-0 w-full p-6 flex justify-between items-start z-20 bg-gradient-to-b from-black/70 to-transparent">
+                            <button id="companion-back-btn" class="w-10 h-10 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 flex items-center justify-center backdrop-blur-md transition shadow-lg border border-white/10"><i class="fas fa-chevron-left"></i></button>
+                            
+                            <div class="flex flex-col items-center gap-2 mt-1">
+                                <div class="bg-black/40 backdrop-blur-md border border-white/20 rounded-full px-5 py-2 flex items-center gap-3 shadow-lg cursor-pointer hover:bg-black/60 transition" id="companion-part-trigger">
+                                    <span class="text-xs text-indigo-300 font-bold tracking-widest uppercase">感知锚点</span>
+                                    <div class="w-px h-3 bg-white/20"></div>
+                                    <span id="companion-current-part" class="text-sm font-bold text-white tracking-widest">头部</span>
+                                    <i class="fas fa-crosshairs text-white/50 text-xs ml-1"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button id="companion-task-btn" title="任务监督" class="w-10 h-10 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 flex items-center justify-center backdrop-blur-md transition shadow-lg border border-white/10 relative"><i class="fas fa-clock"></i></button>
+                                <button id="companion-settings-btn" class="w-10 h-10 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 flex items-center justify-center backdrop-blur-md transition shadow-lg border border-white/10"><i class="fas fa-sliders-h"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- 悬浮任务倒计时 -->
+                        <div id="companion-task-timer-display" class="hidden absolute top-24 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md border border-indigo-400/50 rounded-full px-4 py-1.5 flex items-center gap-2 z-20 shadow-[0_0_15px_rgba(129,140,248,0.3)]">
+                            <i class="fas fa-hourglass-half text-indigo-400 fa-spin-pulse text-xs"></i>
+                            <span id="comp-task-name" class="text-xs font-bold text-white tracking-widest">任务中</span>
+                            <div class="w-px h-3 bg-white/20"></div>
+                            <span id="comp-task-time" class="text-sm font-mono font-bold text-indigo-300">00:00</span>
+                        </div>
+
+                        <!-- 隐形感应矩阵 -->
+                        <div id="companion-touch-zone" class="flex-1 w-full z-10"></div>
+
+                        <!-- 底层意识流交换区 -->
+                        <div class="absolute bottom-0 w-full z-20 flex flex-col items-center pb-8 px-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                            <!-- Galgame 逐句解析视窗 -->
+                            <div id="companion-dialog-box" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 mb-5 shadow-2xl cursor-pointer transform transition-all active:scale-[0.98] hidden group">
+                                <div id="companion-dialog-name" class="text-indigo-400 text-xs font-black mb-2 tracking-[0.2em] uppercase">TA</div>
+                                <div id="companion-dialog-text" class="text-white/90 text-[1.05rem] leading-relaxed min-h-[4rem] font-medium tracking-wide">空</div>
+                                <div class="absolute bottom-3 right-4 text-indigo-300/50 text-[0.6rem] font-bold tracking-widest group-hover:text-indigo-300 transition-colors uppercase flex items-center gap-1"><i class="fas fa-play fa-fade text-[0.5rem]"></i> Touch</div>
+                            </div>
+                            
+                            <!-- 指令输入终端 -->
+                            <div id="companion-input-area" class="w-full max-w-md flex items-end gap-3">
+                                <button id="companion-voice-btn" class="w-12 h-12 shrink-0 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center hover:bg-white/20 hover:text-white transition backdrop-blur-md shadow-lg mb-1"><i class="fas fa-microphone"></i></button>
+                                <div class="flex-1 bg-white/10 border border-white/20 rounded-3xl flex items-end px-5 py-3 backdrop-blur-md shadow-lg focus-within:bg-white/15 focus-within:border-indigo-400/50 transition-all">
+                                    <textarea id="companion-text-input" class="w-full bg-transparent border-none text-white text-sm outline-none placeholder-white/40 tracking-wider resize-none" placeholder="轻语或下达指令" rows="1" style="max-height: 100px;"></textarea>
+                                    <button id="companion-send-btn" class="text-indigo-400 hover:text-indigo-300 font-bold ml-2 mb-0.5 shrink-0 transition-colors"><i class="fas fa-paper-plane"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 专属造物控制台 -->
+                    <div id="companion-settings-modal" class="hidden absolute inset-0 bg-black/80 z-[80] backdrop-blur-md flex items-center justify-center p-4">
+                        <div class="bg-slate-900 w-full max-w-sm rounded-3xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
+                            <div class="px-6 py-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                                <h3 class="text-lg font-bold text-white tracking-widest flex items-center gap-2"><i class="fas fa-dna text-indigo-400"></i> 羁绊参数</h3>
+                                <button id="close-comp-settings" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="p-6 overflow-y-auto hide-scrollbar flex-1 text-sm text-slate-300 space-y-2">
+                                <div class="companion-setting-block">
+                                    <div class="text-xs font-bold text-indigo-400 mb-3 uppercase tracking-widest border-b border-white/10 pb-2">情感投影映射 (立绘)</div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button class="comp-avatar-upload px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition flex flex-col items-center gap-1" data-emo="default">
+                                            <i class="fas fa-user-astronaut text-slate-400"></i><span class="text-xs">常态轮廓</span>
+                                        </button>
+                                        <button class="comp-avatar-upload px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition flex flex-col items-center gap-1" data-emo="happy">
+                                            <i class="fas fa-laugh text-green-400"></i><span class="text-xs">愉悦</span>
+                                        </button>
+                                        <button class="comp-avatar-upload px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition flex flex-col items-center gap-1" data-emo="sad">
+                                            <i class="fas fa-sad-tear text-blue-400"></i><span class="text-xs">低落</span>
+                                        </button>
+                                        <button class="comp-avatar-upload px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition flex flex-col items-center gap-1" data-emo="angry">
+                                            <i class="fas fa-angry text-red-400"></i><span class="text-xs">愠怒</span>
+                                        </button>
+                                        <button class="comp-avatar-upload px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition flex flex-col items-center gap-1 col-span-2" data-emo="shy">
+                                            <i class="fas fa-flushed text-pink-400"></i><span class="text-xs">娇怯</span>
+                                        </button>
+                                    </div>
+                                    <input type="file" id="comp-file-input" class="hidden" accept="image/*">
+                                </div>
+                                <div class="companion-setting-block">
+                                    <div class="text-xs font-bold text-indigo-400 mb-3 uppercase tracking-widest border-b border-white/10 pb-2">感知锚点编辑</div>
+                                    <div id="comp-parts-list" class="flex flex-wrap gap-2 mb-3"></div>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="new-part-input" class="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white outline-none focus:border-indigo-400" placeholder="例如：腰部">
+                                        <button id="add-part-btn" class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-1.5 rounded-lg font-bold transition">烙印</button>
+                                    </div>
+                                </div>
+                                <div class="companion-setting-block flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-white mb-0.5">情绪具象化解析</div>
+                                        <div class="text-[0.65rem] opacity-60">允许TA的心绪化作Emoji升腾漂浮</div>
+                                    </div>
+                                    <div id="comp-emoji-toggle" class="w-12 h-6 bg-indigo-500 rounded-full relative cursor-pointer transition-colors shadow-inner">
+                                        <div class="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 shadow transition-transform"></div>
+                                    </div>
+                                </div>
+                                <div class="companion-setting-block">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <div>
+                                            <div class="font-bold text-white mb-0.5">自由意志唤醒</div>
+                                            <div class="text-[0.65rem] opacity-60">静置时TA将主动打破沉默</div>
+                                        </div>
+                                        <div id="comp-auto-toggle" class="w-12 h-6 bg-slate-600 rounded-full relative cursor-pointer transition-colors shadow-inner">
+                                            <div class="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 shadow transition-transform"></div>
+                                        </div>
+                                    </div>
+                                    <div id="comp-auto-interval-box" class="hidden flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                                        <span class="text-xs">忍耐极限 (分钟)</span>
+                                        <input type="number" id="comp-auto-interval" class="w-16 bg-black/40 border border-white/10 rounded px-2 py-1 text-center text-white outline-none" value="5" min="1">
+                                    </div>
+                                </div>
+                                
+                                <div class="companion-setting-block">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-bold text-white mb-0.5">记忆读取深度</div>
+                                            <div class="text-[0.65rem] opacity-60">携带主聊天记录的上下文条数</div>
+                                        </div>
+                                        <input type="number" id="comp-context-length" class="w-16 bg-black/40 border border-white/10 rounded px-2 py-1 text-center text-white outline-none focus:border-indigo-400" value="10" min="0" max="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <input type="file" id="bg-upload-input" accept="image/*" class="hidden">
                     <input type="file" id="avatar-frame-upload-input" accept="image/*" class="hidden">
                 </div>
@@ -2404,7 +2588,7 @@
         // Page elements
         const chatPage = get('chat-page');
         const phoneScreen = get('phone-screen');
-        const pages = { home: document.getElementById('home-page'), chat: document.getElementById('chat-page'), role: document.getElementById('role-page'), settings: document.getElementById('settings-page'), memory: document.getElementById('memory-page'), diary: document.getElementById('diary-page'), sui: document.getElementById('sui-page'), calendar: document.getElementById('calendar-page'), worldbook: document.getElementById('worldbook-page'), pmlist: document.getElementById('pm-list-page'), pmchat: document.getElementById('pm-chat-page'), readerlist: document.getElementById('reader-list-page'), readerview: document.getElementById('reader-view-page'), customcss: document.getElementById('custom-css-page'), soul: document.getElementById('soul-page'), mall: document.getElementById('mall-page') };
+        const pages = { home: document.getElementById('home-page'), chat: document.getElementById('chat-page'), role: document.getElementById('role-page'), settings: document.getElementById('settings-page'), memory: document.getElementById('memory-page'), diary: document.getElementById('diary-page'), sui: document.getElementById('sui-page'), calendar: document.getElementById('calendar-page'), worldbook: document.getElementById('worldbook-page'), pmlist: document.getElementById('pm-list-page'), pmchat: document.getElementById('pm-chat-page'), readerlist: document.getElementById('reader-list-page'), readerview: document.getElementById('reader-view-page'), customcss: document.getElementById('custom-css-page'), soul: document.getElementById('soul-page'), mall: document.getElementById('mall-page'), companion: document.getElementById('companion-page') };
         // Buttons
         const strategyBtn = get('strategy-btn'), memoryBtn = get('memory-btn'), roleBtn = get('role-btn'), settingsBtn = get('settings-btn'), saveRoleBtn = get('save-role-btn'), saveSettingsBtn = get('save-settings-btn');
         const backBtns = document.querySelectorAll('#role-back-btn, #settings-back-btn, #memory-back-btn, #diary-back-btn, #sui-back-btn, #chat-back-btn');
@@ -2464,7 +2648,7 @@
 
         const state = {
             version: APP_VERSION,
-            config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFonts: {}, customCSS: { bubbles: '', chatPage: '' } },
+            config: { bgImage: null, avatarImage: null, avatarFrameImage: null, signature: '个性签名', api: { baseUrl: '', key: '', model: '' }, sttApi: { baseUrl: '', key: '', model: 'whisper-1' }, colors: { bgColor: '#1a202c', textColor: '#ffffff', glassBg: 'rgba(255, 255, 255, 0.15)', userBubble: 'rgba(60, 179, 113, 0.7)', userText: '#ffffff', aiBubble: 'rgba(255, 255, 255, 0.8)', aiText: '#000000', }, fontFamily: "'Inter', sans-serif", customFonts: {}, customCSS: { bubbles: '', chatPage: '' } },
             role: { playerName: '', playerGender: '', playerPersona: '', roleName: '', roleGender: '', rolePersona: '', promptInstructions: '' },
             chat: { history: [], affinity: 0, sendMode: 'text', mode: 'phone' }, // mode: 'phone' or 'story'
             memories: [],
@@ -2489,7 +2673,15 @@
             books: [], // 记录书籍列表元数据
             calendarNotes: {},
             ui: { isFullscreen: false, chatPage: 0 },
-            worldbook: []
+            worldbook: [],
+            companion: {
+                activePart: '头部',
+                parts: ['头部', '脸颊', '指尖', '发丝', '肩膀'],
+                useEmoji: true,
+                autoInteract: false,
+                autoInterval: 5,
+                avatars: { default: null, happy: null, sad: null, angry: null, shy: null }
+            }
         };
         
         const applyUserCustomCSS = () => {
@@ -2560,10 +2752,19 @@
             'bgImage': (s) => s.config.bgImage,
             'avatarImage': (s) => s.config.avatarImage,
             'avatarFrameImage': (s) => s.config.avatarFrameImage,
-            'albumArt': (s) => s.music.albumArt
+            'albumArt': (s) => s.music.albumArt,
+            'comp_default': (s) => s.companion.avatars.default,
+            'comp_happy': (s) => s.companion.avatars.happy,
+            'comp_sad': (s) => s.companion.avatars.sad,
+            'comp_angry': (s) => s.companion.avatars.angry,
+            'comp_shy': (s) => s.companion.avatars.shy
         };
         const setAssetValue = (obj, key, value) => {
             if (key === 'albumArt') obj.music.albumArt = value;
+            else if (key.startsWith('comp_')) {
+                const emo = key.split('_')[1];
+                obj.companion.avatars[emo] = value;
+            }
             else obj.config[key] = value;
         };
 
@@ -2801,19 +3002,30 @@
         
         const showDeliveryToast = (message) => {
             const toast = document.createElement('div');
-            toast.className = 'fixed top-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md text-slate-800 px-6 py-4 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-slate-100 transition-all duration-500 z-[10001] flex items-center gap-4 transform -translate-y-full opacity-0';
-            toast.innerHTML = `<div class="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500 shrink-0"><i class="fas fa-box-open text-xl"></i></div><div class="text-sm font-bold">${message}</div>`;
+            // 采用与消息通知完全一致的白底、细灰边框、纯粹质感的ins风设计
+            toast.className = 'fixed top-10 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] bg-white/90 backdrop-blur-md text-black px-4 py-3 rounded-2xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] border border-gray-200 transition-all duration-500 z-[10001] flex items-center gap-3 transform -translate-y-[150%] opacity-0 cursor-default';
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white shrink-0">
+                    <i class="fas fa-cube text-sm"></i>
+                </div>
+                <div class="flex flex-col flex-1 min-w-0">
+                    <div class="text-[0.65rem] text-gray-400 font-medium tracking-widest mb-0.5">听风商场</div>
+                    <div class="text-sm font-normal text-black leading-snug">${message}</div>
+                </div>
+            `;
             document.body.appendChild(toast);
             
             requestAnimationFrame(() => {
-                toast.classList.remove('-translate-y-full', 'opacity-0');
+                toast.classList.remove('-translate-y-[150%]', 'opacity-0');
                 toast.classList.add('translate-y-0', 'opacity-100');
             });
             
             setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('-translate-y-full', 'opacity-0');
-                setTimeout(() => toast.remove(), 500);
+                if(document.body.contains(toast)) {
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                    toast.classList.add('-translate-y-[150%]', 'opacity-0');
+                    setTimeout(() => toast.remove(), 500);
+                }
             }, 4000);
         };
         
@@ -3451,6 +3663,12 @@ ${existingNotes || '（今天还没有人留言）'}
             apiKey.value = state.config.api.key; 
             apiModel.value = state.config.api.model; 
             get('api-max-context').value = state.config.api.maxContext || 20; 
+            const sttBaseUrlObj = get('stt-api-baseurl');
+            if (sttBaseUrlObj) {
+                sttBaseUrlObj.value = state.config.sttApi ? (state.config.sttApi.baseUrl || '') : '';
+                get('stt-api-key').value = state.config.sttApi ? (state.config.sttApi.key || '') : '';
+                get('stt-api-model').value = state.config.sttApi ? (state.config.sttApi.model || 'whisper-1') : 'whisper-1';
+            }
             
             // 读取温度滑块
             const tempSlider = get('api-temperature');
@@ -3550,6 +3768,10 @@ ${existingNotes || '（今天还没有人留言）'}
             state.config.api.key = apiKey.value; 
             state.config.api.model = apiModel.value;
             state.config.api.maxContext = parseInt(get('api-max-context').value) || 20;
+            if (!state.config.sttApi) state.config.sttApi = { baseUrl: '', key: '', model: 'whisper-1' };
+            state.config.sttApi.baseUrl = get('stt-api-baseurl').value;
+            state.config.sttApi.key = get('stt-api-key').value;
+            state.config.sttApi.model = get('stt-api-model').value || 'whisper-1';
             
             // 保存温度设置
             const tempSlider = get('api-temperature');
@@ -4435,8 +4657,9 @@ ${existingNotes || '（今天还没有人留言）'}
 
         userInput.addEventListener('input', adjustTextareaHeight);
 
+        // 彻底释放回车键纯粹用于换行！只有电脑端按 Ctrl+Enter 或 Command+Enter 才会触发快捷发送
         userInput.addEventListener('keydown', (e) => { 
-            if (e.key === 'Enter' && !e.shiftKey) { 
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { 
                 e.preventDefault(); 
                 handleSend(); 
                 setTimeout(() => {
@@ -4986,6 +5209,47 @@ ${state.role.promptInstructions ? `
                             state.chat.history.push(msgObject);
                             renderChatHistory({ autoScroll: true }); 
                             
+                            // 【全新注入】：系统级来信弹窗提醒（只有当你在后台时才会触发）
+                            const chatPageEl = document.getElementById('chat-page');
+                            if (chatPageEl && chatPageEl.classList.contains('hidden')) {
+                                const toast = document.createElement('div');
+                                // 采用极简白底、细灰边框、清爽直角微圆的ins风设计
+                                toast.className = 'fixed top-10 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] bg-white/90 backdrop-blur-md text-black px-4 py-3 rounded-2xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] border border-gray-200 transition-all duration-500 z-[10001] flex items-center gap-3 transform -translate-y-[150%] opacity-0 cursor-pointer';
+                                toast.innerHTML = `
+                                    <div class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white shrink-0">
+                                        <i class="fas fa-comment text-sm"></i>
+                                    </div>
+                                    <div class="flex flex-col flex-1 min-w-0">
+                                        <div class="text-[0.65rem] text-gray-400 font-medium tracking-widest mb-0.5">${state.role.roleName || 'TA'}</div>
+                                        <div class="text-sm font-normal truncate text-black">${msgObject.text || '[收到一条新状态]'}</div>
+                                    </div>
+                                `;
+                                // 点击通知直接跳转到聊天界面
+                                toast.onclick = () => {
+                                    toast.remove();
+                                    showView('chat');
+                                    setTimeout(() => { 
+                                        const chatHist = document.getElementById('chat-history');
+                                        chatHist.scrollTop = chatHist.scrollHeight; 
+                                    }, 100);
+                                };
+                                document.body.appendChild(toast);
+                                
+                                // 弹窗物理动效
+                                requestAnimationFrame(() => {
+                                    toast.classList.remove('-translate-y-[150%]', 'opacity-0');
+                                    toast.classList.add('translate-y-0', 'opacity-100');
+                                });
+                                // 5秒后自动收起
+                                setTimeout(() => {
+                                    if(document.body.contains(toast)) {
+                                        toast.classList.remove('translate-y-0', 'opacity-100');
+                                        toast.classList.add('-translate-y-[150%]', 'opacity-0');
+                                        setTimeout(() => toast.remove(), 500);
+                                    }
+                                }, 5000);
+                            }
+                            
                             const delay = msgObject.type === 'text' ? (150 + (msgObject.text || '').length * 20) : 500;
                             await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1500)));
                         }
@@ -5307,10 +5571,14 @@ function parseTagToMessage(tag) {
                 return;
             }
 
-            // 【核心修复 2】：如果你在输入框里打字，或者刚才打了一半没发出去
-            // 只要输入框有字，系统就乖乖闭嘴，重新计算你的操作时间，绝不打断你！
+            // 【终极逻辑修复】：判断玩家目前是否正盯着聊天屏幕！
+            const chatPageEl = document.getElementById('chat-page');
+            const isChatActive = chatPageEl && !chatPageEl.classList.contains('hidden');
+
+            // 只有当玩家【正在聊天界面】且【输入框有字】时，才判定为“正在打字”，此时系统闭嘴不打断。
+            // 如果玩家退出了聊天界面去干别的，哪怕输入框里留了草稿，计时器也照样无情运转！
             const currentInput = get('user-input');
-            if (currentInput && currentInput.value.trim() !== '') {
+            if (isChatActive && currentInput && currentInput.value.trim() !== '') {
                 window.autoReplyLastTriggerTime = Date.now();
                 return;
             }
@@ -7772,6 +8040,7 @@ imageUploadInput.addEventListener('change', async (e) => {
             newStateTemplate.starHistory = []; // 清空图书馆陪伴星星的记忆
             newStateTemplate.worldbook = state.worldbook; // 【关键】将当前脑海里的世界书直接传授给新角色
             newStateTemplate.lockData = { active: false, endTime: 0, reason: '', mode: 'phone' }; // 解除囚禁/锁机状态
+            newStateTemplate.companion = { activePart: '头部', parts: ['头部', '脸颊', '指尖', '发丝', '肩膀'], useEmoji: true, autoInteract: false, autoInterval: 5, avatars: { default: null, happy: null, sad: null, angry: null, shy: null } };
             
             newStateTemplate.config.bgImage = null; // 重置壁纸
             newStateTemplate.config.avatarImage = null; // 重置头像
@@ -9048,6 +9317,584 @@ JSON结构严格如下：
                 });
             }
         }, 800);
+        // ==========================================
+
+        // ==========================================
+        // --- ☕ 煮茶·沉浸陪伴系统核心引擎 ---
+        // ==========================================
+        const companionPage = get('companion-page');
+        const openCompBtn = get('open-companion-btn');
+        const compBackBtn = get('companion-back-btn');
+        const compSettingsBtn = get('companion-settings-btn');
+        const compSettingsModal = get('companion-settings-modal');
+        const closeCompSettings = get('close-comp-settings');
+        
+        const compPartTrigger = get('companion-part-trigger');
+        const compCurrentPart = get('companion-current-part');
+        const compTouchZone = get('companion-touch-zone');
+        const compAvatarContainer = get('companion-avatar-container');
+        const compAvatar = get('companion-avatar');
+        const compEmojiLayer = get('companion-emoji-layer');
+        
+        const compDialogBox = get('companion-dialog-box');
+        const compDialogName = get('companion-dialog-name');
+        const compDialogText = get('companion-dialog-text');
+        
+        const compTextInput = get('companion-text-input');
+        const compSendBtn = get('companion-send-btn');
+        const compVoiceBtn = get('companion-voice-btn');
+
+        let compDialogQueue = [];
+        let isCompSpeaking = false;
+        let compAutoTimer = null;
+        let lastCompInteractionTime = Date.now();
+
+        // 唤醒与休眠
+        if (openCompBtn) {
+            openCompBtn.addEventListener('click', () => {
+                refreshCompAvatar('default');
+                compCurrentPart.textContent = state.companion.activePart;
+                showView('companion');
+                resetCompAutoTimer();
+                showToast('已进入沉浸领域，尽情触碰TA吧');
+            });
+        }
+        if (compBackBtn) {
+            compBackBtn.addEventListener('click', () => {
+                clearInterval(compAutoTimer);
+                showView('home');
+            });
+        }
+
+        // --- 设置中心映射 ---
+        if (compSettingsBtn) compSettingsBtn.addEventListener('click', () => {
+            renderCompParts();
+            updateCompToggles();
+            compSettingsModal.classList.remove('hidden');
+        });
+        if (closeCompSettings) closeCompSettings.addEventListener('click', () => compSettingsModal.classList.add('hidden'));
+
+        let currentUploadEmo = '';
+        document.querySelectorAll('.comp-avatar-upload').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentUploadEmo = btn.dataset.emo;
+                get('comp-file-input').click();
+            });
+        });
+        get('comp-file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !currentUploadEmo) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                state.companion.avatars[currentUploadEmo] = event.target.result;
+                await db.set('assets', `comp_${currentUploadEmo}`, event.target.result);
+                await saveState();
+                showToast(`[${currentUploadEmo}] 面貌已重构`);
+                refreshCompAvatar('default');
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        });
+
+        const renderCompParts = () => {
+            const list = get('comp-parts-list');
+            list.innerHTML = '';
+            state.companion.parts.forEach((p, idx) => {
+                const el = document.createElement('div');
+                el.className = 'bg-white/10 px-3 py-1 rounded-full flex items-center gap-2 border border-white/20';
+                el.innerHTML = `<span class="text-white">${p}</span><i class="fas fa-times text-slate-400 hover:text-rose-400 cursor-pointer text-[0.6rem]"></i>`;
+                el.querySelector('i').onclick = async () => {
+                    if (state.companion.parts.length <= 1) return showToast('必须保留至少一个锚点');
+                    state.companion.parts.splice(idx, 1);
+                    if (state.companion.activePart === p) state.companion.activePart = state.companion.parts[0];
+                    await saveState(); renderCompParts(); compCurrentPart.textContent = state.companion.activePart;
+                };
+                list.appendChild(el);
+            });
+        };
+        get('add-part-btn').addEventListener('click', async () => {
+            const v = get('new-part-input').value.trim();
+            if (v && !state.companion.parts.includes(v)) {
+                state.companion.parts.push(v);
+                get('new-part-input').value = '';
+                await saveState(); renderCompParts();
+            }
+        });
+
+        const updateCompToggles = () => {
+            const eToggle = get('comp-emoji-toggle');
+            const aToggle = get('comp-auto-toggle');
+            const intervalBox = get('comp-auto-interval-box');
+            
+            eToggle.className = state.companion.useEmoji ? 'w-12 h-6 bg-indigo-500 rounded-full relative cursor-pointer transition-colors shadow-inner' : 'w-12 h-6 bg-slate-600 rounded-full relative cursor-pointer transition-colors shadow-inner';
+            eToggle.firstElementChild.className = state.companion.useEmoji ? 'w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 shadow transition-transform' : 'w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 shadow transition-transform';
+            
+            aToggle.className = state.companion.autoInteract ? 'w-12 h-6 bg-indigo-500 rounded-full relative cursor-pointer transition-colors shadow-inner' : 'w-12 h-6 bg-slate-600 rounded-full relative cursor-pointer transition-colors shadow-inner';
+            aToggle.firstElementChild.className = state.companion.autoInteract ? 'w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 shadow transition-transform' : 'w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 shadow transition-transform';
+            
+            intervalBox.style.display = state.companion.autoInteract ? 'flex' : 'none';
+            get('comp-auto-interval').value = state.companion.autoInterval;
+            
+            // 初始化记忆读取深度的输入框 (默认10条)
+            if (state.companion.contextLength === undefined) state.companion.contextLength = 10;
+            get('comp-context-length').value = state.companion.contextLength;
+        };
+        get('comp-emoji-toggle').onclick = async () => { state.companion.useEmoji = !state.companion.useEmoji; await saveState(); updateCompToggles(); };
+        get('comp-auto-toggle').onclick = async () => { state.companion.autoInteract = !state.companion.autoInteract; await saveState(); updateCompToggles(); resetCompAutoTimer(); };
+        get('comp-auto-interval').onchange = async (e) => { state.companion.autoInterval = Math.max(1, parseInt(e.target.value)||5); await saveState(); resetCompAutoTimer(); };
+        get('comp-context-length').onchange = async (e) => { 
+            state.companion.contextLength = Math.max(0, parseInt(e.target.value)||10); 
+            await saveState(); 
+            showToast(`陪伴记忆深度已设为 ${state.companion.contextLength} 条`); 
+        };
+
+        // --- 部位选择热切 (修复滑动与展示问题) ---
+        compPartTrigger.addEventListener('click', async () => {
+            let html = '<div class="flex flex-wrap gap-2 max-h-[40vh] overflow-y-auto scrollable-content p-1">';
+            state.companion.parts.forEach(p => {
+                const isActive = p === state.companion.activePart;
+                const bgClass = isActive ? 'bg-indigo-500/80 border-indigo-400 text-white' : 'bg-slate-700/50 border-white/10 text-slate-300';
+                html += `<button class="comp-part-select-btn px-4 py-2 rounded-full border ${bgClass} text-sm transition-all" data-part="${p}">${p}</button>`;
+            });
+            html += '</div>';
+
+            const res = await showDialog('感知识别', '上下滑动选择你想互动的具体部位：', { 
+                complexInput: html,
+                buttons: [{text: '取消', value: null, class: 'bg-gray-500/50'}]
+            });
+        });
+
+        // 绑定全局委托来处理内部按钮点击
+        document.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('comp-part-select-btn')) {
+                const selectedPart = e.target.getAttribute('data-part');
+                state.companion.activePart = selectedPart;
+                compCurrentPart.textContent = selectedPart;
+                await saveState();
+                
+                const dialog = document.getElementById('custom-dialog');
+                if(dialog) {
+                    dialog.classList.add('hidden'); 
+                    dialog.style.display = 'none';
+                }
+            }
+        });
+
+        // --- 躯体触觉手势解析引擎 (修复重构版) ---
+        let cStartX, cStartY, cStartTime;
+        let cTapCount = 0, cTapTimer, cHoldTimer, cIsSwipe = false;
+        let isTouchActive = false; // 阻断雷达：用于屏蔽手机端自带的模拟鼠标事件干扰
+
+        const handleCompAction = (actionType) => {
+            if (UILock.isLocked() || isCompSpeaking) return;
+            const part = state.companion.activePart;
+            let actDesc = '';
+            switch(actionType) {
+                case 'tap': actDesc = `[系统物理反馈]：玩家刚刚轻轻点碰了你的【${part}】。`; break;
+                case 'multitap': actDesc = `[系统物理反馈]：玩家连续且急促地点按了你的【${part}】，似乎在宣泄情绪、表达不满或催促。`; break;
+                case 'hold': actDesc = `[系统物理反馈]：玩家的手指长久地停留在你的【${part}】上，等待你的回应。`; break;
+                case 'swipe': actDesc = `[系统物理反馈]：玩家的手指温柔地抚摸滑过了你的【${part}】。`; break;
+            }
+            sendCompApiRequest(actDesc);
+        };
+
+        const onTouchStart = (e) => {
+            isTouchActive = !!e.touches; // 检测是否为真实手指触摸
+            cStartX = e.touches ? e.touches[0].clientX : e.clientX; 
+            cStartY = e.touches ? e.touches[0].clientY : e.clientY; 
+            cStartTime = Date.now(); 
+            cIsSwipe = false;
+            cHoldTimer = setTimeout(() => { if (!cIsSwipe) { handleCompAction('hold'); cTapCount = 0; } }, 700);
+        };
+
+        const onTouchMove = (e) => {
+            if (cStartX === undefined) return;
+            const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+            const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+            if (Math.abs(currentX - cStartX) > 20 || Math.abs(currentY - cStartY) > 20) {
+                cIsSwipe = true; 
+                clearTimeout(cHoldTimer);
+            }
+        };
+
+        const onTouchEnd = () => {
+            clearTimeout(cHoldTimer);
+            cStartX = undefined;
+            if (Date.now() - cStartTime > 700) return; // 已经被长按截断
+            
+            if (cIsSwipe) { 
+                handleCompAction('swipe'); 
+                cTapCount = 0; 
+            } else {
+                cTapCount++; 
+                clearTimeout(cTapTimer);
+                cTapTimer = setTimeout(() => {
+                    if (cTapCount >= 3) handleCompAction('multitap');
+                    else if (cTapCount > 0) handleCompAction('tap'); // 宽容判定：只要不是0，统统按点碰处理，消除死角
+                    cTapCount = 0;
+                }, 300);
+            }
+        };
+
+        // 真实手指触摸事件
+        compTouchZone.addEventListener('touchstart', onTouchStart, {passive: true});
+        compTouchZone.addEventListener('touchmove', onTouchMove, {passive: true});
+        compTouchZone.addEventListener('touchend', onTouchEnd);
+        compTouchZone.addEventListener('touchcancel', () => { clearTimeout(cHoldTimer); clearTimeout(cTapTimer); cTapCount = 0; });
+
+        // 电脑鼠标兼容事件 (如果前面判定是手指摸的，就拦截掉鼠标点击)
+        compTouchZone.addEventListener('mousedown', (e) => { if(!isTouchActive) onTouchStart(e); });
+        compTouchZone.addEventListener('mousemove', (e) => { if(!isTouchActive) onTouchMove(e); });
+        compTouchZone.addEventListener('mouseup', () => { if(!isTouchActive) onTouchEnd(); });
+        compTouchZone.addEventListener('mouseleave', () => { if(!isTouchActive) { clearTimeout(cHoldTimer); clearTimeout(cTapTimer); cTapCount = 0; }});
+
+        // --- 文本指令发射 ---
+        compSendBtn.addEventListener('click', () => {
+            const v = compTextInput.value.trim();
+            if (v && !UILock.isLocked() && !isCompSpeaking) {
+                sendCompApiRequest(`玩家对你说：“${v}”`);
+                compTextInput.value = '';
+            }
+        });
+        // 赋予多行文本域自适应高度能力
+        compTextInput.addEventListener('input', () => {
+            compTextInput.style.height = 'auto';
+            compTextInput.style.height = Math.min(compTextInput.scrollHeight, 100) + 'px';
+        });
+        
+        // 同样释放陪伴模式的回车键
+        compTextInput.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { 
+                e.preventDefault(); 
+                compSendBtn.click(); 
+                setTimeout(() => { compTextInput.style.height = 'auto'; }, 0);
+            } 
+        });
+        
+        // --- 核心录音与接口发送引擎 ---
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        compVoiceBtn.addEventListener('click', async () => {
+            // 校验是否有配置语音API
+            if (!state.config.sttApi || !state.config.sttApi.baseUrl || !state.config.sttApi.key) {
+                showToast('尚未通联语音中枢！请先在“设置”中配置语音识别 API (Whisper) 相关参数。');
+                return;
+            }
+
+            if (isRecording) {
+                // 第二次点击：结束录音并发送
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+                isRecording = false;
+                compVoiceBtn.classList.remove('animate-pulse', 'text-rose-400', 'border-rose-400');
+                compTextInput.placeholder = "神经脉冲解析中...";
+            } else {
+                // 第一次点击：开始录音
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = e => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        // 结束录制后，释放麦克风权限
+                        stream.getTracks().forEach(track => track.stop()); 
+                        
+                        // 打包录音数据
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); 
+                        
+                        // 构建给API的传输表单
+                        const formData = new FormData();
+                        formData.append('file', audioBlob, 'voice_record.webm');
+                        formData.append('model', state.config.sttApi.model || 'whisper-1');
+
+                        try {
+                            let sttUrl = state.config.sttApi.baseUrl.replace(/\/+$/, '');
+                            // 智能补全音频转换接口尾缀
+                            if (!sttUrl.endsWith('/audio/transcriptions')) {
+                                sttUrl += '/audio/transcriptions';
+                            }
+
+                            const res = await fetch(sttUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${state.config.sttApi.key}`
+                                },
+                                body: formData
+                            });
+
+                            if (!res.ok) {
+                                const errText = await res.text();
+                                throw new Error(errText);
+                            }
+                            
+                            const data = await res.json();
+                            if (data.text) {
+                                compTextInput.value += data.text; // 将文字填入输入框
+                            } else {
+                                showToast('抱歉，未能听清你的低语。');
+                            }
+                        } catch (err) {
+                            console.error('语音解析链路崩溃:', err);
+                            showToast('解析失败，请检查API地址与密钥是否正确可用。');
+                        } finally {
+                            compTextInput.placeholder = "轻语或下达指令...";
+                        }
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    compVoiceBtn.classList.add('animate-pulse', 'text-rose-400', 'border-rose-400');
+                    compTextInput.placeholder = "正在倾听...再次点击完成录音";
+                } catch (err) {
+                    showToast('麦克风接口被拒绝或被占用，请在浏览器权限中允许访问麦克风。');
+                    console.error('录音权限异常:', err);
+                }
+            }
+        });
+
+        // --- Galgame 排版渲染引擎 ---
+        const refreshCompAvatar = (emoKey, actTag = null) => {
+            const src = state.companion.avatars[emoKey] || state.companion.avatars['default'];
+            if (src && src.startsWith('data:')) compAvatar.src = src;
+            else compAvatar.src = 'https://placehold.co/800x1200/1e293b/94a3b8?text=缺乏具象载体';
+
+            if (actTag === 'approach') compAvatarContainer.classList.add('avatar-zoom-in');
+            else if (actTag === 'back' || actTag === 'reset') compAvatarContainer.classList.remove('avatar-zoom-in');
+
+            if (state.companion.useEmoji && emoKey !== 'default') {
+                const emos = { happy: ['✨','🎵','😄'], sad: ['💧','🌧️','💔'], angry: ['💢','🔥','撇嘴'], shy: ['🌸','💓','😳'] };
+                const list = emos[emoKey] || ['✨'];
+                const target = list[Math.floor(Math.random() * list.length)];
+                const el = document.createElement('div');
+                el.className = 'companion-emoji-float';
+                el.textContent = target;
+                el.style.left = `${20 + Math.random() * 60}%`;
+                el.style.top = `${40 + Math.random() * 30}%`;
+                compEmojiLayer.appendChild(el);
+                setTimeout(() => { if(compEmojiLayer.contains(el)) el.remove(); }, 2500);
+            }
+        };
+
+        const processCompText = (raw) => {
+            let eMatch = raw.match(/\[EMO:([^\]]+)\]/i);
+            let aMatch = raw.match(/\[ACT:([^\]]+)\]/i);
+            // 物理剥离所有的双引号，确保对话框里绝对不带引号
+            let clean = raw.replace(/\[EMO:[^\]]+\]/gi, '')
+                           .replace(/\[ACT:[^\]]+\]/gi, '')
+                           .replace(/[""“”]/g, '')
+                           .trim();
+            let sents = clean.split(/([。！？\.\!\?]+)/).reduce((acc, c, i, a) => {
+                if (i % 2 === 0) { let s = c + (a[i+1] || ''); if (s.trim()) acc.push(s.trim()); }
+                return acc;
+            }, []);
+            if(sents.length===0 && clean) sents.push(clean);
+            return { emo: eMatch ? eMatch[1].toLowerCase() : 'default', act: aMatch ? aMatch[1].toLowerCase() : null, lines: sents };
+        };
+
+        const playNextCompLine = () => {
+            if (compDialogQueue.length > 0) {
+                isCompSpeaking = true;
+                compDialogBox.classList.remove('hidden');
+                compDialogName.textContent = state.role.roleName || 'TA';
+                compDialogText.innerHTML = '';
+                
+                const line = compDialogQueue.shift();
+                // 打字机特效注入
+                let idx = 0;
+                const typeWriter = setInterval(() => {
+                    compDialogText.innerHTML += line[idx];
+                    idx++;
+                    if (idx >= line.length) clearInterval(typeWriter);
+                }, 40);
+                
+                // 为了防止狂点阻碍打字机，重写点击事件直接显示全句
+                compDialogBox.onclick = () => {
+                    if (idx < line.length) {
+                        clearInterval(typeWriter);
+                        compDialogText.innerHTML = line;
+                        idx = line.length;
+                    } else {
+                        playNextCompLine();
+                    }
+                };
+            } else {
+                isCompSpeaking = false;
+                compDialogBox.classList.add('hidden');
+                setTimeout(() => refreshCompAvatar('default', 'reset'), 2000); // 延时恢复平静
+            }
+        };
+
+        // --- 与大模型的灵魂深潜 (全量记忆桥接版) ---
+        const sendCompApiRequest = async (actionInput) => {
+            if (!state.config.api.baseUrl || !state.config.api.key) return showToast('未接通神经突触(请配置API)');
+            UILock.lock(3000);
+            resetCompAutoTimer();
+            compDialogBox.classList.remove('hidden');
+            compDialogBox.onclick = null;
+            compDialogName.textContent = 'System';
+            compDialogText.innerHTML = '<span class="animate-pulse text-indigo-400">正在感知你的意图...</span>';
+            
+            const pName = state.role.playerName || '我';
+            const rName = state.role.roleName || 'TA';
+            
+            // 1. 提取近期主聊天记忆（根据用户设置的条数读取，默认10条）
+            const readLength = state.companion.contextLength !== undefined ? state.companion.contextLength : 10;
+            const ctx = readLength > 0 ? state.chat.history.slice(-readLength).map(m => `${m.sender==='user'?pName:rName}: ${m.text||''}`).join('\n') : '未携带近期聊天记忆';
+            
+            // 2. 提取长期共同记忆存档
+            const memoriesCtx = state.memories && state.memories.length > 0 
+                ? state.memories.map(m => `- ${m.content}`).join('\n') 
+                : '暂无';
+
+            // 3. 提取世界书核心法则
+            const activeWb = (state.worldbook || []).filter(wb => wb.enabled !== false);
+            const wbCtx = activeWb.length > 0 
+                ? activeWb.map((wb, i) => `[法则 ${i+1}]: ${wb.content}`).join('\n') 
+                : '无特定法则';
+            
+            // 4. 捕获现实空间的时间戳
+            const now = new Date();
+            const currentTimeString = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const prompt = `你正在一个沉浸式的第一人称视觉“陪伴系统”中。
+【当前现实时间】：${currentTimeString} （注意：你的交互必须符合当前的日夜语境，例如深夜的静谧或清晨的慵懒）
+
+角色设定：${state.role.rolePersona}
+
+【你们的长期共同记忆】：
+${memoriesCtx}
+
+【世界核心法则】(绝对服从)：
+${wbCtx}
+
+【刚发生的近期对话上下文】(知道目前在聊什么)：
+${ctx}
+
+刚刚，玩家发生了动态：
+【${actionInput}】
+
+指令要求（绝对服从）：
+1. 请完全化身为${rName}，感受玩家的动作/话语，并用第一人称给出直接的对白回应。
+2. 【绝对禁止】描述自己的动作和心理（如“我脸红了”、“低下头”），你只能说话！
+3. 【绝对禁止】在你的话语中使用任何引号（“”或""）包裹对话内容！直接输出你要说的话！
+4. 在你的回复最开头，【必须】注入一个情绪控制代码（这会触发立绘切换与屏幕特效）：
+   - 情绪代码必须选一个：[EMO:default] (平静/常态/无表情) 或 [EMO:happy] (愉悦) 或 [EMO:sad] (低落) 或 [EMO:angry] (愠怒) 或 [EMO:shy] (娇怯)
+   - 动作代码（可选）：如果想靠近屏幕贴近玩家，加 [ACT:approach]。想退回去加 [ACT:back]。
+   例如：[EMO:default][ACT:approach]怎么一直盯着我看，我脸上有什么东西吗？`;
+
+            try {
+                let url = state.config.api.baseUrl.replace(/\/+$/, '') + '/chat/completions';
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.api.key}` },
+                    body: JSON.stringify({ model: state.config.api.model || 'gpt-3.5-turbo', messages: [{role:'user', content: prompt}], temperature: 0.8 })
+                });
+                if(!res.ok) throw new Error('API熔断');
+                const data = await res.json();
+                const aiStr = data.choices[0].message.content.trim();
+                
+                // 将交互强制烙印进主聊天记录（保持世界线收束）
+                state.chat.history.push({id: Date.now(), sender: 'user', type: 'text', text: `(在陪伴中) ${actionInput}`});
+                state.chat.history.push({id: Date.now()+1, sender: 'ai', type: 'text', text: aiStr.replace(/\[EMO:[^\]]+\]/gi, '').replace(/\[ACT:[^\]]+\]/gi, '').trim()});
+                await saveState();
+                
+                // 核心修复引擎：立刻在后台静默重绘主聊天界面，彻底消除割裂感
+                if (typeof renderChatHistory === 'function') {
+                    renderChatHistory({ autoScroll: true });
+                }
+
+                const parsed = processCompText(aiStr);
+                refreshCompAvatar(parsed.emo, parsed.act);
+                compDialogQueue = parsed.lines;
+                playNextCompLine();
+                
+            } catch (err) {
+                compDialogName.textContent = 'Error';
+                compDialogText.innerHTML = `<span class="text-rose-400">连接脱落：${err.message}</span>`;
+                setTimeout(() => compDialogBox.classList.add('hidden'), 2000);
+            }
+        };
+
+        // --- 自由意志（主动找宿主） ---
+        const resetCompAutoTimer = () => {
+            clearInterval(compAutoTimer);
+            lastCompInteractionTime = Date.now();
+            if (state.companion.autoInteract && !compPageIsHidden()) {
+                compAutoTimer = setInterval(() => {
+                    if (isCompSpeaking || compPageIsHidden() || UILock.isLocked()) {
+                        lastCompInteractionTime = Date.now(); return;
+                    }
+                    if (Date.now() - lastCompInteractionTime > state.companion.autoInterval * 60000) {
+                        sendCompApiRequest(`[系统强制通报]：玩家已经有 ${state.companion.autoInterval} 分钟没理你了。请你主动找个话题打破沉默，或者对他做点什么。`);
+                    }
+                }, 5000);
+            }
+        };
+        const compPageIsHidden = () => companionPage.classList.contains('hidden');
+
+        // --- 任务监督系统 ---
+        const compTaskBtn = get('companion-task-btn');
+        const compTaskTimerDisplay = get('companion-task-timer-display');
+        const compTaskNameEl = get('comp-task-name');
+        const compTaskTimeEl = get('comp-task-time');
+        let taskCountdownInterval = null;
+
+        if (compTaskBtn) {
+            compTaskBtn.addEventListener('click', async () => {
+                if (taskCountdownInterval) {
+                    const confirmStop = await showDialog('任务进行中', '当前已有任务正在监督，是否要放弃并终止？');
+                    if (confirmStop) {
+                        clearInterval(taskCountdownInterval);
+                        taskCountdownInterval = null;
+                        compTaskTimerDisplay.classList.add('hidden');
+                        sendCompApiRequest(`[系统强制通报]：玩家中途放弃了任务。你可以对此发表一下看法。`);
+                    }
+                    return;
+                }
+
+                const result = await showDialog('开启任务监督', '设定你要完成的任务与时间：', {
+                    complexInput: `
+                        <div class="space-y-3">
+                            <input type="text" id="task-name-input" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-50 text-slate-800 outline-none focus:border-indigo-400" placeholder="例如：背50个单词 / 写作业">
+                            <input type="number" id="task-time-input" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-50 text-slate-800 outline-none focus:border-indigo-400" placeholder="时长 (分钟，例如：30)">
+                        </div>
+                    `,
+                    getValues: () => ({
+                        name: document.getElementById('task-name-input').value.trim(),
+                        time: parseInt(document.getElementById('task-time-input').value)
+                    })
+                });
+
+                if (result && result.name && result.time > 0) {
+                    let totalSeconds = result.time * 60;
+                    compTaskNameEl.textContent = result.name;
+                    compTaskTimerDisplay.classList.remove('hidden');
+
+                    sendCompApiRequest(`[系统强制通报]：玩家开启了任务监督模式。任务内容：【${result.name}】，时长：【${result.time}分钟】。请用一句话鼓励并监督玩家开始。`);
+
+                    taskCountdownInterval = setInterval(() => {
+                        totalSeconds--;
+                        if (totalSeconds <= 0) {
+                            clearInterval(taskCountdownInterval);
+                            taskCountdownInterval = null;
+                            compTaskTimerDisplay.classList.add('hidden');
+                            sendCompApiRequest(`[系统强制通报]：倒计时结束！玩家完成了任务【${result.name}】！请立刻热烈地夸奖和表扬玩家！`);
+                        } else {
+                            const m = Math.floor(totalSeconds / 60);
+                            const s = totalSeconds % 60;
+                            compTaskTimeEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                        }
+                    }, 1000);
+                }
+            });
+        }
         // ==========================================
     })();
 </script>
