@@ -4887,6 +4887,29 @@ ${existingNotes || '（今天还没有人留言）'}
         });
         userInput.addEventListener('focus', () => { setTimeout(() => { chatFooter.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300); });
         
+        // ================= 智能记忆雷达引擎 =================
+        const getActiveMemories = () => {
+            if (!state.memories || state.memories.length === 0) return [];
+            
+            // 提取最近5条聊天记录作为上下文语境
+            const recentContext = state.chat.history.slice(-5).map(m => m.text || '').join(' ');
+            
+            return state.memories.filter(mem => {
+                // 兼容旧存档：如果没有模式，默认固定读取
+                if (!mem.mode || mem.mode === 'fixed') return true; 
+                
+                if (mem.mode === 'keyword') {
+                    if (!mem.keywords) return false;
+                    // 分割关键词并去空
+                    const kwArray = mem.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
+                    // 只要语境中命中任意一个关键词，记忆瞬间唤醒
+                    return kwArray.some(kw => recentContext.includes(kw));
+                }
+                return false;
+            });
+        };
+        // ====================================================
+        
         const createPhoneApiPrompt = () => {
             const now = new Date();
             const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -4975,7 +4998,7 @@ ${state.chat.allowAiStickers === false ?
 - **实时状态 (核心强制)**: 在每次回复的最末尾，必须另起一行加上状态标签！格式为严格JSON：\`[STATUS:{"thoughts":"一句话描述此刻内心的真实想法","affinity":当前累计总好感度(0到100的数字),"clothing":"现在的具体穿着","location":"当前所处的地点"}]\`。
 
 # 记忆与上下文
-- **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
+- **共同记忆**: ${getActiveMemories().map(m => `- ${m.content}`).join('\n') || '无'}
 - **可用表情**: ${state.stickers.map(s => `- ID: ${s.id}, 含义: ${s.meaning}`).join('\n') || '无'}
 
 # 🌍 核心规则与世界观 (最高优先级指令 - 覆盖一切默认行为)
@@ -5142,7 +5165,7 @@ ${(() => {
 2.  **状态标签**: 在故事段落的**最后**，另起一行，必须写上 \`[STATUS:{"thoughts":"角色当前内心的真实OS","affinity":当前累计总好感度(0到100的数字),"clothing":"现在的具体穿着","location":"当前所处的地点"}]\`。此JSON标签绝对不可遗漏！
 
 # 记忆与上下文
-- **共同记忆**: ${state.memories.map(m => `- ${m.content}`).join('\n') || '无'}
+- **共同记忆**: ${getActiveMemories().map(m => `- ${m.content}`).join('\n') || '无'}
 
 # 🌍 核心规则与世界观 (最高优先级指令 - 覆盖一切默认行为)
         ${(() => {
@@ -6097,93 +6120,212 @@ function parseTagToMessage(tag) {
         });
 
         const renderMemoryList = () => {
-        memoryListEl.innerHTML = '';
-        if (state.memories.length === 0) {
-            memoryListEl.innerHTML = '<p class="text-center opacity-50">还没有任何记忆存档。</p>';
-            return;
-        }
-        const sortedMemories = [...state.memories].sort((a, b) => b.id - a.id);
+            memoryListEl.innerHTML = '';
+            if (state.memories.length === 0) {
+                memoryListEl.innerHTML = '<div class="text-center opacity-50 mt-10"><i class="fas fa-brain text-4xl mb-4 opacity-30"></i><p>记忆中枢空空如也。</p></div>';
+                return;
+            }
+            const sortedMemories = [...state.memories].sort((a, b) => b.id - a.id);
 
-        sortedMemories.forEach(memory => {
-            const item = document.createElement('div');
-            item.className = 'memory-item';
+            sortedMemories.forEach(memory => {
+                // 兼容旧数据架构
+                if (!memory.mode) memory.mode = 'fixed';
+                if (!memory.keywords) memory.keywords = '';
 
-            // --- Header (Clickable part) ---
-            const header = document.createElement('div');
-            header.className = 'memory-header';
+                const item = document.createElement('div');
+                item.className = 'memory-item bg-white/5 border border-white/10 rounded-xl mb-3 overflow-hidden transition-all duration-300';
 
-            const title = document.createElement('span');
-            title.className = 'memory-title';
-            title.textContent = memory.content.substring(0, 40) + (memory.content.length > 40 ? '...' : '');
+                // --- 记忆头部 (点击展开/收起) ---
+                const header = document.createElement('div');
+                header.className = 'p-4 flex justify-between items-center cursor-pointer hover:bg-white/10 transition group';
+                
+                // 增加 mem-mode-tag 标识，方便局部修改
+                const modeTag = memory.mode === 'fixed' 
+                    ? `<span class="mem-mode-tag text-[0.6rem] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded ml-2 border border-indigo-500/30 shrink-0">固定</span>` 
+                    : `<span class="mem-mode-tag text-[0.6rem] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded ml-2 border border-emerald-500/30 shrink-0">关键词</span>`;
 
-            const actions = document.createElement('div');
-            actions.className = 'memory-actions';
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center shrink-0';
 
-            if (isMemoryBatchDeleteMode) {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0';
-                checkbox.dataset.id = memory.id;
-                actions.appendChild(checkbox);
-            } else {
-                const editBtn = document.createElement('button');
-                editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-                editBtn.title = '编辑';
-                editBtn.onclick = async (e) => {
-                    e.stopPropagation(); // Prevent accordion from toggling
-                    const newContent = await showDialog('编辑记忆', '', { input: true, defaultValue: memory.content });
-                    if (newContent) {
-                        const memoryToUpdate = state.memories.find(m => m.id === memory.id);
-                        if (memoryToUpdate) {
-                            memoryToUpdate.content = newContent;
-                        }
-                        await saveState();
-                        renderMemoryList();
+                if (isMemoryBatchDeleteMode) {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'form-checkbox h-5 w-5 bg-white/30 rounded text-indigo-500 border-none focus:ring-0 mr-3';
+                    checkbox.dataset.id = memory.id;
+                    actions.appendChild(checkbox);
+                }
+
+                header.innerHTML = `
+                    <div class="flex items-center flex-1 min-w-0">
+                        <i class="fas fa-link text-indigo-400 mr-3 text-sm opacity-60"></i>
+                        <span class="mem-title-text font-bold text-sm text-slate-200 truncate group-hover:text-indigo-300 transition-colors">${memory.content.substring(0, 25)}${memory.content.length > 25 ? '...' : ''}</span>
+                        ${modeTag}
+                    </div>
+                `;
+                
+                const indicator = document.createElement('i');
+                indicator.className = 'fas fa-chevron-down text-slate-500 text-xs transition-transform duration-300 ml-3 memory-indicator';
+                actions.appendChild(indicator);
+                header.appendChild(actions);
+
+                // --- 记忆控制舱 (折叠区域) ---
+                const body = document.createElement('div');
+                body.className = 'max-h-0 overflow-hidden transition-all duration-300 bg-black/20';
+                
+                body.innerHTML = `
+                    <div class="p-4 space-y-4 border-t border-white/5">
+                        <!-- 记忆正文与操作 -->
+                        <div class="flex flex-col gap-2">
+                            <div class="text-xs text-slate-400 font-bold tracking-widest uppercase">记忆印记</div>
+                            <div class="mem-content-text text-sm text-slate-300 leading-relaxed bg-black/30 p-3 rounded-lg border border-white/5">${memory.content.replace(/\n/g, '<br>')}</div>
+                            <div class="flex justify-end gap-2 mt-1">
+                                <button class="mem-edit-btn px-3 py-1 bg-white/5 hover:bg-white/10 text-indigo-300 rounded text-xs transition flex items-center gap-1 border border-white/10"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="mem-delete-btn px-3 py-1 bg-white/5 hover:bg-rose-500/20 text-rose-400 rounded text-xs transition flex items-center gap-1 border border-white/10"><i class="fas fa-trash-alt"></i> 销毁</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 模式分配器 -->
+                        <div class="flex flex-col gap-2 pt-2 border-t border-white/5">
+                            <div class="text-xs text-slate-400 font-bold tracking-widest uppercase flex items-center gap-1"><i class="fas fa-microchip text-indigo-400"></i> 读取策略</div>
+                            <div class="flex gap-2 bg-black/40 p-1 rounded-lg border border-white/10 w-max">
+                                <button class="mem-mode-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all ${memory.mode === 'fixed' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}" data-mode="fixed">固定读取</button>
+                                <button class="mem-mode-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all ${memory.mode === 'keyword' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}" data-mode="keyword">雷达匹配</button>
+                            </div>
+                        </div>
+
+                        <!-- 关键词输入域 (雷达模式专属) -->
+                        <div class="keyword-container flex-col gap-2 ${memory.mode === 'keyword' ? 'flex' : 'hidden'}">
+                            <div class="text-xs text-emerald-300 font-bold tracking-widest flex justify-between items-end mt-1">
+                                <span>唤醒关键词</span>
+                                <span class="text-[0.6rem] opacity-60 font-normal">多词用英文逗号(,)分隔</span>
+                            </div>
+                            <input type="text" class="mem-kw-input w-full bg-black/30 border border-emerald-500/30 p-2 text-sm text-emerald-100 rounded-lg outline-none focus:border-emerald-400 transition" placeholder="例如: 苹果,学校,过去..." value="${memory.keywords}">
+                        </div>
+                    </div>
+                `;
+
+                // 交互逻辑：展开/收起
+                header.onclick = (e) => {
+                    if(e.target.type === 'checkbox') return; // 防止点到复选框时触发折叠
+                    
+                    const isExpanded = header.classList.contains('expanded');
+                    if (!isExpanded) {
+                        header.classList.add('expanded');
+                        body.style.maxHeight = body.scrollHeight + 150 + 'px'; 
+                        header.querySelector('.memory-indicator').style.transform = 'rotate(180deg)';
+                    } else {
+                        header.classList.remove('expanded');
+                        body.style.maxHeight = '0px';
+                        header.querySelector('.memory-indicator').style.transform = 'rotate(0deg)';
                     }
                 };
-                actions.appendChild(editBtn);
 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                deleteBtn.title = '删除';
-                deleteBtn.onclick = async (e) => {
-                    e.stopPropagation(); // Prevent accordion from toggling
-                    const confirmed = await showDialog('删除记忆', '确定要删除这条记忆吗？');
+                // 【核心修复】：局部无感刷新模式
+                const modeBtns = body.querySelectorAll('.mem-mode-btn');
+                modeBtns.forEach(btn => {
+                    btn.onclick = async (e) => {
+                        e.stopPropagation();
+                        const selectedMode = btn.dataset.mode;
+                        if (memory.mode === selectedMode) return;
+                        
+                        memory.mode = selectedMode;
+                        await saveState(); // 仅存档，不刷新整个列表！
+
+                        // 1. 直接更新头部的标签
+                        const tag = header.querySelector('.mem-mode-tag');
+                        if (selectedMode === 'fixed') {
+                            tag.className = 'mem-mode-tag text-[0.6rem] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded ml-2 border border-indigo-500/30 shrink-0';
+                            tag.textContent = '固定';
+                        } else {
+                            tag.className = 'mem-mode-tag text-[0.6rem] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded ml-2 border border-emerald-500/30 shrink-0';
+                            tag.textContent = '关键词';
+                        }
+
+                        // 2. 局部更新按钮的亮暗状态
+                        modeBtns.forEach(b => {
+                            if (b.dataset.mode === selectedMode) {
+                                b.className = `mem-mode-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all shadow-md ${selectedMode === 'fixed' ? 'bg-indigo-500 text-white' : 'bg-emerald-500 text-white'}`;
+                            } else {
+                                b.className = 'mem-mode-btn px-4 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5';
+                            }
+                        });
+
+                        // 3. 平滑展开/收起底部的输入框
+                        const kwContainer = body.querySelector('.keyword-container');
+                        if (selectedMode === 'keyword') {
+                            kwContainer.classList.remove('hidden');
+                            kwContainer.classList.add('flex');
+                            // 动态补偿高度，防止被裁切
+                            body.style.maxHeight = body.scrollHeight + 100 + 'px';
+                        } else {
+                            kwContainer.classList.remove('flex');
+                            kwContainer.classList.add('hidden');
+                        }
+
+                        showToast(selectedMode === 'fixed' ? '已切换为：全局固定读取' : '已切换为：关键词雷达匹配');
+                    };
+                });
+
+                // 交互逻辑：实时保存关键词
+                const kwInput = body.querySelector('.mem-kw-input');
+                let kwTimer;
+                kwInput.oninput = (e) => {
+                    clearTimeout(kwTimer);
+                    kwTimer = setTimeout(async () => {
+                        memory.keywords = e.target.value.trim();
+                        await saveState();
+                    }, 500); // 防抖保存，不干扰用户输入
+                };
+
+                // 【核心修复】：编辑记忆的局部刷新
+                body.querySelector('.mem-edit-btn').onclick = async () => {
+                    const newContent = await showDialog('改写记忆', '', { 
+                        complexInput: `<textarea id="edit-mem-text" class="w-full bg-black/30 border border-white/20 rounded-lg p-3 text-white h-32 outline-none focus:border-indigo-400 resize-none">${memory.content}</textarea>`,
+                        getValues: () => document.getElementById('edit-mem-text').value.trim()
+                    });
+                    
+                    if (newContent) {
+                        memory.content = newContent;
+                        await saveState(); // 仅存档，不刷新整个列表！
+                        
+                        // 直接更新 UI 文本
+                        header.querySelector('.mem-title-text').textContent = newContent.substring(0, 25) + (newContent.length > 25 ? '...' : '');
+                        body.querySelector('.mem-content-text').innerHTML = newContent.replace(/\n/g, '<br>');
+                        
+                        // 如果内容变长了，重新撑开高度
+                        if (header.classList.contains('expanded')) {
+                            body.style.maxHeight = body.scrollHeight + 150 + 'px';
+                        }
+                        
+                        showToast('记忆已重塑');
+                    }
+                };
+
+                // 【核心修复】：删除记忆的丝滑物理移除
+                body.querySelector('.mem-delete-btn').onclick = async () => {
+                    const confirmed = await showDialog('销毁记忆', '确定要将这段记忆从TA的大脑中彻底抹除吗？');
                     if (confirmed) {
                         state.memories = state.memories.filter(m => m.id !== memory.id);
                         await saveState();
-                        renderMemoryList();
+                        
+                        // 播放缩小淡出动画，然后移除节点
+                        item.style.opacity = '0';
+                        item.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            item.remove();
+                            // 如果删光了，触发一次全局渲染以显示“空空如也”的提示
+                            if (state.memories.length === 0) renderMemoryList();
+                        }, 300);
+                        
+                        showToast('记忆已销毁');
                     }
                 };
-                actions.appendChild(deleteBtn);
-            }
-            
-            const indicator = document.createElement('i');
-            indicator.className = 'fas fa-chevron-down memory-indicator';
 
-            header.appendChild(title);
-            header.appendChild(actions);
-            header.appendChild(indicator);
-
-            // --- Body (Collapsible part) ---
-            const body = document.createElement('div');
-            body.className = 'memory-body';
-            const content = document.createElement('p');
-            content.textContent = memory.content;
-            body.appendChild(content);
-
-            // --- Event Listener for Accordion ---
-            header.addEventListener('click', () => {
-                header.classList.toggle('expanded');
-                body.classList.toggle('expanded');
+                item.appendChild(header);
+                item.appendChild(body);
+                memoryListEl.appendChild(item);
             });
-
-            // --- Assembly ---
-            item.appendChild(header);
-            item.appendChild(body);
-            memoryListEl.appendChild(item);
-        });
-    };
+        };
 
         addMemoryBtn.addEventListener('click', async () => {
             const content = await showDialog('手动添加记忆', '请输入记忆内容：', { input: true });
@@ -6313,7 +6455,7 @@ function parseTagToMessage(tag) {
 
                 showToast('正在准备日记内容...');
                 generateDiaryBtn.disabled = true;
-                const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${state.memories.map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题、禁止日期开头。`;
+                const systemPrompt = `你叫 ${state.role.roleName || '角色'}, 你的设定是: ${state.role.rolePersona}. 你正在与名为 ${state.role.playerName || '玩家'} 的人互动。\n请你以第一人称视角，根据你们的共同记忆和最近的对话，写一篇充满感情、至少200字的日记。\n共同记忆: ${getActiveMemories().map(m => `- ${m.content}`).join('\n') || '暂无'}\n最近的对话(最多20条):\n${state.chat.history.slice(-20).map(msg => `${msg.sender === 'user' ? state.role.playerName || '玩家' : '我'}: ${msg.text}`).join('\n')}\n\n写作要求:\n- 风格必须是私密的日记风格，展现你的内心世界和对玩家的真实感受。\n- 必须超过200字。\n- 使用Markdown语法来强调: **加粗表示强烈的感情**, *斜体表示悄悄的想法或疑问*, ~~删除线表示被否定或放弃的念头~~。\n- 直接开始写日记内容，不要有“亲爱的日记”或任何标题、禁止日期开头。`;
 
                 const requestBody = {
                     model: state.config.api.model,
@@ -10145,8 +10287,9 @@ ${chatHistoryContext}
             const ctx = readLength > 0 ? state.chat.history.slice(-readLength).map(m => `${m.sender==='user'?pName:rName}: ${m.text||''}`).join('\n') : '未携带近期聊天记忆';
             
             // 2. 提取长期共同记忆存档
-            const memoriesCtx = state.memories && state.memories.length > 0 
-                ? state.memories.map(m => `- ${m.content}`).join('\n') 
+            const activeMems = getActiveMemories();
+            const memoriesCtx = activeMems.length > 0 
+                ? activeMems.map(m => `- ${m.content}`).join('\n') 
                 : '暂无';
 
             // 3. 提取世界书核心法则
