@@ -2114,57 +2114,57 @@
                     <!-- ================= 沉浸阅读系统结束 ================= -->
                     
                     <!-- ！！！系统强制接管锁机界面 ！！！ -->
-                    <div id="system-lock-screen" class="hidden fixed inset-0 z-[100000] bg-black/95 backdrop-blur-2xl flex-col items-center justify-center p-6 transition-all duration-500 opacity-0">
+                    <div id="system-lock-screen" class="hidden fixed inset-0 z-[100000] bg-slate-50/90 backdrop-blur-2xl flex-col items-center justify-center p-8 transition-all duration-700 opacity-0 font-[var(--custom-font)]">
                         <!-- 紧急API接口 -->
-                        <button id="em-api-btn" class="absolute top-6 left-6 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-sm z-50">
-                            <i class="fas fa-satellite-dish"></i> 紧急通讯频段
+                        <button id="em-api-btn" class="absolute top-8 left-8 text-slate-400 hover:text-slate-800 transition-colors flex items-center gap-2 text-xs tracking-widest z-50 uppercase">
+                            <i class="fas fa-satellite-dish"></i> 紧急频道
                         </button>
                         
-                        <div class="text-center w-full max-w-md relative z-10 flex flex-col items-center max-h-full overflow-y-auto py-2" style="scrollbar-width: none;">
-                            <div class="relative mb-6">
-                                <i id="lock-icon" class="fas fa-lock text-6xl text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse"></i>
+                        <div class="text-center w-full max-w-sm relative z-10 flex flex-col items-center max-h-full overflow-y-auto py-4 hide-scrollbar">
+                            <div class="mb-8 relative flex items-center justify-center w-20 h-20 rounded-full border-[0.5px] border-slate-300 bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+                                <i id="lock-icon" class="fas fa-lock text-xl text-slate-800 animate-pulse"></i>
                             </div>
-                            <h1 id="lock-title" class="text-5xl font-black text-white tracking-widest mb-3 font-[var(--custom-font)] text-shadow-lg">已锁机</h1>
-                            <p id="lock-reason" class="text-gray-300 text-base mb-8 px-4 border-l-2 border-red-500 bg-red-500/10 py-2 rounded-r-lg">系统已被TA强行接管</p>
                             
-                            <div class="w-full glass-container border-red-500/40 border-2 p-6 rounded-3xl mb-8 relative overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.15)]">
-                                <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 to-transparent"></div>
-                                <div class="text-xs text-red-400 font-bold mb-2 uppercase tracking-widest relative z-10"><i class="fas fa-hourglass-half fa-spin mr-1"></i> 解除封锁倒计时</div>
-                                <div id="lock-countdown" class="text-6xl font-mono font-black text-white tracking-wider relative z-10 drop-shadow-md">00:00</div>
+                            <h1 id="lock-title" class="text-2xl font-light text-slate-800 tracking-[0.2em] mb-3 uppercase">SYSTEM LOCKED</h1>
+                            <p id="lock-reason" class="text-slate-500 text-sm mb-12 font-light tracking-wider leading-relaxed">系统已被强制接管</p>
+                            
+                            <div class="w-full border-t border-b border-slate-200 py-6 mb-10 relative flex flex-col items-center justify-center">
+                                <div class="text-[0.65rem] text-slate-400 font-medium mb-3 uppercase tracking-[0.15em]"><i class="fas fa-hourglass-half fa-spin mr-2"></i>Countdown</div>
+                                <div id="lock-countdown" class="text-4xl font-light text-slate-800 tracking-[0.1em] font-mono">00:00</div>
                             </div>
 
                             <!-- 申请解除区域 -->
-                            <div id="unlock-apply-section" class="w-full flex flex-col gap-3">
-                                <textarea id="unlock-reason-input" class="w-full bg-white/5 border border-white/20 rounded-2xl p-4 text-white placeholder-white/30 outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-all resize-none text-sm" placeholder="向TA提交解封申请，说点好听的..." rows="3"></textarea>
-                                <button id="submit-unlock-btn" class="w-full py-3.5 bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white font-bold rounded-2xl shadow-[0_8px_20px_rgba(225,29,72,0.4)] transition-all active:scale-95 text-lg flex items-center justify-center gap-2">
-                                    <i class="fas fa-paper-plane"></i> 提交申请
+                            <div id="unlock-apply-section" class="w-full flex flex-col gap-4 items-center">
+                                <textarea id="unlock-reason-input" class="w-full bg-transparent border-b border-slate-300 p-3 text-slate-700 placeholder-slate-400 outline-none focus:border-slate-800 transition-all resize-none text-sm text-center leading-relaxed" placeholder="写下你的请求..." rows="2"></textarea>
+                                <button id="submit-unlock-btn" class="mt-4 px-10 py-3 bg-transparent border border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-500 text-xs tracking-[0.15em] uppercase flex items-center justify-center rounded-full">
+                                    提交申请
                                 </button>
                             </div>
 
                             <!-- 审判结果区域 -->
-                            <div id="unlock-result-section" class="hidden w-full mt-6 bg-white/10 border border-white/20 p-5 rounded-2xl text-left backdrop-blur-md flex-shrink-0">
-                                <div class="text-xs text-indigo-300 font-bold mb-2 flex items-center gap-2"><i class="fas fa-gavel"></i> TA的审判回应</div>
-                                <div class="max-h-[140px] overflow-y-auto mb-4 pr-2" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent;">
-                                    <p id="unlock-result-text" class="text-sm text-white/90 leading-relaxed italic break-words">暂无回应</p>
+                            <div id="unlock-result-section" class="hidden w-full mt-10 bg-white border border-slate-100 p-6 rounded-3xl text-center flex-shrink-0 shadow-sm transition-all duration-500">
+                                <div class="text-[0.65rem] text-slate-400 font-bold mb-4 uppercase tracking-[0.15em]">Response</div>
+                                <div class="max-h-[120px] overflow-y-auto mb-6 px-2 hide-scrollbar">
+                                    <p id="unlock-result-text" class="text-sm text-slate-700 leading-loose font-light italic">暂无回应</p>
                                 </div>
-                                <button id="execute-unlock-btn" class="hidden w-full py-3 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(22,163,74,0.4)] transition-all active:scale-95 text-lg mt-2 flex-shrink-0">
-                                    <i class="fas fa-key"></i> 立即解开
+                                <button id="execute-unlock-btn" class="hidden w-full py-3 bg-slate-800 text-white hover:bg-slate-700 transition-all duration-300 text-xs tracking-[0.15em] uppercase rounded-full">
+                                    解除限制
                                 </button>
                             </div>
                         </div>
                         
                         <!-- 紧急API配置弹窗 -->
-                        <div id="em-api-modal" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 z-[100001] backdrop-blur-xl">
-                            <div class="glass-container w-full max-w-sm p-8 rounded-3xl border border-white/20 shadow-2xl">
-                                <h3 class="text-xl font-black text-white mb-6 flex items-center gap-2"><i class="fas fa-satellite-dish text-blue-400"></i> 紧急覆盖API接口</h3>
-                                <div class="space-y-4 mb-6">
-                                    <input type="text" id="em-api-baseurl" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white text-sm focus:border-blue-400 outline-none" placeholder="API Base URL">
-                                    <input type="text" id="em-api-key" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white text-sm focus:border-blue-400 outline-none" placeholder="API Key">
-                                    <input type="text" id="em-api-model" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-white text-sm focus:border-blue-400 outline-none" placeholder="Model Name (如 gpt-3.5-turbo)">
+                        <div id="em-api-modal" class="hidden absolute inset-0 bg-slate-50/95 flex flex-col items-center justify-center p-6 z-[100001] backdrop-blur-xl">
+                            <div class="bg-white w-full max-w-sm p-8 rounded-3xl border border-slate-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)]">
+                                <h3 class="text-lg font-light text-slate-800 tracking-widest mb-6 flex items-center gap-2 uppercase"><i class="fas fa-satellite-dish text-slate-400"></i> 紧急频道配置</h3>
+                                <div class="space-y-4 mb-8">
+                                    <input type="text" id="em-api-baseurl" class="w-full bg-slate-50 border-b border-slate-200 p-3 text-slate-700 text-sm focus:border-slate-800 outline-none transition-colors" placeholder="API Base URL">
+                                    <input type="text" id="em-api-key" class="w-full bg-slate-50 border-b border-slate-200 p-3 text-slate-700 text-sm focus:border-slate-800 outline-none transition-colors" placeholder="API Key">
+                                    <input type="text" id="em-api-model" class="w-full bg-slate-50 border-b border-slate-200 p-3 text-slate-700 text-sm focus:border-slate-800 outline-none transition-colors" placeholder="Model Name">
                                 </div>
                                 <div class="flex gap-3">
-                                    <button id="em-api-cancel" class="flex-1 py-3 bg-gray-700/50 hover:bg-gray-600/50 rounded-xl text-white font-bold transition-all">取消</button>
-                                    <button id="em-api-save" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-500/30">接通频段</button>
+                                    <button id="em-api-cancel" class="flex-1 py-3 bg-transparent border border-slate-300 hover:border-slate-400 rounded-full text-slate-500 hover:text-slate-700 text-xs font-bold transition-all tracking-widest uppercase">取消</button>
+                                    <button id="em-api-save" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white text-xs font-bold transition-all tracking-widest uppercase">接通</button>
                                 </div>
                             </div>
                         </div>
@@ -8108,14 +8108,14 @@ imageUploadInput.addEventListener('change', async (e) => {
             if (!state.lockData || !state.lockData.active) return;
             
             const isStory = state.lockData.mode === 'story';
-            lockTitle.textContent = isStory ? '已囚禁' : '已锁机';
-            lockIcon.className = isStory ? 'fas fa-link text-6xl text-purple-500 drop-shadow-[0_0_20px_rgba(168,85,247,0.8)] animate-pulse' : 'fas fa-lock text-6xl text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse';
+            lockTitle.textContent = isStory ? 'RESTRICTED' : 'SYSTEM LOCKED';
+            lockIcon.className = isStory ? 'fas fa-link text-xl text-slate-800 animate-pulse' : 'fas fa-lock text-xl text-slate-800 animate-pulse';
             lockReason.textContent = state.lockData.reason || (isStory ? '你已被限制人身自由' : '系统已被强行接管');
             
             unlockResultSection.classList.add('hidden');
             executeUnlockBtn.classList.add('hidden');
             unlockReasonInput.value = '';
-            submitUnlockBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交申请';
+            submitUnlockBtn.innerHTML = '提交申请';
             submitUnlockBtn.disabled = false;
 
             lockScreenEl.classList.remove('hidden');
@@ -8157,7 +8157,7 @@ imageUploadInput.addEventListener('change', async (e) => {
             unlockResultSection.classList.remove('hidden');
             unlockResultText.textContent = `“${replyText}”`;
             
-            submitUnlockBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 再次申请';
+            submitUnlockBtn.innerHTML = '再次申请';
             submitUnlockBtn.disabled = false;
 
             if (isApproved) {
@@ -8172,16 +8172,16 @@ imageUploadInput.addEventListener('change', async (e) => {
         submitUnlockBtn.addEventListener('click', async () => {
             const reason = unlockReasonInput.value.trim();
             if (!reason) {
-                unlockReasonInput.placeholder = "哪怕求饶也得说句话啊...";
+                unlockReasonInput.placeholder = "请求不该如此空白...";
                 return;
             }
             if (!state.config.api.baseUrl || !state.config.api.key) {
-                unlockReasonInput.value = "系统离线，无法发送申请，请使用左上角紧急通讯频段恢复API。";
+                unlockReasonInput.value = "系统离线，请使用左上角紧急频道。";
                 return;
             }
 
             submitUnlockBtn.disabled = true;
-            submitUnlockBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在向TA发送通讯...';
+            submitUnlockBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> WAITING...';
             
             const prompt = `系统警告：你之前将玩家（${state.role.playerName || '玩家'}）给${state.lockData.mode === 'story' ? '囚禁' : '锁机'}了。
 现在玩家发来了求饶/解封申请，原话如下：
