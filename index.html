@@ -6137,27 +6137,27 @@ function parseTagToMessage(tag) {
                 const header = document.createElement('div');
                 header.className = 'p-4 flex justify-between items-center cursor-pointer hover:bg-white/10 transition group';
                 
-                // 净化标签颜色，统一采用边框与主题色变量
+                // 标签文字颜色精准读取设置中的主题文字颜色变量，如果没有则回退到默认文字色
                 const modeTagText = memory.mode === 'fixed' ? '固定' : '关键词';
-                const modeTag = `<span class="mem-mode-tag text-[0.6rem] px-2 py-0.5 rounded ml-2 border border-white/20 shrink-0 tracking-wider" style="color: var(--theme-color, #e2e8f0);">${modeTagText}</span>`;
+                const modeTag = `<span class="mem-mode-tag text-[0.6rem] px-2 py-0.5 rounded ml-2 border shrink-0 tracking-wider transition-colors" style="color: var(--theme-text-color, var(--text-color, #e2e8f0)); border-color: var(--theme-text-color, var(--text-color, #e2e8f0)); opacity: 0.8;">${modeTagText}</span>`;
 
                 const actions = document.createElement('div');
                 actions.className = 'flex items-center shrink-0';
 
-                // 净化复选框，移除死板的 text-indigo-500
+                // 复选框的选中颜色也绑定为主题文字色
                 if (isMemoryBatchDeleteMode) {
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
                     checkbox.className = 'form-checkbox h-5 w-5 bg-black/40 rounded border border-white/20 focus:ring-0 mr-3 transition-colors';
-                    checkbox.style.color = 'var(--theme-color, #94a3b8)';
+                    checkbox.style.color = 'var(--theme-text-color, var(--text-color, #cbd5e1))';
                     checkbox.dataset.id = memory.id;
                     actions.appendChild(checkbox);
                 }
 
                 header.innerHTML = `
                     <div class="flex items-center flex-1 min-w-0">
-                        <i class="fas fa-link mr-3 text-sm opacity-60 transition-opacity group-hover:opacity-100" style="color: var(--theme-color, #e2e8f0);"></i>
-                        <span class="mem-title-text font-light text-sm text-slate-200 truncate group-hover:text-white transition-colors">${memory.content.substring(0, 25)}${memory.content.length > 25 ? '......' : ''}</span>
+                        <i class="fas fa-link mr-3 text-sm opacity-60 transition-opacity group-hover:opacity-100" style="color: var(--theme-text-color, var(--text-color, #e2e8f0));"></i>
+                        <span class="mem-title-text font-light text-sm text-slate-200 truncate group-hover:text-white transition-colors">${memory.content.substring(0, 25)}${memory.content.length > 25 ? '……' : ''}</span>
                         ${modeTag}
                     </div>
                 `;
@@ -6170,7 +6170,7 @@ function parseTagToMessage(tag) {
                 const body = document.createElement('div');
                 body.className = 'max-h-0 overflow-hidden transition-all duration-300 bg-black/20';
                 
-                // 净化输入框和按钮的高亮焦点
+                // 按钮全部采用线框风格，移除背景填充，仅依靠文字颜色区分状态
                 body.innerHTML = `
                     <div class="p-4 space-y-4 border-t border-white/5">
                         <div class="flex flex-col gap-2">
@@ -6183,19 +6183,21 @@ function parseTagToMessage(tag) {
                         </div>
                         
                         <div class="flex flex-col gap-3 pt-4 border-t border-white/5">
-                            <div class="text-[0.65rem] text-slate-400 font-bold tracking-[0.2em] uppercase flex items-center gap-2"><i class="fas fa-microchip opacity-70" style="color: var(--theme-color, #e2e8f0);"></i> 读取策略</div>
-                            <div class="flex gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5 w-max">
-                                <button class="mem-mode-btn px-5 py-2 rounded-lg text-xs font-medium transition-all ${memory.mode === 'fixed' ? 'shadow-md' : 'text-slate-500 hover:text-slate-300'}" data-mode="fixed" style="${memory.mode === 'fixed' ? 'background-color: var(--theme-color, #475569); color: #fff;' : 'background-color: transparent;'}">固定读取</button>
-                                <button class="mem-mode-btn px-5 py-2 rounded-lg text-xs font-medium transition-all ${memory.mode === 'keyword' ? 'shadow-md' : 'text-slate-500 hover:text-slate-300'}" data-mode="keyword" style="${memory.mode === 'keyword' ? 'background-color: var(--theme-color, #475569); color: #fff;' : 'background-color: transparent;'}">雷达匹配</button>
+                            <div class="text-[0.65rem] text-slate-400 font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+                                <i class="fas fa-microchip opacity-70" style="color: var(--theme-text-color, var(--text-color, #e2e8f0));"></i> 读取策略
+                            </div>
+                            <div class="flex gap-2 p-1 w-max">
+                                <button class="mem-mode-btn px-5 py-1.5 rounded-lg text-xs font-medium transition-all border" data-mode="fixed" style="${memory.mode === 'fixed' ? 'border-color: var(--theme-text-color, var(--text-color, #e2e8f0)); color: var(--theme-text-color, var(--text-color, #e2e8f0)); background-color: transparent;' : 'border-color: rgba(255,255,255,0.1); color: #64748b; background-color: transparent;'}">固定读取</button>
+                                <button class="mem-mode-btn px-5 py-1.5 rounded-lg text-xs font-medium transition-all border" data-mode="keyword" style="${memory.mode === 'keyword' ? 'border-color: var(--theme-text-color, var(--text-color, #e2e8f0)); color: var(--theme-text-color, var(--text-color, #e2e8f0)); background-color: transparent;' : 'border-color: rgba(255,255,255,0.1); color: #64748b; background-color: transparent;'}">雷达匹配</button>
                             </div>
                         </div>
 
                         <div class="keyword-container flex-col gap-2 ${memory.mode === 'keyword' ? 'flex' : 'hidden'} mt-2">
-                            <div class="text-[0.65rem] font-bold tracking-widest flex justify-between items-end" style="color: var(--theme-color, #94a3b8);">
+                            <div class="text-[0.65rem] font-bold tracking-widest flex justify-between items-end" style="color: var(--theme-text-color, var(--text-color, #cbd5e1));">
                                 <span class="uppercase">唤醒关键词</span>
                                 <span class="opacity-50 font-normal normal-case tracking-normal">多词用英文逗号(,)分隔</span>
                             </div>
-                            <input type="text" class="mem-kw-input w-full bg-black/30 border border-white/10 p-3 text-sm text-slate-200 rounded-xl outline-none transition-all focus:border-opacity-100" style="--tw-ring-color: var(--theme-color, #94a3b8); border-color: inherit;" onfocus="this.style.borderColor='var(--theme-color, #94a3b8)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" placeholder="写下触发记忆的密语..." value="${memory.keywords}">
+                            <input type="text" class="mem-kw-input w-full bg-black/30 border border-white/10 p-3 text-sm text-slate-200 rounded-xl outline-none transition-all focus:border-opacity-100" onfocus="this.style.borderColor='var(--theme-text-color, var(--text-color, #cbd5e1))'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" placeholder="写下触发记忆的密语" value="${memory.keywords}">
                         </div>
                     </div>
                 `;
@@ -6230,13 +6232,11 @@ function parseTagToMessage(tag) {
 
                         modeBtns.forEach(b => {
                             if (b.dataset.mode === selectedMode) {
-                                b.className = 'mem-mode-btn px-5 py-2 rounded-lg text-xs font-medium transition-all shadow-md';
-                                b.style.backgroundColor = 'var(--theme-color, #475569)';
-                                b.style.color = '#fff';
+                                b.style.borderColor = 'var(--theme-text-color, var(--text-color, #e2e8f0))';
+                                b.style.color = 'var(--theme-text-color, var(--text-color, #e2e8f0))';
                             } else {
-                                b.className = 'mem-mode-btn px-5 py-2 rounded-lg text-xs font-medium transition-all text-slate-500 hover:text-slate-300';
-                                b.style.backgroundColor = 'transparent';
-                                b.style.color = '';
+                                b.style.borderColor = 'rgba(255,255,255,0.1)';
+                                b.style.color = '#64748b';
                             }
                         });
 
@@ -6250,7 +6250,7 @@ function parseTagToMessage(tag) {
                             kwContainer.classList.add('hidden');
                         }
 
-                        showToast(selectedMode === 'fixed' ? '已接入全局固定流' : '已激活雷达匹配');
+                        showToast(selectedMode === 'fixed' ? '已接入固定流' : '已激活雷达匹配');
                     };
                 });
 
@@ -6266,7 +6266,7 @@ function parseTagToMessage(tag) {
 
                 body.querySelector('.mem-edit-btn').onclick = async () => {
                     const newContent = await showDialog('重塑记忆', '', { 
-                        complexInput: `<textarea id="edit-mem-text" class="w-full bg-black/30 border border-white/20 rounded-xl p-4 text-slate-200 h-32 outline-none resize-none transition-colors focus:border-opacity-100" onfocus="this.style.borderColor='var(--theme-color, #94a3b8)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">${memory.content}</textarea>`,
+                        complexInput: `<textarea id="edit-mem-text" class="w-full bg-black/30 border border-white/20 rounded-xl p-4 text-slate-200 h-32 outline-none resize-none transition-colors" onfocus="this.style.borderColor='var(--theme-text-color, var(--text-color, #cbd5e1))'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">${memory.content}</textarea>`,
                         getValues: () => document.getElementById('edit-mem-text').value.trim()
                     });
                     
@@ -6274,7 +6274,7 @@ function parseTagToMessage(tag) {
                         memory.content = newContent;
                         await saveState(); 
                         
-                        header.querySelector('.mem-title-text').textContent = newContent.substring(0, 25) + (newContent.length > 25 ? '......' : '');
+                        header.querySelector('.mem-title-text').textContent = newContent.substring(0, 25) + (newContent.length > 25 ? '……' : '');
                         body.querySelector('.mem-content-text').innerHTML = newContent.replace(/\n/g, '<br>');
                         
                         if (header.classList.contains('expanded')) {
@@ -6285,7 +6285,7 @@ function parseTagToMessage(tag) {
                 };
 
                 body.querySelector('.mem-delete-btn').onclick = async () => {
-                    const confirmed = await showDialog('销毁记忆', '一旦抹除，TA将彻底遗忘这段经历。执行吗？');
+                    const confirmed = await showDialog('销毁记忆', '一旦抹除，数据将彻底消失。执行吗？');
                     if (confirmed) {
                         state.memories = state.memories.filter(m => m.id !== memory.id);
                         await saveState();
