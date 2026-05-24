@@ -1350,16 +1350,16 @@
                                 </div>
                             </div>
 
-                            <!-- 中央视觉枢纽：全息档案袋 UI (自带图片压缩引擎 + 永久存储版) -->
+                            <!-- 中央视觉枢纽：全息档案袋 UI (高清释放 + 长按触觉删除版) -->
                             <div class="flex-1 w-full flex items-center justify-center z-10 relative mt-2 mb-2 px-1 h-full min-h-[350px]">
                                 
                                 <!-- 档案袋主容器 -->
                                 <div class="w-full h-full max-h-[440px] rounded-[2.5rem] backdrop-blur-xl shadow-[0_15px_50px_-15px_rgba(0,0,0,0.15)] flex flex-col relative overflow-hidden transition-all duration-500 border-[0.5px]" style="background: var(--glass-container-bg); border-color: rgba(255,255,255,0.2);">
                                     
-                                    <!-- 专属独立背景层 -->
-                                    <div id="archive-card-bg-layer" class="absolute inset-0 bg-cover bg-center z-0 opacity-40 mix-blend-overlay transition-all duration-700" style="background-image: none;"></div>
+                                    <!-- 专属独立背景层 (移除过度渲染的 mix-blend，提升至 85% 清晰度，保留一点点通透感) -->
+                                    <div id="archive-card-bg-layer" class="absolute inset-0 bg-cover bg-center z-0 opacity-[0.85] transition-all duration-700" style="background-image: none;"></div>
                                     
-                                    <!-- 核心：内置图片压缩与隔离存储引擎 -->
+                                    <!-- 核心：内置图片压缩引擎与长按触觉神经元 -->
                                     <script>
                                         // 初始化加载背景
                                         setTimeout(() => { 
@@ -1369,7 +1369,7 @@
                                             if(savedBg && bgLayer) { bgLayer.style.backgroundImage = 'url(' + savedBg + ')'; } 
                                         }, 300);
 
-                                        // 极限降维压缩器：将巨型图片粉碎至 100KB 以下
+                                        // 极限降维压缩器
                                         function handleCardBgUpload(file) {
                                             if(!file) return;
                                             const reader = new FileReader();
@@ -1377,7 +1377,7 @@
                                                 const img = new Image();
                                                 img.onload = () => {
                                                     const canvas = document.createElement('canvas');
-                                                    const MAX_SIZE = 800; // 锁定最大分辨率
+                                                    const MAX_SIZE = 800; 
                                                     let width = img.width;
                                                     let height = img.height;
                                                     if (width > height) {
@@ -1390,10 +1390,9 @@
                                                     const ctx = canvas.getContext('2d');
                                                     ctx.drawImage(img, 0, 0, width, height);
                                                     
-                                                    // 输出为 70% 质量的轻量级 JPEG，轻松突破容量封锁
                                                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); 
-                                                    
                                                     document.getElementById('archive-card-bg-layer').style.backgroundImage = 'url(' + compressedDataUrl + ')';
+                                                    
                                                     const pid = localStorage.getItem('active_profile_id') || 'legacy';
                                                     try {
                                                         localStorage.setItem('custom_card_bg_' + pid, compressedDataUrl);
@@ -1405,16 +1404,62 @@
                                             };
                                             reader.readAsDataURL(file);
                                         }
+
+                                        // 长按触觉时间轴变量
+                                        let bgPressTimer;
+                                        let bgIsLongPress = false;
+
+                                        function startBgPress(e) {
+                                            bgIsLongPress = false;
+                                            bgPressTimer = setTimeout(() => {
+                                                bgIsLongPress = true;
+                                                // 触发毁灭指令：抹除背景
+                                                const bgLayer = document.getElementById('archive-card-bg-layer');
+                                                if(bgLayer) bgLayer.style.backgroundImage = 'none';
+                                                
+                                                const pid = localStorage.getItem('active_profile_id') || 'legacy';
+                                                localStorage.removeItem('custom_card_bg_' + pid);
+                                                
+                                                // 视觉反馈：红色警告色闪烁与缩放
+                                                const btn = e.currentTarget;
+                                                btn.style.color = '#ff6b6b';
+                                                btn.style.transform = 'scale(0.7)';
+                                                setTimeout(() => {
+                                                    btn.style.color = 'inherit';
+                                                    btn.style.transform = '';
+                                                }, 400);
+                                            }, 600); // 600毫秒敏捷判定为长按
+                                        }
+
+                                        function cancelBgPress() {
+                                            clearTimeout(bgPressTimer);
+                                        }
+
+                                        function handleBgClick(e) {
+                                            if (bgIsLongPress) {
+                                                e.preventDefault();
+                                                return;
+                                            }
+                                            document.getElementById('card-bg-upload').click();
+                                        }
                                     </script>
 
                                     <!-- 顶部：档案袋绝密封条与背景上传入口 -->
-                                    <div class="w-full px-7 pt-6 pb-2 flex justify-between items-center opacity-60 shrink-0 z-10 relative">
+                                    <div class="w-full px-7 pt-6 pb-2 flex justify-between items-center opacity-70 shrink-0 z-10 relative">
                                         <span class="text-[0.55rem] font-mono tracking-[0.2em] uppercase" style="color: inherit;">Classified Profile</span>
                                         <div class="flex items-center gap-3">
-                                            <i class="fas fa-image cursor-pointer hover:scale-110 hover:text-white transition-all active:scale-95" title="点击更换当前角色的专属卡片背景" onclick="document.getElementById('card-bg-upload').click()" style="color: inherit; font-size: 0.8rem;"></i>
+                                            <!-- 注入压感神经元：屏蔽右键菜单，开启精密触觉检测 -->
+                                            <i class="fas fa-image cursor-pointer hover:scale-110 transition-all select-none" 
+                                               title="短按更换背景，长按抹除背景" 
+                                               onpointerdown="startBgPress(event)" 
+                                               onpointerup="cancelBgPress()" 
+                                               onpointerleave="cancelBgPress()" 
+                                               onclick="handleBgClick(event)" 
+                                               oncontextmenu="event.preventDefault();"
+                                               style="color: inherit; font-size: 0.85rem; touch-action: none;"></i>
                                             <i class="fas fa-fingerprint text-[0.8rem]" style="color: inherit;"></i>
                                         </div>
-                                        <!-- 上传神经元：直接对接压缩引擎 -->
+                                        <!-- 上传神经元：对接降维压缩器 -->
                                         <input type="file" id="card-bg-upload" class="hidden" accept="image/*" onchange="handleCardBgUpload(this.files[0]); this.value='';">
                                     </div>
 
@@ -1436,10 +1481,10 @@
 
                                         <!-- 右侧：高级档案签名区 (细线分割，文字左对齐) -->
                                         <div class="flex-1 min-w-0 flex flex-col justify-center border-l-[0.5px] pl-5 py-1" style="border-color: rgba(255,255,255,0.15);">
-                                            <div class="text-[0.45rem] font-mono opacity-40 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                            <div class="text-[0.45rem] font-mono opacity-50 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 text-shadow-sm">
                                                 <div class="w-1 h-1 rounded-full bg-current"></div> Quote
                                             </div>
-                                            <h2 id="signature" class="text-[0.65rem] font-light tracking-[0.1em] opacity-90 leading-[1.6] break-words whitespace-normal max-h-[3.6rem] overflow-y-auto hide-scrollbar text-left" style="color: inherit;">个性签名将在这里完整的展示，不再拥挤，如同一份精致的个人档案。</h2>
+                                            <h2 id="signature" class="text-[0.65rem] font-light tracking-[0.1em] opacity-100 leading-[1.6] break-words whitespace-normal max-h-[3.6rem] overflow-y-auto hide-scrollbar text-left drop-shadow-md" style="color: inherit;">个性签名将在这里完整的展示，不再拥挤，如同一份精致的个人档案。</h2>
                                         </div>
                                     </div>
 
@@ -1447,26 +1492,26 @@
                                     <div class="flex-1 w-full z-10 relative"></div>
 
                                     <!-- 底部：无缝融合的操作矩阵 (完美免疫全屏 CSS 劫持) -->
-                                    <div id="archive-matrix-buttons" class="w-full shrink-0 grid grid-cols-2 grid-rows-2 border-t-[0.5px] z-10 relative" style="border-color: rgba(255,255,255,0.15); height: 100px !important; min-height: 100px !important; flex-shrink: 0 !important;">
+                                    <div id="archive-matrix-buttons" class="w-full shrink-0 grid grid-cols-2 grid-rows-2 border-t-[0.5px] z-10 relative backdrop-blur-sm bg-black/5" style="border-color: rgba(255,255,255,0.15); height: 100px !important; min-height: 100px !important; flex-shrink: 0 !important;">
                                         <!-- 攻略 -->
-                                        <button id="strategy-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 border-r-[0.5px] border-b-[0.5px] outline-none active:bg-white/20" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
-                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Strategy</span>
-                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">攻略</span>
+                                        <button id="strategy-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/20 border-r-[0.5px] border-b-[0.5px] outline-none active:bg-white/30" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-40 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Strategy</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform drop-shadow-sm" style="color: inherit;">攻略</span>
                                         </button>
                                         <!-- 记忆 -->
-                                        <button id="memory-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 border-b-[0.5px] outline-none active:bg-white/20" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
-                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Memory</span>
-                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">记忆</span>
+                                        <button id="memory-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/20 border-b-[0.5px] outline-none active:bg-white/30" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-40 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Memory</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform drop-shadow-sm" style="color: inherit;">记忆</span>
                                         </button>
                                         <!-- 角色 -->
-                                        <button id="role-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 border-r-[0.5px] outline-none active:bg-white/20" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
-                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Persona</span>
-                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">角色</span>
+                                        <button id="role-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/20 border-r-[0.5px] outline-none active:bg-white/30" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-40 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Persona</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform drop-shadow-sm" style="color: inherit;">角色</span>
                                         </button>
                                         <!-- 设置 -->
-                                        <button id="settings-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 outline-none active:bg-white/20" style="background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
-                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">System</span>
-                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">设置</span>
+                                        <button id="settings-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/20 outline-none active:bg-white/30" style="background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-40 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">System</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform drop-shadow-sm" style="color: inherit;">设置</span>
                                         </button>
                                     </div>
                                 </div>
