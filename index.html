@@ -235,24 +235,15 @@
             cursor: pointer;
             padding: 0.25rem;
         }
+        /* 彻底剥夺核心监控的绝对定位与丑陋外壳，让其回归纯文字 */
         #sui-btn {
-            position: absolute;
-            top: 1.5rem;
-            left: 1.5rem;
-            z-index: 20;
-            padding: 0.5rem 1rem;
-            font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            text-shadow: 0 0 8px rgba(255,255,255,0.5);
-            background: var(--glass-container-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            color: var(--text-color);
+            background: transparent;
+            border: none;
+            color: inherit;
             opacity: 0.8;
             transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 0.25rem;
         }
         #diary-btn:hover, #sui-btn:hover {
             opacity: 1;
@@ -1332,90 +1323,228 @@
                 <div id="app" class="container">
                     <!-- 主页 (改造成横向滑动容器) -->
                     <div id="home-page" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar transition-all duration-500 relative">
-                        <!-- 第一屏：原有主页 -->
-                        <div class="w-full h-full flex-shrink-0 snap-center flex flex-col p-6 relative">
-                        <button id="sui-btn" title="核心监控">SUI</button>
-                        
-                        <div class="datetime-display">
-                            <div id="time-display" class="time">00:00:00</div>
-                            <div class="flex items-center gap-4">
-                                <div id="date-display" class="date">0000年00月00日 星期X</div>
-                                <button id="diary-btn" title="TA的日记">
-                                    <i class="fa-solid fa-feather-pointed"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div id="home-content-wrapper" class="w-full flex-1 flex items-center mt-24">
-                            <div id="home-avatar-section" class="w-1/2 flex flex-col items-start">
-                                <div id="avatar-container" class="relative rounded-full p-1 cursor-pointer w-32 h-32 flex items-center justify-center mb-4">
-                                    <img id="avatar-frame" src="" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-10">
-                                    <img id="avatar-img" src="https://placehold.co/120x120/334155/FFFFFF?text=头像" alt="Avatar" class="w-28 h-28 object-cover rounded-full">
-                                </div>
-                                <input type="file" id="avatar-upload" accept="image/*" class="hidden">
-                                <h2 id="signature" class="text-xs font-semibold tracking-wide">个性签名</h2>
-                            </div>
-                            <div id="home-buttons-section" class="w-1/2 flex flex-col items-end space-y-4">
-                                <button id="strategy-btn" class="menu-btn">攻略</button>
-                                <button id="memory-btn" class="menu-btn">记忆</button>
-                                <button id="role-btn" class="menu-btn">角色</button>
-                                <button id="settings-btn" class="menu-btn">设置</button>
-                            </div>
-                        </div>
+                        <!-- 第一屏：绝对遵命与刻度桥填补版 -->
+                        <div class="w-full h-full flex-shrink-0 snap-center flex flex-col relative overflow-hidden" style="padding: calc(env(safe-area-inset-top, 20px) + 15px) 24px 20px 24px; color: var(--text-color);">
+                            
+                            <!-- 纯装饰底层：微光网格 -->
+                            <div class="absolute inset-0 pointer-events-none z-0" style="background-image: radial-gradient(circle at center, currentColor 1px, transparent 1px); background-size: 24px 24px; opacity: 0.03;"></div>
 
-                        <!-- Mini Music Player -->
-                        <div class="mini-player-container">
-                            <div class="mini-player">
-                                <audio id="main-audio"></audio>
-                                <div class="player-header">
-                                    <h2>迷你音乐</h2>
-                                    <label for="file-input" class="import-btn">
-                                        <i class="fas fa-file-audio"></i> 导入
-                                    </label>
-                                    <input type="file" id="file-input" class="file-input" accept="audio/*" multiple>
+                            <!-- 顶层：时间与右下方的纯英文Monitor/Diary -->
+                            <div class="w-full flex flex-col z-20 shrink-0">
+                                <div class="flex items-end gap-3 w-full">
+                                    <div id="time-display" class="text-5xl font-light tracking-[0.1em] font-mono" style="line-height: 0.85; opacity: 0.95; text-shadow: 0 4px 15px rgba(0,0,0,0.1);">00:00</div>
+                                    <div id="date-display" class="text-[0.6rem] uppercase tracking-widest font-mono opacity-50 mb-1">0000.00.00</div>
                                 </div>
-                                <div class="player-content">
-                                    <div class="info-section">
-                                        <div class="song-info">
-                                            <h3 id="song-title">选择一首歌曲</h3>
-                                            <p id="song-artist">未知艺术家</p>
+                                
+                                <!-- 视界分割线 -->
+                                <div class="w-full h-[1px] mt-3 mb-2 relative" style="background: linear-gradient(90deg, currentColor, transparent); opacity: 0.25;"></div>
+                                
+                                <!-- 严格靠右的纯英文功能入口 -->
+                                <div class="flex justify-end gap-8 w-full pr-2">
+                                    <button id="sui-btn" class="group outline-none transition-all duration-300 active:scale-95" style="background: transparent; border: none; color: inherit; padding: 0 !important; margin: 0 !important; box-shadow: none !important;">
+                                        <span class="text-[0.6rem] font-bold tracking-[0.2em] uppercase opacity-45 group-hover:opacity-100 transition-opacity">Monitor</span>
+                                    </button>
+                                    <button id="diary-btn" class="group outline-none transition-all duration-300 active:scale-95" style="background: transparent; border: none; color: inherit; padding: 0 !important; margin: 0 !important; box-shadow: none !important;">
+                                        <span class="text-[0.6rem] font-bold tracking-[0.2em] uppercase opacity-45 group-hover:opacity-100 transition-opacity">Diary</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 中央视觉枢纽：全息档案袋 UI (自带图片压缩引擎 + 永久存储版) -->
+                            <div class="flex-1 w-full flex items-center justify-center z-10 relative mt-2 mb-2 px-1 h-full min-h-[350px]">
+                                
+                                <!-- 档案袋主容器 -->
+                                <div class="w-full h-full max-h-[440px] rounded-[2.5rem] backdrop-blur-xl shadow-[0_15px_50px_-15px_rgba(0,0,0,0.15)] flex flex-col relative overflow-hidden transition-all duration-500 border-[0.5px]" style="background: var(--glass-container-bg); border-color: rgba(255,255,255,0.2);">
+                                    
+                                    <!-- 专属独立背景层 -->
+                                    <div id="archive-card-bg-layer" class="absolute inset-0 bg-cover bg-center z-0 opacity-40 mix-blend-overlay transition-all duration-700" style="background-image: none;"></div>
+                                    
+                                    <!-- 核心：内置图片压缩与隔离存储引擎 -->
+                                    <script>
+                                        // 初始化加载背景
+                                        setTimeout(() => { 
+                                            const profileId = localStorage.getItem('active_profile_id') || 'legacy';
+                                            const savedBg = localStorage.getItem('custom_card_bg_' + profileId); 
+                                            const bgLayer = document.getElementById('archive-card-bg-layer');
+                                            if(savedBg && bgLayer) { bgLayer.style.backgroundImage = 'url(' + savedBg + ')'; } 
+                                        }, 300);
+
+                                        // 极限降维压缩器：将巨型图片粉碎至 100KB 以下
+                                        function handleCardBgUpload(file) {
+                                            if(!file) return;
+                                            const reader = new FileReader();
+                                            reader.onload = (e) => {
+                                                const img = new Image();
+                                                img.onload = () => {
+                                                    const canvas = document.createElement('canvas');
+                                                    const MAX_SIZE = 800; // 锁定最大分辨率
+                                                    let width = img.width;
+                                                    let height = img.height;
+                                                    if (width > height) {
+                                                        if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                                                    } else {
+                                                        if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                                                    }
+                                                    canvas.width = width;
+                                                    canvas.height = height;
+                                                    const ctx = canvas.getContext('2d');
+                                                    ctx.drawImage(img, 0, 0, width, height);
+                                                    
+                                                    // 输出为 70% 质量的轻量级 JPEG，轻松突破容量封锁
+                                                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+                                                    
+                                                    document.getElementById('archive-card-bg-layer').style.backgroundImage = 'url(' + compressedDataUrl + ')';
+                                                    const pid = localStorage.getItem('active_profile_id') || 'legacy';
+                                                    try {
+                                                        localStorage.setItem('custom_card_bg_' + pid, compressedDataUrl);
+                                                    } catch(err) {
+                                                        alert('系统警告：哪怕压缩后也超出了浏览器极限限制，请清理浏览器缓存！');
+                                                    }
+                                                };
+                                                img.src = e.target.result;
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    </script>
+
+                                    <!-- 顶部：档案袋绝密封条与背景上传入口 -->
+                                    <div class="w-full px-7 pt-6 pb-2 flex justify-between items-center opacity-60 shrink-0 z-10 relative">
+                                        <span class="text-[0.55rem] font-mono tracking-[0.2em] uppercase" style="color: inherit;">Classified Profile</span>
+                                        <div class="flex items-center gap-3">
+                                            <i class="fas fa-image cursor-pointer hover:scale-110 hover:text-white transition-all active:scale-95" title="点击更换当前角色的专属卡片背景" onclick="document.getElementById('card-bg-upload').click()" style="color: inherit; font-size: 0.8rem;"></i>
+                                            <i class="fas fa-fingerprint text-[0.8rem]" style="color: inherit;"></i>
                                         </div>
-                                        <div class="progress-area">
-                                            <div class="progress-container">
-                                                <div class="progress-bar"></div>
-                                            </div>
-                                            <div class="progress-time">
-                                                <span id="current-time">0:00</span>
-                                                <span id="total-time">0:00</span>
+                                        <!-- 上传神经元：直接对接压缩引擎 -->
+                                        <input type="file" id="card-bg-upload" class="hidden" accept="image/*" onchange="handleCardBgUpload(this.files[0]); this.value='';">
+                                    </div>
+
+                                    <!-- 核心档案区：左右横向排版 (头像在左，签名在右) -->
+                                    <div class="w-full px-7 pt-4 pb-2 flex items-center gap-6 z-10 relative shrink-0">
+                                        
+                                        <!-- 左侧：光圈头像 -->
+                                        <div class="relative w-[4.5rem] h-[4.5rem] shrink-0 cursor-pointer active:scale-95 transition-transform duration-500 flex items-center justify-center">
+                                            <div class="absolute inset-[-18%] rounded-full border-[0.5px] border-l-transparent border-t-transparent animate-[spin_12s_linear_infinite]" style="border-color: currentColor; opacity: 0.5;"></div>
+                                            <div class="absolute inset-[-8%] rounded-full border-[1px] border-dashed animate-[spin_18s_linear_infinite_reverse]" style="border-color: currentColor; opacity: 0.25;"></div>
+                                            <div class="absolute inset-[-2%] rounded-full border-[1px] border-b-transparent animate-[spin_8s_ease-in-out_infinite]" style="border-color: currentColor; opacity: 0.4;"></div>
+                                            
+                                            <div id="avatar-container" class="relative w-full h-full rounded-full flex items-center justify-center shadow-lg border overflow-hidden z-10" style="background: var(--glass-container-bg); border-color: currentColor; border-opacity: 0.2;">
+                                                <img id="avatar-img" src="" alt="Avatar" class="absolute inset-0 w-full h-full object-cover rounded-full p-[2px] z-10 transition-transform duration-700 group-hover:scale-110">
+                                                <img id="avatar-frame" src="" alt="Frame" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-20 scale-[1.25]">
+                                                <input type="file" id="avatar-upload" accept="image/*" class="hidden">
                                             </div>
                                         </div>
-                                        <div class="controls">
-                                            <button class="control-btn" id="prev"><i class="fas fa-step-backward"></i></button>
-                                            <button class="control-btn play-pause" id="play-pause"><i class="fas fa-play"></i></button>
-                                            <button class="control-btn" id="next"><i class="fas fa-step-forward"></i></button>
-                                            <div class="volume-container">
-                                                <i class="fas fa-volume-up"></i>
-                                                <input type="range" class="volume-slider" id="volume" min="0" max="1" step="0.01" value="0.7">
+
+                                        <!-- 右侧：高级档案签名区 (细线分割，文字左对齐) -->
+                                        <div class="flex-1 min-w-0 flex flex-col justify-center border-l-[0.5px] pl-5 py-1" style="border-color: rgba(255,255,255,0.15);">
+                                            <div class="text-[0.45rem] font-mono opacity-40 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                                <div class="w-1 h-1 rounded-full bg-current"></div> Quote
                                             </div>
-                                            <button class="playlist-btn" id="toggle-playlist"><i class="fas fa-list"></i></button>
+                                            <h2 id="signature" class="text-[0.65rem] font-light tracking-[0.1em] opacity-90 leading-[1.6] break-words whitespace-normal max-h-[3.6rem] overflow-y-auto hide-scrollbar text-left" style="color: inherit;">个性签名将在这里完整的展示，不再拥挤，如同一份精致的个人档案。</h2>
                                         </div>
                                     </div>
-                                    <label for="cover-input" class="album-art" id="album-art-label">
-                                        <i class="fas fa-music"></i>
-                                    </label>
-                                    <input type="file" id="cover-input" class="cover-input" accept="image/*">
+
+                                    <!-- 弹性留白区 -->
+                                    <div class="flex-1 w-full z-10 relative"></div>
+
+                                    <!-- 底部：无缝融合的操作矩阵 (完美免疫全屏 CSS 劫持) -->
+                                    <div id="archive-matrix-buttons" class="w-full shrink-0 grid grid-cols-2 grid-rows-2 border-t-[0.5px] z-10 relative" style="border-color: rgba(255,255,255,0.15); height: 100px !important; min-height: 100px !important; flex-shrink: 0 !important;">
+                                        <!-- 攻略 -->
+                                        <button id="strategy-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 border-r-[0.5px] border-b-[0.5px] outline-none active:bg-white/20" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Strategy</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">攻略</span>
+                                        </button>
+                                        <!-- 记忆 -->
+                                        <button id="memory-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 border-b-[0.5px] outline-none active:bg-white/20" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Memory</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">记忆</span>
+                                        </button>
+                                        <!-- 角色 -->
+                                        <button id="role-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 border-r-[0.5px] outline-none active:bg-white/20" style="border-color: rgba(255,255,255,0.15); background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">Persona</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">角色</span>
+                                        </button>
+                                        <!-- 设置 -->
+                                        <button id="settings-btn" class="flex flex-col justify-center items-center gap-1 group transition-colors duration-300 hover:bg-white/10 outline-none active:bg-white/20" style="background: transparent; color: inherit; box-shadow: none; margin: 0 !important;">
+                                            <span class="text-[0.4rem] font-mono opacity-30 group-hover:opacity-100 transition-opacity uppercase" style="color: inherit;">System</span>
+                                            <span class="text-[0.85rem] font-bold tracking-[0.25em] opacity-90 group-hover:scale-105 transition-transform" style="color: inherit;">设置</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="song-list scrollable-content" id="playlist"></div>
                             </div>
+
+                            <!-- 底部分割：【完完全全不动】的情绪声呐阵列与时间线 -->
+                            <div class="w-full flex flex-col items-start justify-end mt-auto pt-4 z-10 shrink-0 border-t-[0.5px] border-dashed mb-3" style="border-color: currentColor; border-opacity: 0.15;">
+                                <div class="flex items-end justify-between w-full opacity-60">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[0.45rem] tracking-[0.3em] uppercase font-bold">Timeline Echoes</span>
+                                    </div>
+                                    <!-- 动态声呐频段阵列 -->
+                                    <div class="flex items-end gap-[4px] h-4 mb-0.5">
+                                        <div class="w-[3px] bg-current rounded-t-sm animate-[pulse_0.7s_ease-in-out_infinite]" style="height: 40%;"></div>
+                                        <div class="w-[3px] bg-current rounded-t-sm animate-[pulse_1.2s_ease-in-out_infinite_0.1s]" style="height: 80%;"></div>
+                                        <div class="w-[3px] bg-current rounded-t-sm animate-[pulse_0.8s_ease-in-out_infinite_0.3s]" style="height: 100%;"></div>
+                                        <div class="w-[3px] bg-current rounded-t-sm animate-[pulse_1.5s_ease-in-out_infinite_0.2s]" style="height: 60%;"></div>
+                                        <div class="w-[3px] bg-current rounded-t-sm animate-[pulse_0.9s_ease-in-out_infinite_0.4s]" style="height: 50%;"></div>
+                                        <div class="w-[3px] bg-current rounded-t-sm animate-[pulse_1.1s_ease-in-out_infinite_0.1s]" style="height: 90%;"></div>
+                                        <div class="w-[3px] bg-current rounded-t-sm animate-[pulse_0.6s_ease-in-out_infinite_0.5s]" style="height: 30%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 底层：【完完全全不动】的全息透明音乐操作台 -->
+                            <div class="mini-player-container w-full shrink-0 z-20 pb-1" style="position: static !important; transform: none !important;">
+                                <div class="mini-player w-full bg-transparent border-none p-0 flex flex-col gap-2 relative overflow-visible" style="box-shadow: none !important;">
+                                    <audio id="main-audio"></audio>
+                                    <div class="player-content flex items-center gap-4 relative z-10 p-3 rounded-[1.5rem] border backdrop-blur-xl transition-all" style="background: linear-gradient(to right, var(--glass-container-bg), transparent); border-color: currentColor; border-opacity: 0.15; margin-bottom: 0 !important;">
+                                        <!-- 极简玻璃封面：彻底移除了多余的拟物中心圆点，只留纯粹的音符与磨砂底色 -->
+                                        <label for="cover-input" class="album-art relative w-12 h-12 rounded-full border-[0.5px] flex items-center justify-center shrink-0 cursor-pointer overflow-hidden group shadow-lg" id="album-art-label" style="border-color: currentColor; background: transparent; border-radius: 50% !important;">
+                                            <div class="absolute inset-0 bg-black/10 rounded-full z-10 pointer-events-none transition-colors duration-300 group-hover:bg-black/20"></div>
+                                            <i class="fas fa-music text-sm z-10 relative" style="opacity: 0.45; color: inherit;"></i>
+                                        </label>
+                                        <input type="file" id="cover-input" class="cover-input hidden" accept="image/*">
+                                        <div class="info-section flex-1 min-w-0 flex flex-col justify-center gap-2">
+                                            <div class="song-info flex justify-between items-start w-full" style="margin-bottom: 0 !important;">
+                                                <div class="flex flex-col min-w-0 pr-2">
+                                                    <h3 id="song-title" class="text-[0.75rem] font-bold truncate tracking-widest" style="color: inherit; opacity: 0.95;">等待唤醒</h3>
+                                                    <p id="song-artist" class="text-[0.5rem] truncate font-light mt-0.5 tracking-[0.1em]" style="color: inherit; opacity: 0.4;">Music Player</p>
+                                                </div>
+                                                <div class="flex gap-3 shrink-0">
+                                                    <label for="file-input" class="import-btn cursor-pointer opacity-30 hover:opacity-100 transition-opacity" style="background: transparent; color: inherit; padding: 0 !important;"><i class="fas fa-plus text-[0.6rem]"></i></label>
+                                                    <input type="file" id="file-input" class="file-input hidden" accept="audio/*" multiple>
+                                                    <button class="playlist-btn opacity-30 hover:opacity-100 transition-opacity" id="toggle-playlist" style="background: transparent; color: inherit; padding: 0 !important;"><i class="fas fa-list text-[0.6rem]"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="progress-area w-full" style="margin-bottom: 0 !important;">
+                                                <div class="progress-container w-full h-[1.5px] rounded-full cursor-pointer relative overflow-hidden" style="background: currentColor; opacity: 0.15; margin-bottom: 3px !important;">
+                                                    <div class="progress-bar h-full w-0 absolute left-0 top-0 transition-all duration-100 ease-linear" style="background: currentColor; opacity: 1 !important;"></div>
+                                                </div>
+                                                <div class="progress-time flex justify-between text-[0.45rem] font-mono tracking-widest" style="color: inherit; opacity: 0.4;">
+                                                    <span id="current-time">0:00</span>
+                                                    <span id="total-time">0:00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="controls flex justify-between items-center relative z-10 px-2 mt-1" style="margin-bottom: 0 !important;">
+                                        <div class="flex items-center gap-5">
+                                            <button class="control-btn transition-transform hover:-translate-x-1 active:scale-90" id="prev" style="background: transparent; color: inherit; opacity: 0.5; padding: 0 !important;"><i class="fas fa-step-backward text-[0.6rem]"></i></button>
+                                            <button class="control-btn play-pause transition-transform hover:scale-110 active:scale-90" id="play-pause" style="background: transparent; color: inherit; opacity: 0.9; padding: 0 !important;"><i class="fas fa-play text-sm"></i></button>
+                                            <button class="control-btn transition-transform hover:translate-x-1 active:scale-90" id="next" style="background: transparent; color: inherit; opacity: 0.5; padding: 0 !important;"><i class="fas fa-step-forward text-[0.6rem]"></i></button>
+                                        </div>
+                                        <div class="flex items-center gap-2 w-24 opacity-30 hover:opacity-100 transition-opacity">
+                                            <i class="fas fa-volume-down text-[0.5rem]" style="color: inherit;"></i>
+                                            <input type="range" class="volume-slider flex-1 h-[1px] bg-current outline-none appearance-none" id="volume" min="0" max="1" step="0.01" value="0.7">
+                                        </div>
+                                    </div>
+                                    <div class="player-header hidden"><h2>迷你音乐</h2></div>
+                                    <div class="song-list scrollable-content hidden mt-2 rounded-xl p-3 border border-dashed text-[0.65rem] backdrop-blur-md" id="playlist" style="background: var(--glass-container-bg); border-color: currentColor; opacity: 0.8; max-height: 120px; color: inherit;"></div>
+                                </div>
+                            </div>
+
                         </div>
+                        <!-- 结束第一屏 -->
                         
-                        <!-- 底部滑动指示器 (第一屏) -->
-                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30 pointer-events-none">
-                            <div class="w-2 h-2 rounded-full bg-white opacity-80 shadow-[0_0_4px_rgba(255,255,255,0.8)]"></div>
-                            <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
-                            <div class="w-2 h-2 rounded-full bg-white opacity-30"></div>
-                        </div>
-                        </div> <!-- 结束第一屏 -->
+                       
 
                         <!-- 第二屏：桌面实时日历挂件 -->
                         <div class="w-full h-full flex-shrink-0 snap-start flex flex-col p-6 pt-12 relative items-center justify-start">
