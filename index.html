@@ -5136,16 +5136,12 @@ ${existingNotes || '（今天还没有人留言）'}
 - 混合了文本和标签的行 (例如: \`你好[TAG]\` 或 \`[TAG]你好\`) 会被系统识别为 **格式错误** 并被拒绝。
 - **为了确保你的回复能被成功处理，必须、绝对、严格地遵守格式规则。**
 
-# 格式示例 (FORMATTING EXAMPLES - Follow these strictly)
----
 ### 正确格式 (CORRECT - WILL BE PARSED):
 我好想你啊。
 [USE_STICKER,ID:1758558059192]
-[AFFINITY_CHANGE:2]
 ---
 ### 正确格式 (CORRECT - WILL BE PARSED):
-[VOICE_MESSAGE]我真的…很高兴。[/VOICE_MESSAGE]
-[AFFINITY_CHANGE:1]
+[VOICE_MESSAGE]我真的很高兴。[/VOICE_MESSAGE]
 ---
 ### 错误格式 (INCORRECT - WILL CAUSE PARSING FAILURE):
 好，我就是你的年糕。[VOICE_MESSAGE]宝宝…[/VOICE_MESSAGE][USE_STICKER,ID:1758567967323]
@@ -5375,7 +5371,7 @@ ${state.role.promptInstructions ? `
 
 # 输出前最终检查清单 (FINAL CHECKLIST)
 1. 我的描述是围绕角色 **${state.role.roleName}** 的第三人称叙事吗？
-2. 我的回复是否在所有内容的最后、独立的一行包含了 \`[AFFINITY_CHANGE:X]\` 标签？
+2. 我的回复是否在所有内容的最后、独立的一行包含了 \`[STATUS:{"thoughts":"...","affinity":...}]\` 标签？
 3. 我的回复内容是否为空？（绝不能为空）
 
 # 最终指令 (ABSOLUTE FINAL INSTRUCTION)
