@@ -1771,6 +1771,16 @@
                                             <span>回复间隔:</span>
                                             <span id="autoreply-time-display">5分钟</span>
                                         </button>
+                                        <div class="h-px w-full bg-white/20 my-0.5"></div>
+                                        <button id="menu-reply-length-btn" class="w-full text-left p-2.5 rounded-lg hover:bg-white/10 transition-colors flex justify-between items-center text-sm font-bold text-indigo-300">
+                                            <span class="flex items-center gap-2"><i class="fas fa-align-left"></i> 回复条数</span>
+                                            <span id="reply-length-display" class="text-xs">3-15</span>
+                                        </button>
+                                        <div class="h-px w-full bg-white/20 my-0.5"></div>
+                                        <button id="menu-toggle-offline-btn" class="w-full text-left p-2.5 rounded-lg hover:bg-white/10 transition-colors flex justify-between items-center text-sm font-bold text-emerald-300">
+                                            <span class="flex items-center gap-2"><i class="fas fa-street-view"></i> 线下模式</span>
+                                            <span id="offline-status" class="text-xs text-gray-400">OFF</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -4569,12 +4579,21 @@ ${existingNotes || '（今天还没有人留言）'}
             chatHistory.innerHTML = '';
             chatHistory.appendChild(fragment);
             
+            const isOfflineMode = state.chat.mode === 'offline';
             storyModeBtn.classList.toggle('text-blue-400', isStoryMode);
-            [transferBtn, voiceModeBtn, stickerPanelBtn].forEach(btn => btn.disabled = isStoryMode);
+            
+            // 剧情模式和线下模式，全部封印手机专属的转账、语音和表情包功能
+            [transferBtn, voiceModeBtn, stickerPanelBtn].forEach(btn => {
+                btn.disabled = (isStoryMode || isOfflineMode);
+                btn.style.opacity = (isStoryMode || isOfflineMode) ? '0.3' : '1';
+            });
             
             if (isStoryMode) {
                 aiReplyBtn.textContent = '继续剧情';
                 userInput.placeholder = '输入你的行动或对话';
+            } else if (isOfflineMode) {
+                aiReplyBtn.textContent = '线下互动';
+                userInput.placeholder = '输入对话...';
             } else {
                 aiReplyBtn.textContent = '角色回复';
                 userInput.placeholder = state.chat.sendMode === 'voice' ? '输入语音文字...' : '请输入消息...';
@@ -5122,7 +5141,7 @@ ${existingNotes || '（今天还没有人留言）'}
 1.  **ONE. LINE. ONE. ACTION.** 这是最高指令，绝无例外。你的每一行输出只能是 **纯文本** 或 **一个功能标签**。
 2.  **NEVER mix text and tags on the same line.** 绝对禁止任何形式的混合。
 3.  **多步操作必须分行 (Multi-step actions MUST be on separate lines).** 如果你想说话，然后发表情，你必须用两行来完成。
-4.  **每次回复3-15句内容，不少于3句。每一行纯文本（即单条聊天气泡）绝对不能超过30个字！如果你有长篇大论想说，必须强行敲回车键，拆分成多行、多条短句发送！绝对禁止在一条消息里塞满长篇大论！
+4.  **【系统级强制限制】：本次回复的总行数（气泡数）必须严格控制在 ${state.chat.minReplyLines} 到 ${state.chat.maxReplyLines} 行之间！少于 ${state.chat.minReplyLines} 行或多于 ${state.chat.maxReplyLines} 行将被系统直接拦截并抹杀！每一行纯文本（即单条聊天气泡）绝对不能超过30个字！如果你有长篇大论想说，必须强行敲回车键，拆分成多行发送！绝对禁止在一条消息里塞满长篇大论！
 5.**语音最低1秒，最高60秒**
 6.功能可以搭配使用，不是固定每回合只能用一次，可以连续多条语音或者表情包插入。引用功能也可以多次使用，而且可以中途使用，而不是固定只能在第一条回复使用。
 
@@ -5193,11 +5212,12 @@ ${state.role.promptInstructions ? `
 - ${state.role.promptInstructions.replace(/\n/g, '\n- ')}
 ` : ''}
 
-# 最终指令
+# 最终指令 (FINAL INSTRUCTION)
 - 再次检查上面的 **警告** 和 **核心输出规则**。
 - 你的回复格式正确性至关重要。
 - **记住：短句发送，绝对禁止任何旁白描写，绝对服从世界书设定！**
 - **记住：一行，一事。**
+- **【最高警告】：你接下来的回复，总行数（包含文本、表情、动作标签等所有行）必须在 ${state.chat.minReplyLines} 到 ${state.chat.maxReplyLines} 行之间！绝对不能少于 ${state.chat.minReplyLines} 行！**
 - 直接开始写你的第一句聊天内容。
 ${(() => {
     const lastMsg = state.chat.history[state.chat.history.length - 1];
@@ -5280,6 +5300,82 @@ ${(() => {
                     role: 'user',
                     content: '[系统强制引导]：玩家此时保持沉默。请你根据人设主动搭话，或者继续刚才的话题，严禁等待玩家回复！'
                 });
+            }
+
+            return messages;
+        };
+        
+        const createOfflineApiPrompt = () => {
+            const now = new Date();
+            const currentTimeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            let systemPrompt = `
+# 当前时间
+- **${currentTimeString}**
+
+# MODE: OFFLINE INTERACTION (线下模式)
+# ===================================
+
+# 你的核心任务
+- **身份**: 你是 **${state.role.roleName || '角色'}**。
+- **人设**: ${state.role.rolePersona || '未设定'}
+- **场景**: 你现在和玩家 **${state.role.playerName || '玩家'}** 是【面对面】在一起的。你们正在现实中直接互动。
+
+# 核心输出规则 (严格遵守)
+1. **强制动作描写**：【每一段/每一行】回复都必须包含放在全角括号 \`（）\` 中的动作、神态或心理描写！绝对不允许出现只有干巴巴对话的段落！【绝对禁止】使用双引号。
+2. **多行格式示例**（请严格学习这种每一行都有动作的节奏）：
+   （端起咖啡抿了一口，眼神有些闪躲）其实我昨天就想跟你说了。
+   （手指轻轻敲击着桌面，深吸了一口气）我可能要离开这里一段时间。
+   [STATUS:{"thoughts":"不知道听到这个消息会是什么反应","affinity":85,"clothing":"白色高领毛衣","location":"街角咖啡店"}]
+3. **【系统级行数限制】**：回复的“互动正文”（即动作+对话部分），总行数/段落数必须严格控制在 ${state.chat.minReplyLines} 到 ${state.chat.maxReplyLines} 行之间！
+4. **独立状态栏**：在所有正文输出完毕后，必须在最后另起一行输出 \`[STATUS:{...}]\` 标签。
+   **【最高警告】：这个 [STATUS] 标签【绝对不计入】上述的正文行数限制中！你必须先写满 ${state.chat.minReplyLines}-${state.chat.maxReplyLines} 行正文，最后再额外附上这行状态！**
+5. **禁用手机功能**：你们是线下互动，【绝对禁止】使用表情、语音等手机标签。
+
+# 共同记忆与法则
+- **共同记忆**: ${getActiveMemories().map(m => `- ${m.content}`).join('\n') || '无'}
+${(() => {
+    const activeWb = (state.worldbook || []).filter(wb => wb.enabled !== false);
+    return activeWb.length > 0 ? activeWb.map((wb, i) => `[法则 ${i+1} - ${wb.title || '未命名'}]: ${wb.content}`).join('\n') : '- 暂无额外世界观干涉';
+})()}
+
+# 最终指令
+- 每一行正文都必须带（动作）！
+- 正文行数严格控制在 ${state.chat.minReplyLines}-${state.chat.maxReplyLines} 行！
+- 最后单独附加上帝视角 [STATUS]（此行不计入正文行数）！
+`;
+            const messages = [{ role: 'system', content: systemPrompt }];
+            
+            // --- 核心修复：把折叠的剧情回顾拆解开，让大模型能回忆起剧情模式发生的事 ---
+            const fullHistoryForAI = [];
+            state.chat.history.forEach(msg => {
+                if (msg.type === 'story_review_placeholder' && msg.archivedContent) {
+                    fullHistoryForAI.push(...msg.archivedContent);
+                } else {
+                    fullHistoryForAI.push(msg);
+                }
+            });
+            
+            const maxContext = parseInt(get('api-max-context').value) || 20;
+            const historyToProcess = fullHistoryForAI.slice(-maxContext);
+            historyToProcess.forEach(msg => {
+                if (msg.sender === 'system') return;
+                let content = '';
+                const role = msg.sender === 'user' ? 'user' : 'assistant';
+                if (msg.type === 'text') content = msg.text;
+                else if (msg.type === 'voice') content = `(发语音) ${msg.text}`;
+                else if (msg.type === 'sticker') content = `(做了一个表情: ${msg.meaning})`;
+                
+                if (content) messages.push({ role, content });
+            });
+
+            if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+                messages.push({
+                    role: 'user',
+                    content: '[系统引导]：玩家走到你面前，暂时没有说话。请你根据当前场景和人设，做出一个动作并主动开口。'
+                });
+            } else {
+                messages[messages.length - 1].content += '\n\n[系统强制指令]：请严格遵守多行格式！【每一行】都必须带有（动作）！正文行数必须在限制范围内，最后单独附加[STATUS]！';
             }
 
             return messages;
@@ -5476,7 +5572,14 @@ ${state.role.promptInstructions ? `
             showToast('对方正在输入...');
 
             try {
-                const messages = state.chat.mode === 'phone' ? createPhoneApiPrompt() : createStoryApiPrompt();
+                let messages;
+                if (state.chat.mode === 'story') {
+                    messages = createStoryApiPrompt();
+                } else if (state.chat.mode === 'offline') {
+                    messages = createOfflineApiPrompt();
+                } else {
+                    messages = createPhoneApiPrompt();
+                }
                 
                 // --- 跨域潜意识记忆桥接探针 开始 ---
                     try {
@@ -5588,7 +5691,13 @@ ${state.role.promptInstructions ? `
                         .replace(/\[VOICE_MESSAGE\]([\s\S]*?)\[\/VOICE_MESSAGE\]/ig, (match, p1) => '\n[VOICE_MESSAGE]' + p1.replace(/\n/g, ' ') + '[/VOICE_MESSAGE]\n')
                         .replace(/\[HTML_BLOCK\]([\s\S]*?)\[\/HTML_BLOCK\]/ig, (match, p1) => '\n[HTML_BLOCK]' + p1.replace(/\n/g, ' ') + '[/HTML_BLOCK]\n');
 
-                    const lines = contentForParsing.split('\n').filter(line => line.trim() !== '');
+                    let lines = contentForParsing.split('\n').filter(line => line.trim() !== '');
+                    
+                    // --- 底层物理截断：绝对服从主人的条数限制 ---
+                    if (state.chat.maxReplyLines && lines.length > state.chat.maxReplyLines) {
+                        lines = lines.slice(0, state.chat.maxReplyLines);
+                    }
+
                     let pendingReplyId = null; 
                     
                     for (const line of lines) {
@@ -5860,6 +5969,8 @@ function parseTagToMessage(tag) {
         if (typeof state.chat.allowDeviceLock === 'undefined') state.chat.allowDeviceLock = true;
         if (typeof state.chat.autoReplyEnabled === 'undefined') state.chat.autoReplyEnabled = false;
         if (typeof state.chat.autoReplyInterval === 'undefined') state.chat.autoReplyInterval = 5;
+        if (typeof state.chat.minReplyLines === 'undefined') state.chat.minReplyLines = 3;
+        if (typeof state.chat.maxReplyLines === 'undefined') state.chat.maxReplyLines = 15;
 
         // 2. 绑定新增加的下拉菜单DOM节点
         const chatSettingsBtn = get('chat-settings-btn');
@@ -5869,13 +5980,25 @@ function parseTagToMessage(tag) {
         const menuToggleLockBtn = get('menu-toggle-lock-btn');
         const menuToggleAutoreplyBtn = get('menu-toggle-autoreply-btn');
         const menuAutoreplyTimeBtn = get('menu-autoreply-time-btn');
+        const menuReplyLengthBtn = get('menu-reply-length-btn'); // 新增：回复条数按钮
+        const menuToggleOfflineBtn = get('menu-toggle-offline-btn'); // 新增：线下模式按钮
         const stickerStatus = get('sticker-status');
         const lockStatus = get('lock-status');
         const autoreplyStatus = get('autoreply-status');
+        const offlineStatus = get('offline-status'); // 新增：线下状态
         const autoreplyTimeDisplay = get('autoreply-time-display');
+        const replyLengthDisplay = get('reply-length-display'); // 新增：显示条数文本
 
         // 3. 刷新菜单内部的开关UI状态
         const updateMenuUI = () => {
+            if (replyLengthDisplay) {
+                replyLengthDisplay.textContent = `${state.chat.minReplyLines}-${state.chat.maxReplyLines}`;
+            }
+            if (offlineStatus) {
+                const isOffline = state.chat.mode === 'offline';
+                offlineStatus.textContent = isOffline ? 'ON' : 'OFF';
+                offlineStatus.className = isOffline ? 'text-xs text-green-400' : 'text-xs text-gray-400';
+            }
             if (!chatSettingsMenu) return; 
             stickerStatus.textContent = state.chat.allowAiStickers ? 'ON' : 'OFF';
             stickerStatus.className = state.chat.allowAiStickers ? 'text-xs text-green-400' : 'text-xs text-gray-400';
@@ -5977,6 +6100,86 @@ function parseTagToMessage(tag) {
                 } else if (min) {
                     showToast('请输入有效的纯数字');
                 }
+            });
+        }
+        
+        // 9.5 核心功能五：动态设置大模型回复的条数限制
+        if (menuReplyLengthBtn) {
+            menuReplyLengthBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                chatSettingsMenu.classList.add('hidden');
+                const result = await showDialog('设置回复条数', '请定义线上手机模式下，TA每次回复的气泡数量范围：', {
+                    complexInput: `
+                        <div class="flex items-center gap-4 mt-2">
+                            <div class="flex-1">
+                                <label class="text-xs text-slate-400 mb-1 block">最少条数</label>
+                                <input type="number" id="min-reply-input" class="w-full p-2 border border-slate-200 rounded-md bg-slate-50 text-slate-800 outline-none focus:border-indigo-400" value="${state.chat.minReplyLines}" min="1" max="20">
+                            </div>
+                            <div class="text-slate-400 mt-5 font-bold">-</div>
+                            <div class="flex-1">
+                                <label class="text-xs text-slate-400 mb-1 block">最多条数</label>
+                                <input type="number" id="max-reply-input" class="w-full p-2 border border-slate-200 rounded-md bg-slate-50 text-slate-800 outline-none focus:border-indigo-400" value="${state.chat.maxReplyLines}" min="1" max="50">
+                            </div>
+                        </div>
+                    `,
+                    getValues: () => ({
+                        min: parseInt(document.getElementById('min-reply-input').value) || 1,
+                        max: parseInt(document.getElementById('max-reply-input').value) || 15
+                    })
+                });
+
+                if (result) {
+                    if (result.min > result.max) {
+                        showToast('最小条数不能大于最大条数哦！');
+                        return;
+                    }
+                    state.chat.minReplyLines = result.min;
+                    state.chat.maxReplyLines = result.max;
+                    await saveState();
+                    updateMenuUI();
+                    showToast(`回复条数已限制为 ${result.min} 到 ${result.max} 条`);
+                }
+            });
+        }
+        
+        // 9.6 核心功能六：线下互动模式切换
+        if (menuToggleOfflineBtn) {
+            menuToggleOfflineBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                chatSettingsMenu.classList.add('hidden');
+                
+                if (state.chat.mode === 'offline') {
+                    state.chat.mode = 'phone';
+                    state.chat.history.push({ id: Date.now(), sender: 'system', type: 'system', text: '--- 两人分开了，已切回手机线上模式 ---' });
+                    showToast('已切回线上手机模式');
+                } else {
+                    // 核心修复：如果是剧情模式，必须先调用系统原生的打包逻辑
+                    if (state.chat.mode === 'story') {
+                        showToast('正在为您打包剧情回顾，请稍候...');
+                        // 触发原生的剧情按钮点击事件，让底层系统去完成自动总结和存档
+                        storyModeBtn.click(); 
+                        
+                        // 给予系统一点缓冲时间来完成打包，然后再优雅地切入线下模式
+                        setTimeout(async () => {
+                            state.chat.mode = 'offline';
+                            state.chat.history.push({ id: Date.now(), sender: 'system', type: 'system', text: '--- 你们见面了，已开启线下模式 ---' });
+                            updateMenuUI();
+                            await saveState();
+                            renderChatHistory({ autoScroll: true });
+                            showToast('剧情已封存，进入线下模式');
+                        }, 1200);
+                        return; // 提前阻断，让 setTimeout 去接管后续流程
+                    }
+
+                    // 如果是从手机模式切换过来，则直接进入
+                    state.chat.mode = 'offline';
+                    state.chat.history.push({ id: Date.now(), sender: 'system', type: 'system', text: '--- 你们见面了，已开启线下模式 ---' });
+                    showToast('已进入线下互动模式');
+                }
+                
+                updateMenuUI();
+                await saveState();
+                renderChatHistory({ autoScroll: true });
             });
         }
 
@@ -6090,7 +6293,7 @@ function parseTagToMessage(tag) {
                     })()}
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <span style="font-size: 0.85rem; color: #818cf8; font-weight: bold; text-transform: uppercase;">定制系统提示词</span>
-                        <textarea id="mem-custom-prompt" style="width: 100%; height: 80px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.8rem; padding: 0.8rem; color: var(--text-color); font-size: 0.85rem; line-height: 1.4; resize: none; outline: none;">你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或感情变化，形成一个简洁、客观、第三人称的记忆存档。摘要应以“你和${state.role.roleName || '角色'}”开头。</textarea>
+                        <textarea id="mem-custom-prompt" style="width: 100%; height: 80px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.8rem; padding: 0.8rem; color: var(--text-color); font-size: 0.85rem; line-height: 1.4; resize: none; outline: none;">${state.config.autoSummarize.customPrompt || `你是一名记忆助手。请根据提供的对话内容，总结出关键要点、主题或感情变化，形成一个简洁、客观、第三人称的记忆存档。摘要应以“你和${state.role.roleName || '角色'}”开头。`}</textarea>
                     </div>
                 </div>
                 
@@ -6133,7 +6336,14 @@ function parseTagToMessage(tag) {
                 modal.style.transform = 'translateY(0)';
             });
 
-            const closeModal = () => {
+            const closeModal = async () => {
+                // 核心修复：在面板彻底沉没前，强行提取并烙印当前的提示词
+                const promptInput = modal.querySelector('#mem-custom-prompt');
+                if (promptInput) {
+                    state.config.autoSummarize.customPrompt = promptInput.value;
+                    await saveState();
+                }
+                
                 overlay.style.opacity = '0';
                 modal.style.transform = 'translateY(100%)';
                 setTimeout(() => { if(phoneScreen.contains(overlay)) phoneScreen.removeChild(overlay); }, 300);
@@ -6214,10 +6424,13 @@ function parseTagToMessage(tag) {
             }
 
             execBtn.onclick = async () => {
+                // 物理截获最新的提示词并写入底层状态
+                state.config.autoSummarize.customPrompt = modal.querySelector('#mem-custom-prompt').value;
+                
                 if (isAuto) {
                     const startIdx = parseInt(modal.querySelector('#mem-start-idx').value, 10) || 1;
                     const endIdx = parseInt(modal.querySelector('#mem-end-idx').value, 10) || state.chat.history.length;
-                    const prompt = modal.querySelector('#mem-custom-prompt').value;
+                    const prompt = state.config.autoSummarize.customPrompt;
                     
                     if (state.chat.history.length === 0) {
                         showDialog('无法存档', '没有聊天记录可以总结。');
@@ -8283,7 +8496,8 @@ imageUploadInput.addEventListener('change', async (e) => {
                     return `${sender}：${textContent}`;
                 }).join('\n');
                 
-                const prompt = `你是一名记忆助手。请根据以下最近的一段对话，总结出关键要点、主题或感情变化，形成一个简洁、客观、第三人称的记忆存档。摘要应以“你和${state.role.roleName || '角色'}”开头。`;
+                // 核心修复：让后台静默引擎也绝对服从主人定制的提示词
+                const prompt = state.config.autoSummarize.customPrompt || `你是一名记忆助手。请根据以下最近的一段对话，总结出关键要点、主题或感情变化，形成一个简洁、客观、第三人称的记忆存档。摘要应以“你和${state.role.roleName || '角色'}”开头。`;
                 
                 let safeBaseUrl = state.config.api.baseUrl.replace(/\/+$/, '');
                 if (!safeBaseUrl.endsWith('/chat/completions')) safeBaseUrl += '/chat/completions';
@@ -9380,6 +9594,12 @@ ${chatHistoryContext}
         const badReviewsPool = ["物流稍微有点慢，其他还行。", "颜色有一点点色差，勉强接受。", "包装有点简陋。", "感觉性价比一般般吧。", "实物有点小，不太习惯。"];
 
         if(openMallBtn) openMallBtn.addEventListener('click', () => {
+            // --- 核心拦截：商城仅限手机线上模式使用 ---
+            if (state.chat.mode !== 'phone') {
+                showToast('沉浸互动中，请先切回「手机模式」再打开商城。');
+                return;
+            }
+
             if(!state.mall) state.mall = { balance: 1000, cart: [], favorites: [], orders: [], productsCache: {} };
             updateMallUI();
             if(state.mall.productsCache[currentMallCate]) {
